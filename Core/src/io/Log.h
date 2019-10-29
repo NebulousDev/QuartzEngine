@@ -1,5 +1,5 @@
 #pragma once
-#include "platform\Console.h"
+#include "Console.h"
 
 #include <stdio.h>
 

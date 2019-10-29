@@ -4,7 +4,9 @@
 #include "util\Array.h"
 #include "util\String.h"
 
-#include <iostream>
+#include "io\Log.h"
+
+#include "Win32Console.h"
 
 int main()
 {
@@ -13,7 +15,13 @@ int main()
 	strings.PushBack("Hello");
 	strings.PushBack("World!");
 
-	printf("%s\n", (strings[0] + " " + strings[1]).Str());
+	Quartz::SystemConsole* pConsole = new Quartz::Win32SystemConsole();
+	pConsole->Init();
+	pConsole->Show();
+
+	Log.SetOutputConsole(pConsole);
+
+	Log.Critical("%s\n", (strings[0] + " " + strings[1]).Str());
 
 	return 0;
 }
