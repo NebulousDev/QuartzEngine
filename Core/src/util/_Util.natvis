@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <Type Name = "Quartz::StringImpl&lt;*&gt;">
+    <DisplayString>String {mpStr,s}</DisplayString>
+    <Expand>
+      <Item Name="[string]">mpStr,s8</Item>
+      <Item Name="[length]">*mpLength</Item>
+      <Item Name="[count]">*mpCount</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Array&lt;*&gt;">
+    <DisplayString>Array {{Size = {mSize}}}</DisplayString>
+    <Expand>
+      <Item Name="[size]">mSize</Item>
+      <Item Name="[capacity]">mCapacity</Item>
+      <ArrayItems>
+        <Size>mSize</Size>
+        <ValuePointer>mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::HashEntry&lt;*&gt;">
+    <DisplayString>Entry {{Key = {key}, Value = {value}}}</DisplayString>
+    <Expand>
+      <Item Name="[key]">key</Item>
+      <Item Name="[value]">value</Item>
+      <Item Name="[hash]">hash</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Map&lt;*&gt;">
+    <DisplayString>Map {{Size = {mSize}}}</DisplayString>
+    <Expand>
+      <Item Name="[size]">mSize</Item>
+      <Item Name="[capacity]">mCapacity</Item>
+      <Item Name="[threshold]">mThreshold</Item>
+      <ArrayItems>
+        <Size>mCapacity</Size>
+        <ValuePointer>mTable.mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  
+</AutoVisualizer>
