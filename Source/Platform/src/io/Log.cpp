@@ -12,8 +12,8 @@ namespace Quartz
 
 	Logger& Logger::Instance()
 	{
-		static Logger sLogManager;
-		return sLogManager;
+		static Logger sLoggerInstance;
+		return sLoggerInstance;
 	}
 
 	void Logger::SetOutputConsole(SystemConsole* pConsole)

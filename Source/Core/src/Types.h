@@ -12,6 +12,9 @@
 #define NULL 0x0
 #endif // !NULL
 
+#define DLL_EXPORT _declspec(dllexport)
+#define DLL_IMPORT _declspec(dllexport)
+
 namespace Quartz
 {
 	typedef __int64 Int64;

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../Types.h"
+#include "Types.h"
 #include <stdarg.h>
 
 namespace Quartz
 {
-	enum ConsoleColor
+	DLL_EXPORT enum ConsoleColor
 	{
 		COLOR_DEFAULT,
 		COLOR_RED,
@@ -26,7 +26,7 @@ namespace Quartz
 		COLOR_BLACK
 	};
 
-	class SystemConsole
+	DLL_EXPORT class SystemConsole
 	{
 	public:
 		virtual FORCE_INLINE void Init() = 0;
