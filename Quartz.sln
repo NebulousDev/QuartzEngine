@@ -3,21 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Engine.vcxproj", "{67EDB775-3D1B-44EA-BF0B-5DD54FC7D12B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Source\Engine\Engine.vcxproj", "{67EDB775-3D1B-44EA-BF0B-5DD54FC7D12B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{564ED702-D369-4CD6-A961-EAFCF8EF5401} = {564ED702-D369-4CD6-A961-EAFCF8EF5401}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core.vcxproj", "{564ED702-D369-4CD6-A961-EAFCF8EF5401}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Source\Core\Core.vcxproj", "{564ED702-D369-4CD6-A961-EAFCF8EF5401}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{C06EA39B-D224-4013-AA2E-868C08BBF4DB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Source\Sandbox\Sandbox.vcxproj", "{C06EA39B-D224-4013-AA2E-868C08BBF4DB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{564ED702-D369-4CD6-A961-EAFCF8EF5401} = {564ED702-D369-4CD6-A961-EAFCF8EF5401}
 		{67EDB775-3D1B-44EA-BF0B-5DD54FC7D12B} = {67EDB775-3D1B-44EA-BF0B-5DD54FC7D12B}
 		{082C5183-1965-4D97-B75D-D96CD16328E8} = {082C5183-1965-4D97-B75D-D96CD16328E8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win32", "Win32\Win32.vcxproj", "{082C5183-1965-4D97-B75D-D96CD16328E8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win32", "Source\Win32\Win32.vcxproj", "{082C5183-1965-4D97-B75D-D96CD16328E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
