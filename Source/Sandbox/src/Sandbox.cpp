@@ -8,6 +8,10 @@
 
 #include "Win32Console.h"
 
+#include "VulkanTest.h"
+
+#include <iostream>
+
 using namespace Quartz;
 
 int main()
@@ -18,6 +22,13 @@ int main()
 	Log.SetOutputConsole(pConsole);
 
 	Log.Info("Log System Initialized...");
+
+	/* Test Vulkan */
+	TestVulkan();
+
+	Array<int> ints = { 1, 2, 3, 4, 5 };
+
+	system("PAUSE");
 
 	return 0;
 }
