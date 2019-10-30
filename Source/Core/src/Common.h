@@ -2,10 +2,10 @@
 
 #define INLINE _inline
 
-#ifndef QUARTZ_DEBUG
-#define FORCE_INLINE __forceinline
-#else
+#ifdef QUARTZ_DEBUG
 #define FORCE_INLINE INLINE
+#else
+#define FORCE_INLINE __forceinline
 #endif // QUARTZ_DEBUG
 
 #ifndef NULL
@@ -32,7 +32,6 @@ namespace Quartz
 #else
 	typedef unsigned int USize;
 #endif // QUARTZ_64
-
 
 	typedef bool   Bool8;	// <- Would really like this to be Bool (but Win32API is dumb)
 	typedef float  Float32;

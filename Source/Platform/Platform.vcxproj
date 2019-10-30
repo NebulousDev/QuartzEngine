@@ -152,6 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\interface\Window.h" />
     <ClInclude Include="src\io\Console.h" />
     <ClInclude Include="src\io\Log.h" />
   </ItemGroup>

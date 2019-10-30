@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Types.h"
+#include "Common.h"
 #include "util\Array.h"
 #include "util\String.h"
 

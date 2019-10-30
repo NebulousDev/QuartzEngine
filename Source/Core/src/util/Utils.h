@@ -1,5 +1,5 @@
 #pragma once
-#include "../Types.h"
+#include "../Common.h"
 
 #if _MSC_VER
 

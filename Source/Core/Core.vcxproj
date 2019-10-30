@@ -102,7 +102,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>QUARTZ_LOG_EXPORT;_CRT_SECURE_NO_WARNINGS;QUARTZ_DEBUG;QUARTZ_64;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>QUARTZ_64;QUARTZ_LOG_EXPORT;_CRT_SECURE_NO_WARNINGS;QUARTZ_DEBUG;QUARTZ_64;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,7 +128,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>QUARTZ_LOG_EXPORT;_CRT_SECURE_NO_WARNINGS;QUARTZ_64;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>QUARTZ_64;QUARTZ_LOG_EXPORT;_CRT_SECURE_NO_WARNINGS;QUARTZ_64;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -155,7 +155,7 @@
     <ClInclude Include="src\util\Stack.h" />
     <ClInclude Include="src\util\String.h" />
     <ClInclude Include="src\util\TypePack.h" />
-    <ClInclude Include="src\Types.h" />
+    <ClInclude Include="src\Common.h" />
     <ClInclude Include="src\util\Utils.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Types.h"
+#include "../Common.h"
 #include "../util/Intrinsics.h"
 
 namespace Quartz
