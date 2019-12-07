@@ -5,8 +5,12 @@
 #include "util\String.h"
 
 #include "io\Log.h"
+#include "interface\Window.h"
 
 #include "Win32Console.h"
+#include "interface\Win32Window.h"
+
+#include "Engine.h"
 
 #include "VulkanTest.h"
 
@@ -17,16 +21,22 @@ using namespace Quartz;
 int main()
 {
 	/* Initialize Console */
+	// Eventually move to PlatformLayer->CreateConsole() etc...
 	SystemConsole* pConsole = new Win32SystemConsole();
 	pConsole->Init();
 	Log.SetOutputConsole(pConsole);
+	Log.Info("Log System Initialized Successfully.");
 
-	Log.Info("Log System Initialized...");
+	/* Create Window */
+	// Eventually move to PlatformLayer->CreateWindow() etc...
+	Window* pWindow = new Win32Window(0, 0, 640, 480, "Quartz Engine - Sandbox");
+	pWindow->Show();
+	Log.Info("Window Created Successfully.");
 
-	/* Test Vulkan */
-	TestVulkan();
-
-	Array<int> ints = { 1, 2, 3, 4, 5 };
+	/* Start Engine */
+	Log.Info("Starting Engine...");
+	Engine& engine = Engine::GetInstance();
+	engine.Start();
 
 	system("PAUSE");
 

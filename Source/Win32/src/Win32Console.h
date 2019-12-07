@@ -7,7 +7,7 @@
 
 namespace Quartz
 {
-	__declspec(dllexport) class Win32SystemConsole : public SystemConsole
+	class QUARTZ_API Win32SystemConsole : public SystemConsole
 	{
 	private:
 		HANDLE mConsoleHandle;
@@ -17,16 +17,16 @@ namespace Quartz
 		UInt16 mDefaultColor;
 
 	public:
-		__declspec(dllexport) void Init() override;
-		__declspec(dllexport) void Destroy() override;
-		__declspec(dllexport) void Show() override;
-		__declspec(dllexport) void Hide() override;
-		__declspec(dllexport) void SetTitle(const char* title) override;
-		__declspec(dllexport) void SetColor(const ConsoleColor foreground, const ConsoleColor background) override;
-		__declspec(dllexport) void Print(const char* text) override;
-		__declspec(dllexport) void Printf(const char* format, ...) override;
-		__declspec(dllexport) void PrintfV(const char* format, va_list args) override;
-		__declspec(dllexport) void SetCursor(const Int16 posX, const Int16 posY) override;
-		__declspec(dllexport) void Clear() override;
+		void Init() override;
+		void Destroy() override;
+		void Show() override;
+		void Hide() override;
+		void SetTitle(const char* title) override;
+		void SetColor(const ConsoleColor foreground, const ConsoleColor background) override;
+		void Print(const char* text) override;
+		void Printf(const char* format, ...) override;
+		void PrintfV(const char* format, va_list args) override;
+		void SetCursor(const Int16 posX, const Int16 posY) override;
+		void Clear() override;
 	};
 }

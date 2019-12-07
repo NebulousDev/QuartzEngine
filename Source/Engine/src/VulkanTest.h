@@ -4,5 +4,5 @@
 
 namespace Quartz
 {
-	DLL_EXPORT void TestVulkan();
+	QUARTZ_API void TestVulkan();
 }

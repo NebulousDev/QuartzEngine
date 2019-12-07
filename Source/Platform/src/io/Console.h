@@ -5,7 +5,7 @@
 
 namespace Quartz
 {
-	DLL_EXPORT enum ConsoleColor
+	enum QUARTZ_API ConsoleColor
 	{
 		COLOR_DEFAULT,
 		COLOR_RED,
@@ -26,7 +26,7 @@ namespace Quartz
 		COLOR_BLACK
 	};
 
-	DLL_EXPORT class SystemConsole
+	class QUARTZ_API SystemConsole
 	{
 	public:
 		virtual FORCE_INLINE void Init() = 0;

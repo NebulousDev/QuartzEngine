@@ -6,6 +6,11 @@
 
 #include <utility>
 
+#define STR(str) str##_S
+#define STR8(str) str##_S8
+#define STR16(str) str##_S16
+#define STR32(str) str##_S32
+
 namespace Quartz
 {
 	using UTF8Char = char;

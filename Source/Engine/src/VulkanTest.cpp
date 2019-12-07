@@ -3,7 +3,7 @@
 
 namespace Quartz
 {
-	_declspec(dllexport) void TestVulkan()
+	QUARTZ_API void TestVulkan()
 	{
 		Log.Info("Starting Vulkan Test...");
 

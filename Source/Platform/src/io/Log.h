@@ -7,7 +7,7 @@
 
 namespace Quartz
 {
-	class DLL_EXPORT Logger
+	class QUARTZ_API Logger
 	{
 	private:
 		SystemConsole* mpLogConsole;

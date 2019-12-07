@@ -12,8 +12,11 @@
 #define NULL 0x0
 #endif // !NULL
 
-#define DLL_EXPORT _declspec(dllexport)
-#define DLL_IMPORT _declspec(dllexport)
+#ifdef QUARTZ_API_EXPORT
+#define QUARTZ_API _declspec(dllexport)
+#else
+#define QUARTZ_API _declspec(dllimport)
+#endif
 
 namespace Quartz
 {
@@ -28,9 +31,9 @@ namespace Quartz
 	typedef unsigned __int8  UInt8;
 
 #ifdef QUARTZ_64
-	typedef unsigned long long USize;
+	typedef unsigned __int64 USize;
 #else
-	typedef unsigned int USize;
+	typedef unsigned __int32 USize;
 #endif // QUARTZ_64
 
 	typedef bool   Bool8;	// <- Would really like this to be Bool (but Win32API is dumb)
