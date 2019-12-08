@@ -33,6 +33,9 @@ namespace Quartz
 		virtual WindowHandle GetNativeHandleImpl() = 0;
 
 	public:
+
+		virtual void Update() = 0;
+
 		INLINE Bool8 Show();
 		INLINE Bool8 Hide();
 

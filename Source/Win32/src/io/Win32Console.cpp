@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <io.h>
 
-#include "Win32.h"
+#include "../Win32.h"
 
 namespace Quartz
 {

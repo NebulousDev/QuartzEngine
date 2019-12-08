@@ -37,6 +37,17 @@ namespace Quartz
 		return (WindowHandle) mHandle;
 	}
 
+	void Win32Window::Update()
+	{
+		MSG msg = {};
+		if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+		{
+			GetMessage(&msg, NULL, 0, 0);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
 	Win32Window::Win32Window()
 		: Win32Window(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_TITLE)
 	{ }

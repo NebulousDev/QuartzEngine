@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "interface/Window.h"
+#include "platform/Window.h"
 
 namespace Quartz
 {
@@ -23,6 +23,9 @@ namespace Quartz
 		WindowHandle GetNativeHandleImpl() override;
 
 	public:
+
+		void Update() override;
+
 		Win32Window();
 		Win32Window(UInt32 width, UInt32 height, const char* title);
 		Win32Window(UInt32 x, UInt32 y, UInt32 width, UInt32 height, const char* title);

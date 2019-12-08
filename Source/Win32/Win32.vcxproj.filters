@@ -18,18 +18,24 @@
     <ClInclude Include="src\Win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Win32Console.h">
+    <ClInclude Include="src\platform\Win32Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\interface\Win32Window.h">
+    <ClInclude Include="src\io\Win32Console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\Win32System.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Win32Console.cpp">
+    <ClCompile Include="src\platform\Win32Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\interface\Win32Window.cpp">
+    <ClCompile Include="src\io\Win32Console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\Win32System.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

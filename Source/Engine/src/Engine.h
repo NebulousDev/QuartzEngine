@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util\Singleton.h"
+#include "platform\System.h"
 
 namespace Quartz
 {
@@ -13,12 +14,20 @@ namespace Quartz
 		Bool8 mInitialized;
 		Bool8 mRunning;
 
-		Engine() = default;
+		Time64 mDeltaTime;
 
-		void Run();
-		void Update();
+		Engine() = default;
 
 	public:
 		void Start();
+		void Stop();
+
+		void Update();
+
+		FORCE_INLINE Time64 GetDeltaTime() { return mDeltaTime; }
+		FORCE_INLINE Time64 GetUptime() { return System::GetUptimeNanoseconds(); }
+
+		FORCE_INLINE Bool8 IsInitialized() { return mInitialized; }
+		FORCE_INLINE Bool8 IsRunning() { return mRunning; }
 	};
 }

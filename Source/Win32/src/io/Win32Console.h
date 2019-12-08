@@ -1,7 +1,7 @@
 #pragma once
 
 #include "io/Console.h"
-#include "Win32.h"
+#include "../Win32.h"
 
 #include <stdio.h>
 

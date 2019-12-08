@@ -50,6 +50,9 @@ namespace Quartz
 	typedef UInt32 Flags32;
 	typedef UInt64 Flags64;
 
+	typedef Float32 Time32;
+	typedef Double64 Time64;
+
 	template<class _Type>
 	struct RValue
 	{
