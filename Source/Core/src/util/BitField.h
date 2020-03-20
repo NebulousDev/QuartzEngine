@@ -34,7 +34,7 @@ namespace Quartz
 		void Flip(UInt32 index);
 
 		FORCE_INLINE UInt32 GetSize() const { return mSize; }
-		FORCE_INLINE UInt32 GetByteSize() const { return mBytes.GetSize(); }
+		FORCE_INLINE UInt32 GetByteSize() const { return mBytes.Size(); }
 	};
 
 	FORCE_INLINE UInt32 BitField::CalcByteSize(UInt32 bits)
@@ -64,7 +64,7 @@ namespace Quartz
 	{
 		mSize += count;
 		const UInt32 byteSize = CalcByteSize(mSize);
-		if (byteSize > mBytes.GetSize())
+		if (byteSize > mBytes.Size())
 			mBytes.Resize(byteSize);
 	}
 
@@ -152,7 +152,7 @@ namespace Quartz
 		void Reset(UInt32 col, UInt32 row);
 		void Flip(UInt32 col, UInt32 row);
 
-		FORCE_INLINE UInt32 GetWidth() const { return mBitFields.GetSize(); }
+		FORCE_INLINE UInt32 GetWidth() const { return mBitFields.Size(); }
 		FORCE_INLINE UInt32 GetHeight() const { return mHeight; }
 	};
 

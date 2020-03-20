@@ -22,7 +22,7 @@ namespace Quartz
 	class Map
 	{
 	public:
-		constexpr static Float32 LOAD_FACTOR = 0.85;
+		constexpr static Float32 LOAD_FACTOR = 0.85f;
 
 		using MapType = Map<Key, Value, HashFunc>;
 		using EntryType = HashEntry<Key, Value>;
@@ -260,7 +260,7 @@ namespace Quartz
 		const UInt32 oldCapacity = mCapacity;
 
 		mCapacity *= 2;
-		mThreshold = mCapacity * LOAD_FACTOR;
+		mThreshold = (UInt32)(mCapacity * LOAD_FACTOR);
 		mMask = mCapacity - 1;
 
 		newTable.Resize(mCapacity, HashEntry<Key, Value>());
@@ -336,7 +336,7 @@ namespace Quartz
 
 	template<typename Key, typename Value, UInt32 (*HashFunc)(const Key&)>
 	Map<Key, Value, HashFunc>::Map()
-		: mSize(0), mCapacity(16), mThreshold(16 * LOAD_FACTOR), mMask(mCapacity - 1)
+		: mSize(0), mCapacity(16), mThreshold((UInt32)(16 * LOAD_FACTOR)), mMask(mCapacity - 1)
 	{
 		mTable.Resize(mCapacity, HashEntry<Key, Value>());
 	}

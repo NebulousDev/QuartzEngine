@@ -110,8 +110,8 @@ namespace Quartz
 
 		FORCE_INLINE Bool8 IsEmpty() { return mSize == 0; }
 
-		FORCE_INLINE Type* GetData() { return mpData; }
-		FORCE_INLINE UInt32 GetSize() const { return mSize; }
+		FORCE_INLINE Type* Data() { return mpData; }
+		FORCE_INLINE UInt32 Size() const { return mSize; }
 		FORCE_INLINE UInt32 GetCapacity() const { return mCapacity; }
 	};
 

@@ -42,7 +42,7 @@ namespace Quartz
 
 	typedef UInt8 Byte;
 
-	typedef UInt8 Char;
+	typedef char Char;
 	typedef UInt16 WChar;
 
 	typedef UInt8 Flags8;
