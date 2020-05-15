@@ -4,6 +4,8 @@
 #include "util\Array.h"
 #include "util\String.h"
 
+#include "math\Math.h"
+
 #include "io\Log.h"
 #include "platform\Window.h"
 #include "platform\System.h"
@@ -89,7 +91,7 @@ int main()
 
 	/* Create Window */
 
-	Window* pWindow = System::CreateWindow(0, 0, 640, 480, "Quartz Engine - Sandbox");
+	Window* pWindow = System::CreateWindow(0, 0, 1280, 720, "Quartz Engine - Sandbox");
 	pWindow->Show();
 	Log.Info("Window Created Successfully.");
 
@@ -198,7 +200,29 @@ int main()
 
 	/////////////////
 
+	struct Vertex
+	{
+		float position[3];
+	};
+
+	GFXVertexInputBindingInfo vertexBindingInfo = {};
+	vertexBindingInfo.binding = 0;
+	vertexBindingInfo.stride = sizeof(Vertex);
+	vertexBindingInfo.inputRate = GFX_VERTEX_INPUT_RATE_VERTEX;
+
+	GFXVertexInputAttributeInfo vertexAttribInfo = {};
+	vertexAttribInfo.binding = 0;
+	vertexAttribInfo.location = 0;
+	vertexAttribInfo.format = GFX_FORMAT_R32G32B32_SFLOAT;
+	vertexAttribInfo.offset = offsetof(Vertex, position);
+
+	/////////////////
+
 	GFXVertexInputStateInfo vertexStateInfo = {};
+	vertexStateInfo.vertexBindingCount = 1;
+	vertexStateInfo.pVertexBindingInfos = &vertexBindingInfo;
+	vertexStateInfo.vertexAttributeCount = 1;
+	vertexStateInfo.pVertexAttributeInfos = &vertexAttribInfo;
 
 	GFXVertexInputState* pVertexInputState = ctx.CreateVertexInputState(vertexStateInfo);
 
@@ -272,12 +296,6 @@ int main()
 
 	/////////////////
 
-	GFXPipelineLayoutInfo pipelineLayoutInfo = {};
-
-	GFXPipelineLayout* pPipelineLayout = ctx.CreatePipelineLayout(pDevice, pipelineLayoutInfo);
-
-	/////////////////
-
 	GFXRenderAttachmentInfo colorAttachmentInfo = {};
 	colorAttachmentInfo.imageFormat		= swapchainImages[0]->GetImageFormat();
 	colorAttachmentInfo.multisamples	= 1;
@@ -321,6 +339,108 @@ int main()
 
 	/////////////////
 
+	float positions[3 * 3] =
+	{
+		0.0f, -0.5f, 0.0f,
+		0.5f,  0.5f, 0.0f,
+		-0.5f,  0.5f, 0.0f
+	};
+
+	UInt16 indices[3] =
+	{
+		0, 1, 2
+	};
+
+	void* data;
+
+	GFXBufferInfo vertexBufferInfo = {};
+	vertexBufferInfo.debugName = "VertexBuffer";
+	vertexBufferInfo.memoryFlags = GFX_BUFFER_MEMORY_VISIBLE_BIT | GFX_BUFFER_MEMORY_COHERENT_BIT;
+	vertexBufferInfo.sharingMode = GFX_SHARING_MODE_EXCLUSIVE;
+	vertexBufferInfo.usageFlags = GFX_BUFFER_USAGE_VERTEX_BIT;
+	vertexBufferInfo.size = sizeof(float) * 9;
+
+	GFXBuffer* pVertexBuffer = ctx.CreateBuffer(pDevice, vertexBufferInfo);
+
+	ctx.MapBufferMemory(pVertexBuffer, 0, pVertexBuffer->GetSize(), 0, &data);
+	memcpy(data, positions, pVertexBuffer->GetSize());
+	ctx.UnmapBufferMemory(pVertexBuffer);
+
+	GFXBufferInfo indexBufferInfo = {};
+	indexBufferInfo.debugName = "IndexBuffer";
+	indexBufferInfo.memoryFlags = GFX_BUFFER_MEMORY_VISIBLE_BIT | GFX_BUFFER_MEMORY_COHERENT_BIT;
+	indexBufferInfo.sharingMode = GFX_SHARING_MODE_EXCLUSIVE;
+	indexBufferInfo.usageFlags = GFX_BUFFER_USAGE_INDEX_BIT;
+	indexBufferInfo.size = sizeof(UInt16) * 3;
+
+	GFXBuffer* pIndexBuffer = ctx.CreateBuffer(pDevice, indexBufferInfo);
+
+	ctx.MapBufferMemory(pIndexBuffer, 0, pIndexBuffer->GetSize(), 0, &data);
+	memcpy(data, indices, pIndexBuffer->GetSize());
+	ctx.UnmapBufferMemory(pIndexBuffer);
+
+	/////////////////
+
+	struct UBO
+	{
+		Matrix4 mvp;
+	};
+
+	Matrix4 model = Matrix4().SetTranslation({0.0f, 0.0f, -1.0f});
+	Matrix4 view = Matrix4().SetLookAt({ 0.5f, 1.0f, 0.5f }, { 0,0,0 }, Vector3::Up);
+	//Matrix4 view = Matrix4().SetView(Vector3::Right, Vector3::Up, Vector3::Forward, { 0,0,-2.0f });
+	Matrix4 proj = Matrix4().SetPerspective(ToRadians(90.0f), 1280.0f / 720.0f, 0.01f, 1000.0f);
+
+	//Matrix4 mvp = model * view * proj;
+	//Matrix4 mvp = proj * view * model;
+	Matrix4 mvp = model * proj;
+
+	//mvp = mvp.Transpose(); //TODO; Transposed()
+
+	UBO ubo = { mvp };
+
+	GFXBufferInfo uboBufferInfo = {};
+	uboBufferInfo.debugName = "UBOBuffer";
+	uboBufferInfo.memoryFlags = GFX_BUFFER_MEMORY_VISIBLE_BIT | GFX_BUFFER_MEMORY_COHERENT_BIT;
+	uboBufferInfo.sharingMode = GFX_SHARING_MODE_EXCLUSIVE;
+	uboBufferInfo.usageFlags = GFX_BUFFER_USAGE_UNIFORM_BIT;
+	uboBufferInfo.size = sizeof(UBO);
+
+	GFXBuffer** uboBuffers = new GFXBuffer*[swapChainImageViews.Size()];
+
+	for (UInt32 i = 0; i < swapChainImageViews.Size(); i++)
+	{
+		uboBuffers[i] = ctx.CreateBuffer(pDevice, uboBufferInfo);
+
+		ctx.MapBufferMemory(uboBuffers[i], 0, uboBuffers[i]->GetSize(), 0, &data);
+		memcpy(data, &ubo, uboBuffers[i]->GetSize());
+		ctx.UnmapBufferMemory(uboBuffers[i]);
+	}
+
+	/////////////////
+
+	GFXDescriptorBinding uboBinding = {};
+	uboBinding.binding = 0;
+	uboBinding.count = 1;
+	uboBinding.type = GFX_DESCRIPTOR_TYPE_UNIFORM;
+	uboBinding.stageFlags = GFX_SHADER_STAGE_VERTEX;
+
+	GFXDescriptorSetLayoutInfo descriptorSetLayoutInfo = {};
+	descriptorSetLayoutInfo.bindingCount = 1;
+	descriptorSetLayoutInfo.pBindings = &uboBinding;
+
+	GFXDescriptorSetLayout* pDescriptorSetLayout = ctx.CreateDescriptorSetLayout(pDevice, descriptorSetLayoutInfo);
+
+	/////////////////
+
+	GFXPipelineLayoutInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.layoutCount = 1;
+	pipelineLayoutInfo.pDescriptorSetLayouts = pDescriptorSetLayout;
+
+	GFXPipelineLayout* pPipelineLayout = ctx.CreatePipelineLayout(pDevice, pipelineLayoutInfo);
+
+	/////////////////
+
 	GFXPipelineInfo pipelineInfo		= {};
 	pipelineInfo.shaderCount			= 2;
 	pipelineInfo.ppShaders				= pShaderStages;
@@ -343,6 +463,76 @@ int main()
 	VkPhysicalDevice physicalDevice = static_cast<VulkanGFXPhysicalDevice*>(pPhysicalDevice)->GetVkPhysicalDevice();
 	VkDevice device = static_cast<VulkanGFXDevice*>(pDevice)->GetVkDevice();
 	VkSwapchainKHR swapchain = static_cast<VulkanGFXSwapchain*>(pSwapchain)->GetVkSwapchain();
+
+	VkBuffer vertexBuffer = (static_cast<VulkanGFXBuffer*>(pVertexBuffer))->GetVkBuffer();
+	VkBuffer indexBuffer = (static_cast<VulkanGFXBuffer*>(pIndexBuffer))->GetVkBuffer();
+	
+	VkBuffer* vkUboBuffers = new VkBuffer[swapChainImageViews.Size()];
+
+	for (UInt32 i = 0; i < swapChainImageViews.Size(); i++)
+	{
+		vkUboBuffers[i] = (static_cast<VulkanGFXBuffer*>(uboBuffers[i]))->GetVkBuffer();
+	}
+	
+	VkPipelineLayout vkPipelineLayout = static_cast<VulkanGFXPipelineLayout*>(pPipelineLayout)->GetVkPipelineLayout();
+
+
+	VkDescriptorPool descriptorPool;
+
+	VkDescriptorPoolSize poolSize {};
+	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = static_cast<uint32_t>(swapChainImageViews.Size());
+
+	VkDescriptorPoolCreateInfo poolInfo {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = 1;
+	poolInfo.pPoolSizes = &poolSize;
+	poolInfo.maxSets = static_cast<uint32_t>(swapChainImageViews.Size());
+
+	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+	{
+		Log.Error("Failed to create descriptor pool: vkCreateDescriptorPool failed!");
+	}
+
+	VkDescriptorSetLayout vkDescriptorSetLayout = static_cast<VulkanGFXDescriptorSetLayout*>(pDescriptorSetLayout)->GetVkDescriptorSetLayout();
+
+	std::vector<VkDescriptorSetLayout> layouts(swapChainImageViews.Size(), vkDescriptorSetLayout);
+	VkDescriptorSetAllocateInfo descAllocInfo{};
+	descAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descAllocInfo.descriptorPool = descriptorPool;
+	descAllocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImageViews.Size());
+	descAllocInfo.pSetLayouts = layouts.data();
+
+	std::vector<VkDescriptorSet> descriptorSets;
+	descriptorSets.resize(swapChainImageViews.Size());
+
+	if (vkAllocateDescriptorSets(device, &descAllocInfo, descriptorSets.data()) != VK_SUCCESS)
+	{
+		Log.Error("Failed to allocate descriptor sets: vkAllocateDescriptorSets failed!");
+	}
+
+	for (size_t i = 0; i < swapChainImageViews.Size(); i++) {
+		VkDescriptorBufferInfo bufferInfo{};
+		bufferInfo.buffer = vkUboBuffers[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(UBO);
+
+		VkWriteDescriptorSet descriptorWrite{};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = descriptorSets[i];
+		descriptorWrite.dstBinding = 0;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.pBufferInfo = &bufferInfo;
+		descriptorWrite.pImageInfo = nullptr; // Optional
+		descriptorWrite.pTexelBufferView = nullptr; // Optional
+
+		vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+	}
+
+
+
 
 	Array<GFXFramebuffer*> swapChainFramebuffers(swapChainImageViews.Size());
 
@@ -405,7 +595,15 @@ int main()
 
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<VulkanGFXPipeline*>(pPipeline)->GetVkPipeline());
-		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+
+		VkBuffer vertexBuffers[] = { vertexBuffer };
+		VkDeviceSize offsets[] = { 0 };
+
+		vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+		vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffers[i], 3, 1, 0, 0, 0);
 		vkCmdEndRenderPass(commandBuffers[i]);
 
 		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
@@ -468,6 +666,8 @@ int main()
 
 	while (true)
 	{
+		//((float*)data)[0] += 0.0001f;
+
 		engine.Update();
 		pWindow->Update();
 
@@ -483,8 +683,7 @@ int main()
 			fps = 0;
 		}
 
-		vkQueueWaitIdle(presentQueue);
-
+#if 1
 		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 		vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
@@ -530,10 +729,12 @@ int main()
 		presentInfo.pResults = nullptr; // Optional
 
 		vkQueuePresentKHR(presentQueue, &presentInfo);
+#endif
 		
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 		fps++;
+
 	}
 
 	vkDeviceWaitIdle(device);
@@ -544,6 +745,15 @@ int main()
 		vkDestroyImageView(device, imageView, nullptr);
 	}
 	*/
+
+
+	ctx.DestroyBuffer(pVertexBuffer);
+	ctx.DestroyBuffer(pIndexBuffer);
+
+	//vkDestroyBuffer(device, vertexBuffer, nullptr);
+	//vkFreeMemory(device, vertexBufferMemory, nullptr);
+
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
 	ctx.DestroyCommandPool(pCommandPool);
 	ctx.DestroyPipleline(pPipeline);

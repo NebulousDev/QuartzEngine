@@ -233,7 +233,7 @@ namespace Quartz
 		GFXImageInfo imageInfo = {};
 		imageInfo.width = capabilities.currentExtent.width;
 		imageInfo.height = capabilities.currentExtent.height;
-		imageInfo.imageFormat = GetGFXImageFormat(format.format);
+		imageInfo.format = GetGFXImageFormat(format.format);
 		imageInfo.imageType = GFX_IMAGE_TYPE_2D;
 		imageInfo.mipLevels = 1;
 		imageInfo.multisamples = 1;

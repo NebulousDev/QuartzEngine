@@ -8,6 +8,12 @@ namespace Quartz
 {
 	/********************************************************************************************/
 
+	#define OVERRIDE_USE_VALIDATION 0
+	#define OVERRIDE_USE_DEBUG_NAMES 0
+
+	#define USE_VALIDATION defined(QUARTZ_DEBUG) or OVERRIDE_USE_VALIDATION
+	#define USE_DEBUG_NAMES (USE_VALIDATION) or OVERRIDE_USE_DEBUG_NAMES
+
 
 	void QUARTZ_API SetDebugName(VkDevice device, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name);
 	void QUARTZ_API SetDebugName(GFXDevice* pDevice, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name);
@@ -155,12 +161,19 @@ namespace Quartz
 	class QUARTZ_API VulkanGFXVertexInputState final : public GFXVertexInputState
 	{
 	private:
-		VkPipelineVertexInputStateCreateInfo mVkVertexInputStateInfo;
+		VkPipelineVertexInputStateCreateInfo	mVkVertexInputStateInfo;
+		VkVertexInputBindingDescription*		mpVkVertexInputBindingDescriptions;
+		VkVertexInputAttributeDescription*		mpVkVertexInputAttributeDescriptions;
 
 	public:
-		VulkanGFXVertexInputState(VkPipelineVertexInputStateCreateInfo vertexInputStateInfo, GFXVertexInputStateInfo info);
+		VulkanGFXVertexInputState(VkPipelineVertexInputStateCreateInfo vertexInputStateInfo, 
+			VkVertexInputBindingDescription* pVkVertexInputBindingDescriptions,
+			VkVertexInputAttributeDescription* pVkVertexInputAttributeDescriptions, 
+			GFXVertexInputStateInfo info);
 		
-		FORCE_INLINE VkPipelineVertexInputStateCreateInfo GetVkVertexInputStateInfo() { return mVkVertexInputStateInfo; }
+		FORCE_INLINE VkPipelineVertexInputStateCreateInfo	GetVkVertexInputStateInfo() { return mVkVertexInputStateInfo; }
+		FORCE_INLINE VkVertexInputBindingDescription*		GetVkVertexInputBindingDescriptions() { return mpVkVertexInputBindingDescriptions; }
+		FORCE_INLINE VkVertexInputAttributeDescription*		GetVkVertexInputAttributeDescriptions() { return mpVkVertexInputAttributeDescriptions; }
 	};
 
 
@@ -335,6 +348,23 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	class QUARTZ_API VulkanGFXDescriptorSetLayout final : public GFXDescriptorSetLayout
+	{
+	private:
+		VkDescriptorSetLayout			mVkDescriptorSetLayout;
+		VkDescriptorSetLayoutBinding*	mpVkDescriptorSetLayoutBindings;
+
+	public:
+		VulkanGFXDescriptorSetLayout(GFXDevice* pDevice, VkDescriptorSetLayout descriptorSetLayout, 
+			VkDescriptorSetLayoutBinding* pVkDescriptorSetLayoutBindings, GFXDescriptorSetLayoutInfo info);
+	
+		FORCE_INLINE VkDescriptorSetLayout GetVkDescriptorSetLayout() const { return mVkDescriptorSetLayout; }
+	};
+
+
+	/********************************************************************************************/
+
+
 	class QUARTZ_API VulkanGFXPipeline final : public GFXPipeline
 	{
 	private:
@@ -462,6 +492,8 @@ namespace Quartz
 		void					DestroyRenderSubpass(GFXRenderSubpass* pRenderSubpass) final override;
 		GFXRenderPass*			CreateRenderPass(GFXDevice* pDevice, GFXRenderPassInfo info) final override;
 		void					DestroyRenderPass(GFXRenderPass* pRenderPass) final override;
+		GFXDescriptorSetLayout* CreateDescriptorSetLayout(GFXDevice* pDevice, GFXDescriptorSetLayoutInfo info) final override;
+		void					DestroyDescriptorSetLayout(GFXDescriptorSetLayout* pLayout) final override;
 		GFXPipeline*			CreatePipeline(GFXDevice* pDevice, GFXPipelineInfo info) final override;
 		void					DestroyPipleline(GFXPipeline* pPipeline) final override;
 		GFXFramebuffer*			CreateFramebuffer(GFXDevice* pDevice, GFXFramebufferInfo info) final override;

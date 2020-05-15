@@ -417,6 +417,24 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	GFXDescriptorSetLayout* GFXContext::CreateDescriptorSetLayout(GFXDevice* pDevice, GFXDescriptorSetLayoutInfo info)
+	{
+		return mpGFX->CreateDescriptorSetLayout(pDevice, info);
+	}
+
+
+	/********************************************************************************************/
+
+
+	void GFXContext::DestroyDescriptorSetLayout(GFXDescriptorSetLayout* pLayout)
+	{
+		mpGFX->DestroyDescriptorSetLayout(pLayout);
+	}
+
+
+	/********************************************************************************************/
+
+
 	GFXPipeline* GFXContext::CreatePipeline(GFXDevice* pDevice, GFXPipelineInfo info)
 	{
 		return mpGFX->CreatePipeline(pDevice, info);

@@ -7,31 +7,41 @@ namespace Quartz
 	/********************************************************************************************/
 
 
-	INLINE VkFormat GetVkFormat(GFXImageFormat format)
+	INLINE VkFormat GetVkFormat(GFXFormat format)
 	{
 		switch (format)
 		{
-			case GFX_IMAGE_FORMAT_R8G8B8_UNORM:		return VK_FORMAT_R8G8B8_UNORM;
-			case GFX_IMAGE_FORMAT_R8G8B8A8_UNORM:	return VK_FORMAT_R8G8B8A8_UNORM;
+			case GFX_FORMAT_UNKNOWN:				return VK_FORMAT_UNDEFINED;
+			
+			case GFX_FORMAT_R32G32B32_SFLOAT:		return VK_FORMAT_R32G32B32_SFLOAT;
+			case GFX_FORMAT_R32G32B32A32_SFLOAT:	return VK_FORMAT_R32G32B32A32_SFLOAT;
 
-			case GFX_IMAGE_FORMAT_B8G8R8_UNORM:		return VK_FORMAT_B8G8R8_UNORM;
-			case GFX_IMAGE_FORMAT_B8G8R8A8_UNORM:	return VK_FORMAT_B8G8R8A8_UNORM;
+			case GFX_FORMAT_R8G8B8_UNORM:			return VK_FORMAT_R8G8B8_UNORM;
+			case GFX_FORMAT_R8G8B8A8_UNORM:			return VK_FORMAT_R8G8B8A8_UNORM;
+					 
+			case GFX_FORMAT_B8G8R8_UNORM:			return VK_FORMAT_B8G8R8_UNORM;
+			case GFX_FORMAT_B8G8R8A8_UNORM:			return VK_FORMAT_B8G8R8A8_UNORM;
 
 			default: return VK_FORMAT_UNDEFINED;
 		}
 	}
 
-	INLINE GFXImageFormat GetGFXImageFormat(VkFormat format)
+	INLINE GFXFormat GetGFXImageFormat(VkFormat format)
 	{
 		switch (format)
 		{
-			case VK_FORMAT_R8G8B8_UNORM: return GFX_IMAGE_FORMAT_R8G8B8_UNORM;
-			case VK_FORMAT_R8G8B8A8_UNORM: return GFX_IMAGE_FORMAT_R8G8B8A8_UNORM;
+			case VK_FORMAT_UNDEFINED:				return GFX_FORMAT_UNKNOWN;
 
-			case VK_FORMAT_B8G8R8_UNORM: return GFX_IMAGE_FORMAT_B8G8R8_UNORM;
-			case VK_FORMAT_B8G8R8A8_UNORM: return GFX_IMAGE_FORMAT_B8G8R8A8_UNORM;
+			case VK_FORMAT_R32G32B32_SFLOAT:		return GFX_FORMAT_R32G32B32_SFLOAT;
+			case VK_FORMAT_R32G32B32A32_SFLOAT:		return GFX_FORMAT_R32G32B32A32_SFLOAT;
 
-			default: return GFX_IMAGE_FORMAT_UNKNOWN;
+			case VK_FORMAT_R8G8B8_UNORM:			return GFX_FORMAT_R8G8B8_UNORM;
+			case VK_FORMAT_R8G8B8A8_UNORM:			return GFX_FORMAT_R8G8B8A8_UNORM;
+
+			case VK_FORMAT_B8G8R8_UNORM:			return GFX_FORMAT_B8G8R8_UNORM;
+			case VK_FORMAT_B8G8R8A8_UNORM:			return GFX_FORMAT_B8G8R8A8_UNORM;
+
+			default: return GFX_FORMAT_UNKNOWN;
 		}
 	}
 
@@ -57,6 +67,20 @@ namespace Quartz
 	{
 		return (flags & GFX_BUFFER_MEMORY_VISIBLE_BIT) ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0
 			| (flags & GFX_BUFFER_MEMORY_COHERENT_BIT) ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT : 0;
+	}
+
+
+	/********************************************************************************************/
+
+
+	INLINE VkSharingMode GetVkSharingMode(GFXSharingMode mode)
+	{
+		switch (mode)
+		{
+			case GFX_SHARING_MODE_EXCLUSIVE:	return VK_SHARING_MODE_EXCLUSIVE;
+			case GFX_SHARING_MODE_SHARED:		return VK_SHARING_MODE_EXCLUSIVE;
+			default:							return VK_SHARING_MODE_EXCLUSIVE;
+		}
 	}
 
 
@@ -91,6 +115,24 @@ namespace Quartz
 			case GFX_SHADER_STAGE_COMPUTE:					return VK_SHADER_STAGE_COMPUTE_BIT;
 			default:										return VK_SHADER_STAGE_ALL_GRAPHICS;
 		}
+	}
+
+
+	/********************************************************************************************/
+
+
+	INLINE VkShaderStageFlags GetVkShaderStageFlags(GFXShaderStageFlags stageFlags)
+	{
+		VkShaderStageFlags stageBits = 0;
+
+		if (stageFlags & GFX_SHADER_STAGE_VERTEX)					stageBits |= VK_SHADER_STAGE_VERTEX_BIT;
+		if (stageFlags & GFX_SHADER_STAGE_TESSELATION_CONTROL)		stageBits |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		if (stageFlags & GFX_SHADER_STAGE_TESSELATION_EVALUATION)	stageBits |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		if (stageFlags & GFX_SHADER_STAGE_GEOMETRY)					stageBits |= VK_SHADER_STAGE_GEOMETRY_BIT;
+		if (stageFlags & GFX_SHADER_STAGE_FRAGMENT)					stageBits |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		if (stageFlags & GFX_SHADER_STAGE_COMPUTE)					stageBits |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+		return stageBits;
 	}
 
 
@@ -179,26 +221,26 @@ namespace Quartz
 
 	INLINE VkColorComponentFlags VkGetColorComponentFlags(GFXColorMask colorComponents)
 	{
-		VkColorComponentFlags colorComponentsRes;
+		VkColorComponentFlags colorComponentsRes = 0;
 
 		if (colorComponents & GFX_COLOR_COMPONENT_R_BIT)
 		{
-			colorComponentsRes |= (UInt32)VK_COLOR_COMPONENT_R_BIT;
+			colorComponentsRes |= VK_COLOR_COMPONENT_R_BIT;
 		}
 
 		if (colorComponents & GFX_COLOR_COMPONENT_G_BIT)
 		{
-			colorComponentsRes |= (UInt32)VK_COLOR_COMPONENT_G_BIT;
+			colorComponentsRes |= VK_COLOR_COMPONENT_G_BIT;
 		}
 
 		if (colorComponents & GFX_COLOR_COMPONENT_B_BIT)
 		{
-			colorComponentsRes |= (UInt32)VK_COLOR_COMPONENT_B_BIT;
+			colorComponentsRes |= VK_COLOR_COMPONENT_B_BIT;
 		}
 
 		if (colorComponents & GFX_COLOR_COMPONENT_A_BIT)
 		{
-			colorComponentsRes |= (UInt32)VK_COLOR_COMPONENT_A_BIT;
+			colorComponentsRes |= VK_COLOR_COMPONENT_A_BIT;
 		}
 	
 		return colorComponentsRes;
@@ -332,6 +374,19 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	INLINE VkDescriptorType GetVkDescriptorType(GFXDescriptorType type)
+	{
+		switch (type)
+		{
+			case GFX_DESCRIPTOR_TYPE_UNIFORM:	return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			default:							return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		}
+	}
+
+
+	/********************************************************************************************/
+
+
 	INLINE VkPipelineBindPoint GetVkPipelineBindPoint(GFXPipelineBindPoint bindPoint)
 	{
 		switch (bindPoint)
@@ -395,6 +450,20 @@ namespace Quartz
 			case GFX_ACCESS_MEMORY_READ_BIT:						return VK_ACCESS_MEMORY_READ_BIT;
 			case GFX_ACCESS_MEMORY_WRITE_BIT:						return VK_ACCESS_MEMORY_WRITE_BIT;
 			default:												return 0;
+		}
+	}
+
+
+	/********************************************************************************************/
+
+
+	INLINE VkVertexInputRate GetVkVertexInputRate(GFXVertexInputRate vertexInputRate)
+	{
+		switch (vertexInputRate)
+		{
+		case Quartz::GFX_VERTEX_INPUT_RATE_VERTEX:		return VK_VERTEX_INPUT_RATE_VERTEX;
+		case Quartz::GFX_VERTEX_INPUT_RATE_INSTANCE:	return VK_VERTEX_INPUT_RATE_INSTANCE;
+		default:										return VK_VERTEX_INPUT_RATE_VERTEX;
 		}
 	}
 

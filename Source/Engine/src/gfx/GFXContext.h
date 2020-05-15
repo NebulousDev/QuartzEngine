@@ -225,12 +225,14 @@ namespace Quartz
 	/********************************************************************************************/
 
 
-	enum QUARTZ_API GFXBufferMapFlags : Flags32
+	enum QUARTZ_API GFXBufferMapFlagBits : Flags32
 	{
-
+		GFX_BUFFER_FLAG_NONE = 0x0
 	};
 
-	enum QUARTZ_API GFXBufferUsageFlags : Flags32
+	typedef Flags32 GFXBufferMapFlags;
+
+	enum QUARTZ_API GFXBufferUsageFlagBits : Flags32
 	{
 		GFX_BUFFER_USAGE_NONE				= 0x00,
 		GFX_BUFFER_USAGE_VERTEX_BIT			= 0x01,
@@ -240,13 +242,17 @@ namespace Quartz
 		GFX_BUFFER_USAGE_TRANSFER_SRC_BIT	= 0x10,
 		GFX_BUFFER_USAGE_TRANSFER_DEST_BIT	= 0x20
 	};
+
+	typedef Flags32 GFXBufferUsageFlags;
 	
-	enum QUARTZ_API GFXBufferMemoryFlags : Flags32
+	enum QUARTZ_API GFXBufferMemoryFlagBits : Flags32
 	{
 		GFX_BUFFER_MEMORY_NONE			= 0x00,
 		GFX_BUFFER_MEMORY_VISIBLE_BIT	= 0x01,
 		GFX_BUFFER_MEMORY_COHERENT_BIT	= 0x02
 	};
+
+	typedef Flags32 GFXBufferMemoryFlags;
 
 	struct QUARTZ_API GFXBufferInfo
 	{
@@ -267,9 +273,9 @@ namespace Quartz
 		GFXBufferMemoryFlags	mMemoryFlags;
 		GFXSharingMode			mSharingMode;
 
+	public:
 		GFXBuffer() = default;
 
-	public:
 		virtual ~GFXBuffer() = default;
 
 		FORCE_INLINE const Char*			GetDebugName() const { return mDebugName; }
@@ -286,6 +292,24 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	enum QUARTZ_API GFXFormat
+	{
+		GFX_FORMAT_UNKNOWN,
+
+		GFX_FORMAT_R32G32B32_SFLOAT,
+		GFX_FORMAT_R32G32B32A32_SFLOAT,
+
+		GFX_FORMAT_R8G8B8_UNORM,
+		GFX_FORMAT_R8G8B8A8_UNORM,
+
+		GFX_FORMAT_B8G8R8_UNORM,
+		GFX_FORMAT_B8G8R8A8_UNORM
+	};
+
+
+	/********************************************************************************************/
+
+
 	enum QUARTZ_API GFXImageType
 	{
 		GFX_IMAGE_TYPE_UNKNOWN,
@@ -295,23 +319,12 @@ namespace Quartz
 		GFX_IMAGE_TYPE_CUBE_MAP
 	};
 
-	enum QUARTZ_API GFXImageFormat
-	{
-		GFX_IMAGE_FORMAT_UNKNOWN,
-
-		GFX_IMAGE_FORMAT_R8G8B8_UNORM,
-		GFX_IMAGE_FORMAT_R8G8B8A8_UNORM,
-
-		GFX_IMAGE_FORMAT_B8G8R8_UNORM,
-		GFX_IMAGE_FORMAT_B8G8R8A8_UNORM
-	};
-
 	struct QUARTZ_API GFXImageInfo
 	{
 		const Char*		debugName;
 		UInt32			width;
 		UInt32			height;
-		GFXImageFormat	imageFormat;
+		GFXFormat		format;
 		GFXImageType	imageType;
 		UInt32			mipLevels;
 		UInt32			multisamples;
@@ -325,7 +338,7 @@ namespace Quartz
 		GFXDevice*		mpParentDevice;
 		UInt32			mWidth;
 		UInt32			mHeight;
-		GFXImageFormat	mImageFormat;
+		GFXFormat	mImageFormat;
 		GFXImageType	mImageType;
 		UInt32			mMipLevels;
 		UInt32			mMultisamples;
@@ -340,7 +353,7 @@ namespace Quartz
 		FORCE_INLINE GFXDevice*		GetParentDevice() const { return mpParentDevice; }
 		FORCE_INLINE UInt32			GetWidth() const { return mWidth; }
 		FORCE_INLINE UInt32			GetHeight() const { return mHeight; }
-		FORCE_INLINE GFXImageFormat GetImageFormat() const { return mImageFormat; }
+		FORCE_INLINE GFXFormat GetImageFormat() const { return mImageFormat; }
 		FORCE_INLINE GFXImageType	GetImageType() const { return mImageType; }
 		FORCE_INLINE UInt32			GetMipLevels() const { return mMipLevels; }
 		FORCE_INLINE UInt32			GetMultisamples() const { return mMultisamples; }
@@ -355,7 +368,7 @@ namespace Quartz
 	{
 		const Char*		debugName;
 		GFXImageType	imageType;
-		GFXImageFormat	imageFormat;
+		GFXFormat	imageFormat;
 		UInt32			baseMipLevel;
 	};
 
@@ -365,7 +378,7 @@ namespace Quartz
 		const Char*		mDebugName;
 		GFXImage*		mpImage;
 		GFXImageType	mImageType;
-		GFXImageFormat	mImageFormat;
+		GFXFormat	mImageFormat;
 		UInt32			mBaseMipLevel;
 
 		GFXImageView() = default;
@@ -376,7 +389,7 @@ namespace Quartz
 		FORCE_INLINE const Char*	GetDebugName() const { return mDebugName; }
 		FORCE_INLINE GFXImage*		GetImage() const { return mpImage; }
 		FORCE_INLINE GFXImageType	GetImageType() const { return mImageType; }
-		FORCE_INLINE GFXImageFormat GetImageFormat() const { return mImageFormat; }
+		FORCE_INLINE GFXFormat GetImageFormat() const { return mImageFormat; }
 		FORCE_INLINE UInt32			GetBaseMipLevle() const { return mBaseMipLevel; }
 	};
 
@@ -396,13 +409,15 @@ namespace Quartz
 
 	enum QUARTZ_API GFXShaderStage
 	{
-		GFX_SHADER_STAGE_VERTEX,
-		GFX_SHADER_STAGE_TESSELATION_CONTROL,
-		GFX_SHADER_STAGE_TESSELATION_EVALUATION,
-		GFX_SHADER_STAGE_GEOMETRY,
-		GFX_SHADER_STAGE_FRAGMENT,
-		GFX_SHADER_STAGE_COMPUTE
+		GFX_SHADER_STAGE_VERTEX						= 0x01,
+		GFX_SHADER_STAGE_TESSELATION_CONTROL		= 0x02,
+		GFX_SHADER_STAGE_TESSELATION_EVALUATION		= 0x04,
+		GFX_SHADER_STAGE_GEOMETRY					= 0x08,
+		GFX_SHADER_STAGE_FRAGMENT					= 0x10,
+		GFX_SHADER_STAGE_COMPUTE					= 0x20
 	};
+
+	typedef Flags32 GFXShaderStageFlags;
 
 	struct QUARTZ_API GFXShaderInfo
 	{
@@ -435,19 +450,52 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	enum GFXVertexInputRate
+	{
+		GFX_VERTEX_INPUT_RATE_VERTEX,
+		GFX_VERTEX_INPUT_RATE_INSTANCE
+	};
+
+	struct GFXVertexInputBindingInfo
+	{
+		UInt32				binding;
+		UInt32				stride;
+		GFXVertexInputRate	inputRate;
+	};
+
+	struct GFXVertexInputAttributeInfo
+	{
+		UInt32		location;
+		UInt32		binding;
+		GFXFormat	format;
+		UInt32		offset;
+	};
+
 	struct QUARTZ_API GFXVertexInputStateInfo
 	{
-
+		UInt32							vertexBindingCount;
+		GFXVertexInputBindingInfo*		pVertexBindingInfos;
+		UInt32							vertexAttributeCount;
+		GFXVertexInputAttributeInfo*	pVertexAttributeInfos;
 	};
 
 	class QUARTZ_API GFXVertexInputState
 	{
 	protected:
+		UInt32							mVertexBindingCount;
+		GFXVertexInputBindingInfo*		mpVertexBindingInfos;
+		UInt32							mVertexAttributeCount;
+		GFXVertexInputAttributeInfo*	mpVertexAttributeInfos;
 
 		GFXVertexInputState() = default;
 
 	public:
 		virtual ~GFXVertexInputState() = default;
+
+		FORCE_INLINE UInt32							GetVertexBindingCount() const { return mVertexBindingCount; }
+		FORCE_INLINE GFXVertexInputBindingInfo*		GetVertexBindingInfos() const { return mpVertexBindingInfos; }
+		FORCE_INLINE UInt32							GetVertexAttributeCount() const { return mVertexAttributeCount; }
+		FORCE_INLINE GFXVertexInputAttributeInfo*	GetVertexAttributeInfos() const { return mpVertexAttributeInfos; }
 	};
 
 
@@ -520,8 +568,8 @@ namespace Quartz
 	public:
 		virtual ~GFXViewportState() = default;
 
-		FORCE_INLINE GFXViewport GetViewport() const { return mViewport; }
-		FORCE_INLINE GFXScissor GetScissor() const { return mScissor; }
+		FORCE_INLINE GFXViewport	GetViewport() const { return mViewport; }
+		FORCE_INLINE GFXScissor		GetScissor() const { return mScissor; }
 	};
 
 
@@ -712,22 +760,68 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	enum QUARTZ_API GFXDescriptorType
+	{
+		GFX_DESCRIPTOR_TYPE_UNIFORM
+	};
+
+	struct QUARTZ_API GFXDescriptorBinding
+	{
+		UInt32				binding;
+		GFXDescriptorType	type;
+		UInt32				count;
+		GFXShaderStageFlags	stageFlags;
+		// SAMPLER
+	};
+
+	struct QUARTZ_API GFXDescriptorSetLayoutInfo
+	{
+		UInt32					bindingCount;
+		GFXDescriptorBinding*	pBindings;
+	};
+
+	class QUARTZ_API GFXDescriptorSetLayout
+	{
+	protected:
+		GFXDevice*				mpParentDevice;
+		UInt32					mBindingCount;
+		GFXDescriptorBinding*	mpBindings;
+
+		GFXDescriptorSetLayout() = default;
+
+	public:
+		virtual ~GFXDescriptorSetLayout() = default;
+
+		FORCE_INLINE GFXDevice*				GetParentDevice() const { return mpParentDevice; }
+		FORCE_INLINE UInt32					GetBindingCount() const { return mBindingCount; }
+		FORCE_INLINE GFXDescriptorBinding*	GetDescriptorBindings() const { return mpBindings; }
+	};
+
+
+	/********************************************************************************************/
+
+
 	struct QUARTZ_API GFXPipelineLayoutInfo
 	{
-		// TODO: Uniforms
+		UInt32					layoutCount;
+		GFXDescriptorSetLayout* pDescriptorSetLayouts;
 	};
 
 	class QUARTZ_API GFXPipelineLayout
 	{
 	protected:
-		GFXDevice* mpParentDevice;
+		GFXDevice*				mpParentDevice;
+		UInt32					mLayoutCount;
+		GFXDescriptorSetLayout* mpDescriptorSetLayouts;
 
 		GFXPipelineLayout() = default;
 
 	public:
 		virtual ~GFXPipelineLayout() = default;
 
-		FORCE_INLINE GFXDevice*	GetParentDevice() const { return mpParentDevice; }
+		FORCE_INLINE GFXDevice*					GetParentDevice() const { return mpParentDevice; }
+		FORCE_INLINE UInt32						GetLayoutCount() const { return mLayoutCount; }
+		FORCE_INLINE GFXDescriptorSetLayout*	GetDescriptorSetLayouts() const { return mpDescriptorSetLayouts; }
 	};
 
 
@@ -766,7 +860,7 @@ namespace Quartz
 
 	struct QUARTZ_API GFXRenderAttachmentInfo
 	{
-		GFXImageFormat	imageFormat;
+		GFXFormat	imageFormat;
 		UInt32			multisamples;
 		GFXLoadOp		loadOp;
 		GFXStoreOp		storeOp;
@@ -779,7 +873,7 @@ namespace Quartz
 	class QUARTZ_API GFXRenderAttachment
 	{
 	protected:
-		GFXImageFormat	mImageFormat;
+		GFXFormat		mImageFormat;
 		UInt32			mMultisamples;
 		GFXLoadOp		mLoadOp;
 		GFXStoreOp		mStoreOp;
@@ -793,7 +887,7 @@ namespace Quartz
 	public:
 		virtual ~GFXRenderAttachment() = default;
 
-		FORCE_INLINE GFXImageFormat	GetImageFormat() const { return mImageFormat; }
+		FORCE_INLINE GFXFormat		GetImageFormat() const { return mImageFormat; }
 		FORCE_INLINE UInt32			GetMultisamples() const { return mMultisamples; }
 		FORCE_INLINE GFXLoadOp		GetLoadOp() const { return mLoadOp; }
 		FORCE_INLINE GFXStoreOp		GetStoreOp() const { return mStoreOp; }
@@ -1152,13 +1246,16 @@ namespace Quartz
 		void					DestroyRenderSubpass(GFXRenderSubpass* pRenderSubpass);
 		GFXRenderPass*			CreateRenderPass(GFXDevice* pDevice, GFXRenderPassInfo info);
 		void					DestroyRenderPass(GFXRenderPass* pRenderPass);
+		GFXDescriptorSetLayout* CreateDescriptorSetLayout(GFXDevice* pDevice, GFXDescriptorSetLayoutInfo info);
+		void					DestroyDescriptorSetLayout(GFXDescriptorSetLayout* pLayout);
 		GFXPipeline*			CreatePipeline(GFXDevice* pDevice, GFXPipelineInfo info);
 		void					DestroyPipleline(GFXPipeline* pPipeline);
 		GFXFramebuffer*			CreateFramebuffer(GFXDevice* pDevice, GFXFramebufferInfo info);
 		void					DestroyFramebuffer(GFXFramebuffer* pFramebuffer);
 		GFXCommandPool*			CreateCommandPool(GFXDevice* pDevice, GFXCommandPoolInfo info);
 		void					DestroyCommandPool(GFXCommandPool* pCommandPool);
-		GFXCommandBuffer*		CreateCommandBuffers()
+		//GFXCommandBuffer*		CreateCommandBuffers();
+		//void					DestroyCommandBuffers();
 
 		GFXImageArray	GetSwapChainImages(GFXSwapchain* pSwapchain);
 
@@ -1215,6 +1312,8 @@ namespace Quartz
 		virtual void					DestroyRenderSubpass(GFXRenderSubpass* pRenderSubpass) = 0;
 		virtual GFXRenderPass*			CreateRenderPass(GFXDevice* pDevice, GFXRenderPassInfo info) = 0;
 		virtual void					DestroyRenderPass(GFXRenderPass* pRenderPass) = 0;
+		virtual GFXDescriptorSetLayout* CreateDescriptorSetLayout(GFXDevice* pDevice, GFXDescriptorSetLayoutInfo info) = 0;
+		virtual void					DestroyDescriptorSetLayout(GFXDescriptorSetLayout* layout) = 0;
 		virtual GFXPipeline*			CreatePipeline(GFXDevice* pDevice, GFXPipelineInfo info) = 0;
 		virtual void					DestroyPipleline(GFXPipeline* pPipeline) = 0;
 		virtual GFXFramebuffer*			CreateFramebuffer(GFXDevice* pDevice, GFXFramebufferInfo info) = 0;

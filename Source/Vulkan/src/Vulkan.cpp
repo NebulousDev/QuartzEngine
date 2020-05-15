@@ -8,7 +8,6 @@ namespace Quartz
 {
 	/********************************************************************************************/
 
-#define USE_VALIDATION defined(QUARTZ_DEBUG) and 1
 
 	PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectNameEXT = NULL;
 	PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT = NULL;
@@ -207,7 +206,7 @@ namespace Quartz
 
 	void SetDebugName(VkDevice device, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name)
 	{
-		#if defined(QUARTZ_DEBUG) and 1
+		#if USE_DEBUG_NAMES
 			
 			PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectNameEXT =
 				reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
@@ -541,7 +540,7 @@ namespace Quartz
 		bufferInfo.sType		= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size			= info.size;
 		bufferInfo.usage		= GetVkUsageFlags(info.usageFlags);
-		bufferInfo.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
+		bufferInfo.sharingMode	= GetVkSharingMode(info.sharingMode);
 
 		VulkanGFXDevice* pVulkanDevice = static_cast<VulkanGFXDevice*>(pDevice);
 		VkDevice device = pVulkanDevice->GetVkDevice();
@@ -727,14 +726,42 @@ namespace Quartz
 
 	GFXVertexInputState* VulkanGFXModule::CreateVertexInputState(GFXVertexInputStateInfo info)
 	{
+		VkVertexInputBindingDescription*	pVertexInputBindingDescriptions		= NULL;
+		VkVertexInputAttributeDescription*	pVertexInputAttributeDescriptions	= NULL;
+
+		if (info.vertexBindingCount)
+		{
+			pVertexInputBindingDescriptions = new VkVertexInputBindingDescription[info.vertexBindingCount];
+
+			for (UInt32 i = 0; i < info.vertexBindingCount; i++)
+			{
+				pVertexInputBindingDescriptions[0].binding		= info.pVertexBindingInfos[0].binding;
+				pVertexInputBindingDescriptions[0].stride		= info.pVertexBindingInfos[0].stride;
+				pVertexInputBindingDescriptions[0].inputRate	= GetVkVertexInputRate(info.pVertexBindingInfos[0].inputRate);
+			}
+		}
+
+		if (info.vertexAttributeCount)
+		{
+			pVertexInputAttributeDescriptions = new VkVertexInputAttributeDescription[info.vertexBindingCount];
+
+			for (UInt32 i = 0; i < info.vertexAttributeCount; i++)
+			{
+				pVertexInputAttributeDescriptions[0].binding	= info.pVertexAttributeInfos[0].binding;
+				pVertexInputAttributeDescriptions[0].location	= info.pVertexAttributeInfos[0].location;
+				pVertexInputAttributeDescriptions[0].format		= GetVkFormat(info.pVertexAttributeInfos[0].format);
+				pVertexInputAttributeDescriptions[0].offset		= info.pVertexAttributeInfos[0].offset;
+			}
+		}
+
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType							= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount	= 0;
-		vertexInputInfo.pVertexBindingDescriptions		= nullptr;
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions	= nullptr;
+		vertexInputInfo.vertexBindingDescriptionCount	= info.vertexBindingCount;
+		vertexInputInfo.pVertexBindingDescriptions		= pVertexInputBindingDescriptions;
+		vertexInputInfo.vertexAttributeDescriptionCount = info.vertexAttributeCount;
+		vertexInputInfo.pVertexAttributeDescriptions	= pVertexInputAttributeDescriptions;
 
-		return new VulkanGFXVertexInputState(vertexInputInfo, info);
+		return new VulkanGFXVertexInputState(vertexInputInfo, pVertexInputBindingDescriptions, pVertexInputAttributeDescriptions, info);
 	}
 
 
@@ -743,6 +770,10 @@ namespace Quartz
 
 	void VulkanGFXModule::DestroyVertexInputState(GFXVertexInputState* pVertexInputState)
 	{
+		VulkanGFXVertexInputState* pVulkanGFXVertexInputState = static_cast<VulkanGFXVertexInputState*>(pVertexInputState);
+
+		delete[] pVulkanGFXVertexInputState->GetVkVertexInputBindingDescriptions();
+		delete[] pVulkanGFXVertexInputState->GetVkVertexInputAttributeDescriptions();
 		delete pVertexInputState;
 	}
 
@@ -874,6 +905,7 @@ namespace Quartz
 
 		for (UInt32 i = 0; i < info.attachmentCount; i++)
 		{
+			pColorBlendAttachments[i] = {};
 			pColorBlendAttachments[i].colorWriteMask		= VkGetColorComponentFlags(info.pAttachments[i].colorMask);
 			pColorBlendAttachments[i].blendEnable			= info.pAttachments[i].blendEnable;
 			pColorBlendAttachments[i].srcColorBlendFactor	= GetVkBlendFactor(info.pAttachments[i].srcColorBlendFactor);
@@ -915,20 +947,38 @@ namespace Quartz
 	{
 		VkDevice device = static_cast<VulkanGFXDevice*>(pDevice)->GetVkDevice();
 
+		VkDescriptorSetLayout* pDescriptorSetLayouts = nullptr;
+
+		if (info.layoutCount > 0)
+		{
+			pDescriptorSetLayouts = new VkDescriptorSetLayout[info.layoutCount];
+
+			for (UInt32 i = 0; i < info.layoutCount; i++)
+			{
+				VulkanGFXDescriptorSetLayout* pDescriptorSetLayout = static_cast<VulkanGFXDescriptorSetLayout*>(&info.pDescriptorSetLayouts[i]);
+				pDescriptorSetLayouts[i] = pDescriptorSetLayout->GetVkDescriptorSetLayout();
+			}
+		}
+
 		VkPipelineLayout pipelineLayout;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 		pipelineLayoutInfo.sType					= VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount			= 0; // Optional
-		pipelineLayoutInfo.pSetLayouts				= nullptr; // Optional
-		pipelineLayoutInfo.pushConstantRangeCount	= 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges		= nullptr; // Optional
+		pipelineLayoutInfo.setLayoutCount			= info.layoutCount;
+		pipelineLayoutInfo.pSetLayouts				= pDescriptorSetLayouts;
+		pipelineLayoutInfo.pushConstantRangeCount	= 0;
+		pipelineLayoutInfo.pPushConstantRanges		= nullptr;
 
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 		{
 			Log.Error("Failed to create pipeline layout: vkCreatePipelineLayout failed!");
+
+			delete[] pDescriptorSetLayouts;
+
 			return NULL;
 		}
+
+		delete[] pDescriptorSetLayouts; //TODO
 
 		return new VulkanGFXPipelineLayout(pDevice, pipelineLayout, info);
 	}
@@ -1062,7 +1112,7 @@ namespace Quartz
 
 		if (info.attachmentCount > 0 && info.ppAttachments)
 		{
-			pAttachments = new VkAttachmentDescription[info.attachmentCount];
+			pAttachments = new VkAttachmentDescription[info.attachmentCount]{};
 
 			for (UInt32 i = 0; i < info.attachmentCount; i++)
 			{
@@ -1073,7 +1123,7 @@ namespace Quartz
 
 		if (info.subpassCount > 0 && info.ppSubpasses)
 		{
-			pSubpasses = new VkSubpassDescription[info.subpassCount];
+			pSubpasses = new VkSubpassDescription[info.subpassCount]{};
 
 			for (UInt32 i = 0; i < info.subpassCount; i++)
 			{
@@ -1084,7 +1134,7 @@ namespace Quartz
 
 		if (info.dependencyCount > 0 && info.pDependencies)
 		{
-			pDependencies = new VkSubpassDependency[info.dependencyCount];
+			pDependencies = new VkSubpassDependency[info.dependencyCount]{};
 
 			for (UInt32 i = 0; i < info.dependencyCount; i++)
 			{
@@ -1135,6 +1185,61 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	GFXDescriptorSetLayout* VulkanGFXModule::CreateDescriptorSetLayout(GFXDevice* pDevice, GFXDescriptorSetLayoutInfo info)
+	{
+		VkDevice device = static_cast<VulkanGFXDevice*>(pDevice)->GetVkDevice();
+
+		VkDescriptorSetLayoutBinding* pDescriptorSetLayoutBindings = new VkDescriptorSetLayoutBinding[info.bindingCount];
+
+		for (UInt32 i = 0; i < info.bindingCount; i++)
+		{
+			pDescriptorSetLayoutBindings[i] = {};
+			pDescriptorSetLayoutBindings[i].binding = info.pBindings[i].binding;
+			pDescriptorSetLayoutBindings[i].descriptorType = GetVkDescriptorType(info.pBindings[i].type);
+			pDescriptorSetLayoutBindings[i].descriptorCount = info.pBindings[i].count;
+			pDescriptorSetLayoutBindings[i].stageFlags = GetVkShaderStageFlags(info.pBindings[i].stageFlags);
+			pDescriptorSetLayoutBindings[i].pImmutableSamplers = NULL;
+		}
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = info.bindingCount;
+		layoutInfo.pBindings = pDescriptorSetLayoutBindings;
+
+		VkDescriptorSetLayout descriptorSetLayout;
+
+		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+		{
+			Log.Error("Failed to create descriptor set layout : vkCreateDescriptorSetLayout failed!");
+
+			delete[] pDescriptorSetLayoutBindings;
+
+			return NULL;
+		}
+
+		return new VulkanGFXDescriptorSetLayout(pDevice, descriptorSetLayout, pDescriptorSetLayoutBindings, info);
+	}
+
+
+	/********************************************************************************************/
+
+
+	void VulkanGFXModule::DestroyDescriptorSetLayout(GFXDescriptorSetLayout* pLayout)
+	{
+		VkDevice device = static_cast<VulkanGFXDevice*>(pLayout->GetParentDevice())->GetVkDevice();
+		VulkanGFXDescriptorSetLayout* pDescriptorSetLayout = static_cast<VulkanGFXDescriptorSetLayout*>(pLayout);
+
+		delete[] pDescriptorSetLayout->GetDescriptorBindings();
+
+		vkDestroyDescriptorSetLayout(device, pDescriptorSetLayout->GetVkDescriptorSetLayout(), NULL);
+
+		delete pLayout;
+	}
+
+
+	/********************************************************************************************/
+
+
 	GFXPipeline* VulkanGFXModule::CreatePipeline(GFXDevice* pDevice, GFXPipelineInfo info)
 	{
 		VkDevice device = static_cast<VulkanGFXDevice*>(pDevice)->GetVkDevice();
@@ -1143,7 +1248,7 @@ namespace Quartz
 
 		if (info.shaderCount > 0 && info.ppShaders)
 		{
-			pShaderStages = new VkPipelineShaderStageCreateInfo[info.shaderCount];
+			pShaderStages = new VkPipelineShaderStageCreateInfo[info.shaderCount]{};
 
 			for (UInt32 i = 0; i < info.shaderCount; i++)
 			{
@@ -1161,6 +1266,13 @@ namespace Quartz
 		VulkanGFXPipelineLayout* pPipelineLayout = static_cast<VulkanGFXPipelineLayout*>(info.pPipelineLayout);
 		VulkanGFXRenderPass* pRenderPass = static_cast<VulkanGFXRenderPass*>(info.pRenderPass);
 
+		// Why the do these need to exist? Drives me insane...
+		VkPipelineVertexInputStateCreateInfo* pLocalVertexInputState = new VkPipelineVertexInputStateCreateInfo(pVertexInputState->GetVkVertexInputStateInfo());
+		VkPipelineInputAssemblyStateCreateInfo* pLocalInputAssemblyState = new VkPipelineInputAssemblyStateCreateInfo(pInputAssembly->GetVkInputAssemblyStateInfo());
+		VkPipelineViewportStateCreateInfo* pLocalViewportState = new VkPipelineViewportStateCreateInfo(pViewportState->GetVkViewportStateInfo());
+		VkPipelineRasterizationStateCreateInfo* pLocalRaterizationState = new VkPipelineRasterizationStateCreateInfo(pRasterizationState->GetVkRasterizationStateInfo());
+		VkPipelineMultisampleStateCreateInfo* pLocalMultisampleState = new VkPipelineMultisampleStateCreateInfo(pMultisampleState->GetVkMultisampleStateInfo());
+		VkPipelineColorBlendStateCreateInfo* pLocalColorBlendState = new VkPipelineColorBlendStateCreateInfo(pColorBlendState->GetVkColorBlendStateInfo());
 
 		/////////////////////////////////////////////////////////////////////////////////////
 
@@ -1174,38 +1286,21 @@ namespace Quartz
 		dynamicState.dynamicStateCount = 2;
 		dynamicState.pDynamicStates = dynamicStates;
 
-		VkPipelineLayout pipelineLayout;
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
-
-		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-		{
-			Log.Error("Failed to create pipeline layout : vkCreatePipelineLayout failed!");
-			
-			delete[] pShaderStages;
-
-			return NULL;
-		}
+		VkPipelineLayout pipelineLayout = static_cast<VulkanGFXPipelineLayout*>(info.pPipelineLayout)->GetVkPipelineLayout();
 
 		/////////////////////////////////////////////////////////////////////////////////////
-
 
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType					= VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount				= info.shaderCount;
 		pipelineInfo.pStages				= pShaderStages;
-		pipelineInfo.pVertexInputState		= &pVertexInputState->GetVkVertexInputStateInfo();
-		pipelineInfo.pInputAssemblyState	= &pInputAssembly->GetVkInputAssemblyStateInfo();
-		pipelineInfo.pViewportState			= &pViewportState->GetVkViewportStateInfo();
-		pipelineInfo.pRasterizationState	= &pRasterizationState->GetVkRasterizationStateInfo();
-		pipelineInfo.pMultisampleState		= &pMultisampleState->GetVkMultisampleStateInfo();
+		pipelineInfo.pVertexInputState		= pLocalVertexInputState;
+		pipelineInfo.pInputAssemblyState	= pLocalInputAssemblyState;
+		pipelineInfo.pViewportState			= pLocalViewportState;
+		pipelineInfo.pRasterizationState	= pLocalRaterizationState;
+		pipelineInfo.pMultisampleState		= pLocalMultisampleState;
 		pipelineInfo.pDepthStencilState		= nullptr; // Optional
-		pipelineInfo.pColorBlendState		= &pColorBlendState->GetVkColorBlendStateInfo();
+		pipelineInfo.pColorBlendState		= pLocalColorBlendState;
 		pipelineInfo.pDynamicState			= nullptr; // Optional
 		pipelineInfo.layout					= pipelineLayout;
 		pipelineInfo.renderPass				= pRenderPass->GetVkRenderPass();
@@ -1221,8 +1316,23 @@ namespace Quartz
 
 			delete[] pShaderStages;
 
+			delete pLocalVertexInputState;
+			delete pLocalInputAssemblyState;
+			delete pLocalViewportState;
+			delete pLocalRaterizationState;
+			delete pLocalMultisampleState;
+			delete pLocalColorBlendState;
+
 			return NULL;
 		}
+
+		// Like.. why
+		delete pLocalVertexInputState;
+		delete pLocalInputAssemblyState;
+		delete pLocalViewportState;
+		delete pLocalRaterizationState;
+		delete pLocalMultisampleState;
+		delete pLocalColorBlendState;
 
 		return new VulkanGFXPipeline(pDevice, pipeline, pShaderStages, info);
 	}
@@ -1501,7 +1611,7 @@ namespace Quartz
 		mpParentDevice			= pDevice;
 		mWidth					= info.width;
 		mHeight					= info.height;
-		mImageFormat			= info.imageFormat;
+		mImageFormat			= info.format;
 		mImageType				= info.imageType;
 		mMipLevels				= info.mipLevels;
 		mMultisamples			= info.multisamples;
@@ -1526,9 +1636,14 @@ namespace Quartz
 	/********************************************************************************************/
 
 
-	VulkanGFXVertexInputState::VulkanGFXVertexInputState(VkPipelineVertexInputStateCreateInfo vertexInputStateInfo, GFXVertexInputStateInfo info)
+	VulkanGFXVertexInputState::VulkanGFXVertexInputState(VkPipelineVertexInputStateCreateInfo vertexInputStateInfo, 
+		VkVertexInputBindingDescription* pVkVertexInputBindingDescriptions,
+		VkVertexInputAttributeDescription* pVkVertexInputAttributeDescriptions,
+		GFXVertexInputStateInfo info)
 	{
 		mVkVertexInputStateInfo = vertexInputStateInfo;
+		mpVkVertexInputBindingDescriptions = pVkVertexInputBindingDescriptions;
+		mpVkVertexInputAttributeDescriptions = pVkVertexInputAttributeDescriptions;
 	}
 
 
@@ -1699,6 +1814,20 @@ namespace Quartz
 	/********************************************************************************************/
 
 
+	VulkanGFXDescriptorSetLayout::VulkanGFXDescriptorSetLayout(GFXDevice* pDevice, VkDescriptorSetLayout descriptorSetLayout, 
+		VkDescriptorSetLayoutBinding* pVkDescriptorSetLayoutBindings, GFXDescriptorSetLayoutInfo info)
+	{
+		mpParentDevice = pDevice;
+		mBindingCount = info.bindingCount;
+		mpBindings = info.pBindings;
+		mVkDescriptorSetLayout = descriptorSetLayout;
+		mpVkDescriptorSetLayoutBindings = pVkDescriptorSetLayoutBindings;
+	}
+
+
+	/********************************************************************************************/
+
+
 	VulkanGFXPipeline::VulkanGFXPipeline(GFXDevice* pDevice, VkPipeline pipeline, 
 		VkPipelineShaderStageCreateInfo* pShaderStages, GFXPipelineInfo info)
 	{
@@ -1754,6 +1883,7 @@ namespace Quartz
 	VulkanGFXCommandPool::~VulkanGFXCommandPool()
 	{
 	}
+
 
 	/********************************************************************************************/
 }
