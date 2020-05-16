@@ -41,30 +41,42 @@ namespace Quartz
 
 	void Win32Window::Update()
 	{
+		RAWINPUT inputBuffer[MAX_INPUT_BUFFER_SIZE]{};
+		UInt32 bufferSize = sizeof(RAWINPUT) * MAX_INPUT_BUFFER_SIZE;
+
+		Int32 inputCount = GetRawInputBuffer(inputBuffer, &bufferSize, sizeof(RAWINPUTHEADER));
+
+		for (UInt32 i = 0; i < inputCount; i++)
+		{
+			if (inputBuffer[i].header.dwType == RIM_TYPEMOUSE)
+			{
+				if (inputBuffer[i].data.mouse.usFlags == MOUSE_MOVE_RELATIVE)
+				{
+					Log.Debug("Mouse Delta: %d/%d", inputBuffer[i].data.mouse.lLastX, inputBuffer[i].data.mouse.lLastY);
+				}
+
+				if (inputBuffer[i].data.mouse.usButtonFlags > 0)
+				{
+					Log.Debug("Mouse Button: %d", inputBuffer[i].data.mouse.usButtonFlags);
+				}
+			}
+
+			if (inputBuffer[i].header.dwType == RIM_TYPEKEYBOARD)
+			{
+				if (inputBuffer[i].data.keyboard.Flags == RI_KEY_MAKE)
+				{
+					Log.Debug("Keyboard: %d", inputBuffer[i].data.keyboard.VKey);
+				}
+			}
+		}
+
 		MSG msg = {};
-		if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+		if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
 			GetMessage(&msg, NULL, 0, 0);
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-
-		static RAWINPUT inputBuffer[MAX_INPUT_BUFFER_SIZE]{};
-		static UInt32 bufferSize = sizeof(RAWINPUT) * MAX_INPUT_BUFFER_SIZE;
-
-		Int32 inputCount = GetRawInputBuffer(inputBuffer, &bufferSize, sizeof(RAWINPUTHEADER));
-
-		/*
-		if (inputCount > 0)
-		{
-			for (UInt32 i = 0; i < inputCount; i++)
-			{
-				Log.Info("Input MX: %d", inputBuffer[i].data.mouse.lLastX);
-				Log.Info("Input MY: %d", inputBuffer[i].data.mouse.lLastY);
-				Log.Info("Input VK: %d", inputBuffer[i].data.keyboard.VKey);
-			}
-		}
-		*/
 	}
 
 	Win32Window::Win32Window()
@@ -115,7 +127,7 @@ namespace Quartz
 		// KEYBOARD
 		Rid[1].usUsagePage = 0x01;
 		Rid[1].usUsage = 0x06;
-		Rid[1].dwFlags = 0; //RIDEV_NOLEGACY;
+		Rid[1].dwFlags = RIDEV_NOLEGACY;
 		Rid[1].hwndTarget = 0;
 
 		// GAMEPAD
@@ -146,6 +158,11 @@ namespace Quartz
 
 	LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		if (uMsg == WM_INPUT)
+		{
+			return 0;
+		}
+
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 }

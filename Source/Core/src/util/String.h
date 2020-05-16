@@ -5,6 +5,7 @@
 #include "../memory/Memory.h"
 
 #include <utility>
+#include <cassert>
 
 #define STR(str) str##_S
 #define STR8(str) str##_S8

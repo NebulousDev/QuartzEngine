@@ -3,7 +3,7 @@
 #include "../debug/Debug.h"
 
 #include "Utils.h"
-#include "Memory.h"
+#include "../memory/Memory.h"
 
 #include <utility>
 #include <cassert>

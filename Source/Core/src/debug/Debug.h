@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 
 #ifdef QUARTZ_DEBUG
 #define DEBUG_ASSERT(x) assert(x)

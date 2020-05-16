@@ -174,8 +174,11 @@ int main()
 
 	/////////////////
 
-	auto vertShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
-	auto fragShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
+	//auto vertShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
+	//auto fragShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
+
+	auto vertShaderCode = readFile("C:\\DevStuffs\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
+	auto fragShaderCode = readFile("C:\\DevStuffs\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
 
 	GFXShaderInfo vertexShaderInfo	= {};
 	vertexShaderInfo.debugName		= "Default Vertex";
