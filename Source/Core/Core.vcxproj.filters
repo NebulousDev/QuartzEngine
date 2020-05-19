@@ -45,9 +45,6 @@
     <ClInclude Include="src\util\RefPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\String.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\util\Intrinsics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -112,6 +109,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\math\QuaternionImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\String.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\StringNew.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

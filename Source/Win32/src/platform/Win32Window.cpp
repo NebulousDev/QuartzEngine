@@ -2,6 +2,10 @@
 
 #include "../Win32.h"
 #include "io/Log.h"
+#include "util\Array.h"
+
+#include <hidsdi.h>
+#pragma comment(lib,"Hid.lib")
 
 #define MAX_INPUT_BUFFER_SIZE 16
 
@@ -41,35 +45,6 @@ namespace Quartz
 
 	void Win32Window::Update()
 	{
-		RAWINPUT inputBuffer[MAX_INPUT_BUFFER_SIZE]{};
-		UInt32 bufferSize = sizeof(RAWINPUT) * MAX_INPUT_BUFFER_SIZE;
-
-		Int32 inputCount = GetRawInputBuffer(inputBuffer, &bufferSize, sizeof(RAWINPUTHEADER));
-
-		for (UInt32 i = 0; i < inputCount; i++)
-		{
-			if (inputBuffer[i].header.dwType == RIM_TYPEMOUSE)
-			{
-				if (inputBuffer[i].data.mouse.usFlags == MOUSE_MOVE_RELATIVE)
-				{
-					Log.Debug("Mouse Delta: %d/%d", inputBuffer[i].data.mouse.lLastX, inputBuffer[i].data.mouse.lLastY);
-				}
-
-				if (inputBuffer[i].data.mouse.usButtonFlags > 0)
-				{
-					Log.Debug("Mouse Button: %d", inputBuffer[i].data.mouse.usButtonFlags);
-				}
-			}
-
-			if (inputBuffer[i].header.dwType == RIM_TYPEKEYBOARD)
-			{
-				if (inputBuffer[i].data.keyboard.Flags == RI_KEY_MAKE)
-				{
-					Log.Debug("Keyboard: %d", inputBuffer[i].data.keyboard.VKey);
-				}
-			}
-		}
-
 		MSG msg = {};
 		if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
@@ -116,37 +91,6 @@ namespace Quartz
 			return;
 		}
 
-		RAWINPUTDEVICE Rid[4];
-
-		// MOUSE
-		Rid[0].usUsagePage = 0x01;
-		Rid[0].usUsage = 0x02;
-		Rid[0].dwFlags = 0; //RIDEV_NOLEGACY;
-		Rid[0].hwndTarget = 0;
-
-		// KEYBOARD
-		Rid[1].usUsagePage = 0x01;
-		Rid[1].usUsage = 0x06;
-		Rid[1].dwFlags = RIDEV_NOLEGACY;
-		Rid[1].hwndTarget = 0;
-
-		// GAMEPAD
-		Rid[2].usUsagePage = 0x01;
-		Rid[2].usUsage = 0x05;
-		Rid[2].dwFlags = 0;
-		Rid[2].hwndTarget = 0;
-
-		// JOYSTICK
-		Rid[3].usUsagePage = 0x01;
-		Rid[3].usUsage = 0x04;
-		Rid[3].dwFlags = 0;
-		Rid[3].hwndTarget = 0;
-
-		if (RegisterRawInputDevices(Rid, 4, sizeof(Rid[0])) == FALSE)
-		{
-			Log.Critical("Failed to register device inputs!");
-		}
-
 		mPosX = xPos;
 		mPosY = yPos;
 		mWidth = width;
@@ -158,11 +102,6 @@ namespace Quartz
 
 	LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		if (uMsg == WM_INPUT)
-		{
-			return 0;
-		}
-
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 }

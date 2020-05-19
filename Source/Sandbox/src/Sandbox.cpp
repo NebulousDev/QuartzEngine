@@ -24,6 +24,9 @@
 #include "VulkanWin32.h"
 #include "VulkanUtil.h"
 
+#include "input\Input.h"
+#include "input\Win32Input.h"
+
 #include <vector>
 #include <iostream>
 #include <string>
@@ -66,6 +69,20 @@ int main()
 	Log.SetOutputConsole(pConsole);
 	Log.Info("Log Initialized Successfully.");
 
+	/* Initialize Input */
+	Input* pInput = new Win32Input();
+	pInput->InitializeInput();
+	//pInput->PollDeviceConnections();
+	Log.Info("Input Initialized Successfully.");
+
+	InputDevice xBoxController;
+	pInput->CreateDevice(pInput->GetConnectedDeviceList()[0], 0, &xBoxController);
+
+	//InputDevice keyboard;
+	//pInput->CreateDevice(pInput->GetConnectedDeviceList()[12], 0, &keyboard);
+
+	//InputDevice mouse;
+	//pInput->CreateDevice(pInput->GetConnectedDeviceList()[16], 0, &mouse);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -174,11 +191,11 @@ int main()
 
 	/////////////////
 
-	//auto vertShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
-	//auto fragShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
+	auto vertShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
+	auto fragShaderCode = readFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
 
-	auto vertShaderCode = readFile("C:\\DevStuffs\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
-	auto fragShaderCode = readFile("C:\\DevStuffs\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
+	//auto vertShaderCode = readFile("C:\\DevStuffs\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
+	//auto fragShaderCode = readFile("C:\\DevStuffs\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
 
 	GFXShaderInfo vertexShaderInfo	= {};
 	vertexShaderInfo.debugName		= "Default Vertex";
@@ -672,6 +689,7 @@ int main()
 		//((float*)data)[0] += 0.0001f;
 
 		engine.Update();
+		pInput->Update();
 		pWindow->Update();
 
 		lastTime = currentTime;
@@ -681,7 +699,7 @@ int main()
 
 		if (elapsedTime >= 1.0)
 		{
-			Log.Info("MS: %.4llfms, FPS: %d", deltaTime * 1000.0, fps);
+			//Log.Info("MS: %.4llfms, FPS: %d", deltaTime * 1000.0, fps);
 			elapsedTime = 0.0;
 			fps = 0;
 		}

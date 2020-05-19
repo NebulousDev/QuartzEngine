@@ -27,6 +27,9 @@
     <ClInclude Include="src\platform\Win32System.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\input\Win32Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\platform\Win32Window.cpp">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\Win32System.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\Win32Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

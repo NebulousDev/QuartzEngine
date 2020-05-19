@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{E9AB9930-9AA6-458D-BEC2-4E22D4F565EC}</ProjectGuid>
     <RootNamespace>Platform</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\gfx\GFXPlatform.h" />
+    <ClInclude Include="src\input\Input.h" />
     <ClInclude Include="src\module\Module.h" />
     <ClInclude Include="src\platform\System.h" />
     <ClInclude Include="src\platform\Window.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="src\util\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\input\Input.cpp" />
     <ClCompile Include="src\module\Module.cpp" />
     <ClCompile Include="src\platform\System.cpp" />
     <ClCompile Include="src\platform\Window.cpp" />

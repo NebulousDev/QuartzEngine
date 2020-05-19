@@ -50,6 +50,10 @@ namespace Quartz
 	typedef UInt32 Flags32;
 	typedef UInt64 Flags64;
 
+	typedef UInt16 Handle16;
+	typedef UInt32 Handle32;
+	typedef UInt64 Handle64;
+
 	typedef Float32 Time32;
 	typedef Double64 Time64;
 
