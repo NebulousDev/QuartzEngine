@@ -1,587 +1,341 @@
 #pragma once
+
 #include "../Common.h"
+#include <cstdlib>
+#include <cstring>
+#include <new>
+
 #include "../debug/Debug.h"
-
-#include "Utils.h"
-#include "../memory/Memory.h"
-
-#include <utility>
-#include <cassert>
-
-#include <initializer_list>
 
 namespace Quartz
 {
-	template<class Type>
+	template<typename _ValueType>
 	class Array
 	{
 	public:
+		using ArrayType = Array<_ValueType>;
+		using ValueType = _ValueType;
+
 		class Iterator
 		{
 		private:
-			Type* pItr;
+			ValueType* pItr;
 
 		public:
-			Iterator(Type* pItr);
-			Iterator(const Iterator& it);
-			Iterator(Iterator&& it) noexcept;
+			Iterator()
+				: pItr(nullptr) { }
 
-			Iterator& operator++();
-			Iterator operator++(int);
+			Iterator(ValueType* pItr)
+				: pItr(pItr) { }
 
-			Bool8 operator==(const Iterator& it) const;
-			Bool8 operator!=(const Iterator& it) const;
-			Bool8 operator>=(const Iterator& it) const;
-			Bool8 operator<=(const Iterator& it) const;
-			Bool8 operator>(const Iterator& it) const;
-			Bool8 operator<(const Iterator& it) const;
+			Iterator(const Iterator& it)
+				: pItr(it.pItr) { }
 
-			Iterator& operator=(const Iterator& it);
+			Iterator& operator++()
+			{
+				++pItr;
+				return *this;
+			}
 
-			Type& operator*();
-			Type* operator->();
+			Iterator operator++(int)
+			{
+				Iterator temp(*this);
+				++pItr;
+				return *temp;
+			}
+
+			Bool8 operator==(const Iterator& it) const
+			{
+				return pItr == it.pItr;
+			}
+
+			Bool8 operator!=(const Iterator& it) const
+			{
+				return pItr != it.pItr;
+			}
+
+			Bool8 operator>=(const Iterator& it) const
+			{
+				return pItr >= it.pItr;
+			}
+
+			Bool8 operator<=(const Iterator& it) const
+			{
+				return pItr <= it.pItr;
+			}
+
+			Bool8 operator>(const Iterator& it) const
+			{
+				return pItr > it.pItr;
+			}
+
+			Bool8 operator<(const Iterator& it) const
+			{
+				return pItr < it.pItr;
+			}
+
+			ValueType& operator*()
+			{
+				return *pItr;
+			}
+
+			ValueType* operator->()
+			{
+				return pItr;
+			}
 		};
 
-	protected:
-		Type* mpData;
-		UInt32 mSize;
-		UInt32 mCapacity;
+	private:
+		ValueType*	mpData;
+		UInt32		mSize;
+		UInt32		mCapacity;
 
 	private:
-		void Swap(Array& array) noexcept;
+		UInt32 NextSize(UInt32 size)
+		{
+			return size == 0 ? 16 : (((Float32)size * 1.5f) + 0.5f);
+		}
+
+		friend void Swap(ArrayType& array1, ArrayType& array2)
+		{
+			using Quartz::Swap;
+			Swap(array1.mpData, array2.mpData);
+			Swap(array1.mSize, array2.mSize);
+			Swap(array1.mCapacity, array2.mCapacity);
+		}
+
+		void ReserveImpl(UInt32 capacity, UInt32 offset = 0)
+		{
+			ValueType* mpPrev = mpData;
+			mpData = static_cast<ValueType*>(malloc(capacity * sizeof(ValueType)));
+
+			for (UInt32 i = 0; i < mSize; i++)
+			{
+				Swap(mpData[i + offset], mpPrev[i]);
+			}
+
+			mCapacity = capacity;
+
+			// No need to destruct values because 
+			// all valid entries have been swapped
+			free(mpPrev);
+		}
 
 	public:
-		Array();
-		explicit Array(UInt32 initSize);
-		Array(UInt32 initSize, const Type& value);
-		Array(UInt32 initSize, Type&& value);
-		Array(const Array& array);
-		Array(Array&& array) noexcept;
+		Array()
+			: mpData(nullptr), mSize(0), mCapacity(0) {}
 
-		Array(const std::initializer_list<Type>& list);
+		Array(UInt32 size)
+			: mSize(size), mCapacity(size)
+		{
+			mpData = static_cast<ValueType*>(malloc(size * sizeof(ValueType)));
 
-		~Array();
+			for (UInt32 i = 0; i < mSize; i++)
+			{
+				// Construct new default-constructed value
+				new (&mpData[i]) ValueType();
+			}
+		}
 
-		void Resize(UInt32 size);
-		void Resize(UInt32 size, const Type& value);
-		void Resize(UInt32 size, Type&& value);
+		Array(UInt32 size, const ValueType& value)
+			: mSize(size), mCapacity(size)
+		{
+			mpData = static_cast<ValueType*>(malloc(size * sizeof(ValueType)));
 
-		void Extend(UInt32 size = 1);
-		void Extend(UInt32 size, const Type& value);
-		void Extend(UInt32 size, Type&& value);
-		void Extend(UInt32 index, UInt32 size);
-		void Extend(UInt32 index, UInt32 size, const Type& value);
-		void Extend(UInt32 index, UInt32 size, Type&& value);
+			for (UInt32 i = 0; i < mSize; i++)
+			{
+				// Construct new value with given initial value
+				new (&mpData[i]) ValueType(value);
+			}
+		}
 
-		void Shrink(UInt32 size = 1);
-		void Shrink(UInt32 index, UInt32 size);
+		Array(const ArrayType& array)
+			: mSize(array.mSize), mCapacity(array.mCapacity)
+		{
+			mpData = static_cast<ValueType*>(malloc(array.mCapacity * sizeof(ValueType)));
 
-		void ExtendToFit();
-		void ShrinkToFit();
+			for (UInt32 i = 0; i < mSize; i++)
+			{
+				// Construct value from given value from the array
+				new (&mpData[i]) ValueType(array.mpData[i]);
+			}
+		}
 
-		void Reserve(UInt32 capacity);
+		Array(ArrayType&& array) noexcept
+		{
+			Swap(*this, array);
+		}
 
-		void PushFront(const Type& value);
-		void PushFront(Type&& value);
+		~Array()
+		{
+			for (UInt32 i = 0; i < mSize; i++)
+			{
+				// Destruct valid entries before freeing
+				mpData[i].~ValueType();
+			}
 
-		void PushBack(const Type& value);
-		void PushBack(Type&& value);
+			free(mpData);
+		}
 
-		Type PopFront();
-		Type PopBack();
+		void PushBack(const ValueType& value)
+		{
+			if (mSize + 1 > mCapacity)
+			{
+				ReserveImpl(NextSize(mCapacity));
+			}
 
-		void Insert(UInt32 index, const Type& value);
-		void Insert(UInt32 index, Type&& value);
+			// Construct at the end of the array
+			new (&mpData[mSize++]) ValueType(value);
+		}
 
-		void Erase(UInt32 index);
-		
-		void Clear();
+		void PushFront(const ValueType& value)
+		{
+			if (mSize + 1 > mCapacity)
+			{
+				// Reserve with offset of 1
+				// so that we dont need to move
+				// data again after resizing
+				ReserveImpl(NextSize(mCapacity), 1);
+			}
+			else
+			{
+				// Move all values right by one
+				memmove(&mpData[1], &mpData[0], mSize * sizeof(ValueType));
+			}
 
-		Type& Get(UInt32 index);
+			// Construct at the beginning of the array
+			new (&mpData[0]) ValueType(value);
 
-		Type& operator[](UInt32 index);
-		Type operator[](UInt32 index) const;
+			++mSize;
+		}
 
-		Array& operator=(const Array& array);
-		Array& operator=(Array&& array) noexcept;
+		void Reserve(UInt32 capacity)
+		{
+			if (capacity > mCapacity)
+			{
+				// Only reserve if size is greater than mCapacity
+				ReserveImpl(capacity);
+			}
+		}
 
-		Iterator begin();
-		Iterator end();
+		void Resize(UInt32 size)
+		{
+			if (size < mSize)
+			{
+				// Cannot resize smaller than mSize
+				return;
+			}
 
-		FORCE_INLINE Bool8 IsEmpty() { return mSize == 0; }
+			if (size > mCapacity)
+			{
+				// Size is larger than capacity, reserve more space
+				ReserveImpl(size);
+			}
 
-		FORCE_INLINE Type* Data() { return mpData; }
-		FORCE_INLINE UInt32 Size() const { return mSize; }
-		FORCE_INLINE UInt32 GetCapacity() const { return mCapacity; }
+			for (UInt32 i = mSize; i < size; i++)
+			{
+				// Construct new default-constructed value
+				new (&mpData[i]) ValueType();
+			}
+
+			mSize = size;
+		}
+
+		void Resize(UInt32 size, const ValueType& value)
+		{
+			if (size < mSize)
+			{
+				// Cannot resize smaller than mSize
+				return;
+			}
+
+			if (size > mCapacity)
+			{
+				// Size is larger than capacity, reserve more space
+				ReserveImpl(size);
+			}
+
+			for (UInt32 i = mSize; i < size; i++)
+			{
+				// Construct new value with given initial value
+				new (&mpData[i]) ValueType(value);
+			}
+
+			mSize = size;
+		}
+
+		void Shrink()
+		{
+			ReserveImpl(mSize);
+		}
+
+		void Clear()
+		{
+			for (UInt32 i = 0; i < mSize; i++)
+			{
+				// Destruct valid entries
+				mpData[i].~ValueType();
+			}
+
+			mSize = 0;
+		}
+
+		ArrayType& operator=(ArrayType array)
+		{
+			Swap(*this, array);
+			return *this;
+		}
+
+		ValueType& operator[](UInt32 index)
+		{
+			DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
+			return mpData[index];
+		}
+
+		const ValueType& operator[](UInt32 index) const
+		{
+			DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
+			return mpData[index];
+		}
+
+		Iterator begin()
+		{
+			if (!mpData)
+			{
+				return nullptr;
+			}
+
+			return Iterator(mpData);
+		}
+
+		Iterator end()
+		{
+			if (!mpData)
+			{
+				return nullptr;
+			}
+
+			return Iterator(mpData + mSize);
+		}
+
+		ValueType* Data()
+		{
+			return mpData;
+		}
+
+		UInt32 Size() const
+		{
+			return mSize;
+		}
+
+		UInt32 Capacity() const
+		{
+			return mCapacity;
+		}
+
+		Bool8 IsEmpty() const
+		{
+			return mSize == 0;
+		}
 	};
-
-	template<class Type>
-	Array<Type>::Iterator::Iterator(Type* pItr)
-		: pItr(pItr)
-	{
-		// Nothing
-	}
-
-	template<class Type>
-	Array<Type>::Iterator::Iterator(const Iterator& it)
-		: pItr(it.pItr)
-	{
-		// Nothing
-	}
-
-	template<class Type>
-	Array<Type>::Iterator::Iterator(Iterator&& it) noexcept
-		: pItr(it.pItr)
-	{
-		// Nothing
-	}
-
-	template<class Type>
-	typename Array<Type>::Iterator& Array<Type>::Iterator::operator++()
-	{
-		++pItr;
-		return *this;
-	}
-
-	template<class Type>
-	typename Array<Type>::Iterator Array<Type>::Iterator::operator++(int)
-	{
-		Array<Type>::Iterator temp(*this);
-		++pItr;
-		return temp;
-	}
-
-	template<class Type>
-	Bool8 Array<Type>::Iterator::operator==(const Iterator& it) const
-	{
-		return pItr == it.pItr;
-	}
-
-	template<class Type>
-	Bool8 Array<Type>::Iterator::operator!=(const Iterator& it) const
-	{
-		return pItr != it.pItr;
-	}
-
-	template<class Type>
-	Bool8 Array<Type>::Iterator::operator>=(const Iterator& it) const
-	{
-		return pItr >= it.pItr;
-	}
-
-	template<class Type>
-	Bool8 Array<Type>::Iterator::operator<=(const Iterator& it) const
-	{
-		return pItr <= it.pItr;
-	}
-
-	template<class Type>
-	Bool8 Array<Type>::Iterator::operator>(const Iterator& it) const
-	{
-		return pItr > it.pItr;
-	}
-
-	template<class Type>
-	Bool8 Array<Type>::Iterator::operator<(const Iterator& it) const
-	{
-		return pItr < it.pItr;
-	}
-
-	template<class Type>
-	typename Array<Type>::Iterator& Array<Type>::Iterator::operator=(const Iterator& it)
-	{
-		pItr = it.pItr;
-		return *this;
-	}
-
-	template<class Type>
-	Type& Array<Type>::Iterator::operator*()
-	{
-		return *pItr;
-	}
-
-	template<class Type>
-	Type* Array<Type>::Iterator::operator->()
-	{
-		return pItr;
-	}
-
-	template<class Type>
-	void Array<Type>::Swap(Array& array) noexcept
-	{
-		std::swap(mpData, array.mpData);
-		std::swap(mSize, array.mSize);
-		std::swap(mCapacity, array.mCapacity);
-	}
-
-	template<class Type>
-	Array<Type>::Array()
-		: mpData(nullptr), mSize(0), mCapacity(0)
-	{
-		// Nothing
-	}
-
-	template<class Type>
-	Array<Type>::Array(UInt32 initSize)
-		: mpData(nullptr), mSize(0), mCapacity(0)
-	{
-		Resize(initSize);
-	}
-
-	template<class Type>
-	Array<Type>::Array(UInt32 initSize, const Type& value)
-		: mpData(nullptr), mSize(0), mCapacity(0)
-	{
-		Resize(initSize, std::forward<Type>(value));
-	}
-
-	template<class Type>
-	Array<Type>::Array(UInt32 initSize, Type&& value)
-		: mpData(nullptr), mSize(0), mCapacity(0)
-	{
-		Resize(initSize, std::forward<Type>(value));
-	}
-
-	template<class Type>
-	Array<Type>::Array(const Array& array)
-		: mSize(array.mSize), mCapacity(array.mCapacity)
-	{
-		mpData = static_cast<Type*>(malloc(mCapacity * sizeof(Type)));
-
-		Type* pOther = array.mpData;
-		for (Type* pValue = mpData; pValue < mpData + array.mSize; ++pValue, ++pOther)
-			new (pValue) Type(*pOther);
-	}
-
-	template<class Type>
-	Array<Type>::Array(Array&& array) noexcept
-		: mpData(array.mpData), mSize(array.mSize), mCapacity(array.mCapacity)
-	{
-		array.mpData = nullptr;
-
-		// Are these necessary?
-		array.mSize = 0;
-		array.mCapacity = 0;
-	}
-
-	template<class Type>
-	Array<Type>::Array(const std::initializer_list<Type>& list)
-		: Array(list.size())
-	{
-		UInt32 i = 0;
-		for (const Type* pVal = list.begin(); pVal != list.end(); ++pVal, ++i)
-			new (&mpData[i]) Type(*pVal);
-	}
-
-	template<class Type>
-	Array<Type>::~Array()
-	{
-		if (mpData)
-		{
-			// Manually destruct destroyed values
-			for (Type* pValue = mpData;
-				pValue != mpData + mSize; ++pValue)
-			{
-				pValue->~Type();
-			}
-
-			free(mpData);
-		}
-	}
-
-	template<class Type>
-	void Array<Type>::Resize(UInt32 size)
-	{
-		if (size <= mCapacity)
-		{
-			mSize = size;
-			return;
-		}
-
-		Reserve(NextPowerOf2(size));
-		mSize = size;
-	}
-
-	template<class Type>
-	void Array<Type>::Resize(UInt32 size, const Type& value)
-	{
-		if (size <= mCapacity)
-		{
-			mSize = size;
-			return;
-		}
-
-		Reserve(NextPowerOf2(size));
-
-		for (Type* pValue = mpData + mSize;
-			pValue != mpData + mCapacity; ++pValue)
-		{
-			new (pValue) Type(value);
-		}
-
-		mSize = size;
-	}
-
-	template<class Type>
-	void Array<Type>::Resize(UInt32 size, Type&& value)
-	{
-		if (size <= mCapacity)
-		{
-			mSize = size;
-			return;
-		}
-
-		Reserve(NextPowerOf2(size));
-
-		for (Type* pValue = mpData + mSize; 
-			pValue != mpData + mCapacity; ++pValue)
-		{
-			new (pValue) Type(value);
-		}
-
-		mSize = size;
-	}
-
-	template<class Type>
-	void Array<Type>::Extend(UInt32 size)
-	{
-		mSize += size;
-		if (mSize > mCapacity)
-			Reserve(NextPowerOf2(mSize));
-	}
-
-	template<class Type>
-	void Array<Type>::Extend(UInt32 size, const Type& value)
-	{
-		Resize(mSize + size, value);
-	}
-
-	template<class Type>
-	void Array<Type>::Extend(UInt32 size, Type&& value)
-	{
-		Resize(mSize + size, value);
-	}
-
-	template<class Type>
-	void Array<Type>::Extend(UInt32 index, UInt32 size)
-	{
-		DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
-
-		Extend(size);
-
-		MemMove(mpData + index, mpData + index + size, mSize * sizeof(Type));
-	}
-
-	template<class Type>
-	void Array<Type>::Extend(UInt32 index, UInt32 size, const Type& value)
-	{
-		Extend(index, size);
-
-		for (Type* pValue = mpData + index;
-			pValue != mpData + index + size; ++pValue)
-		{
-			*pValue = value;
-		}
-	}
-
-	template<class Type>
-	void Array<Type>::Extend(UInt32 index, UInt32 size, Type&& value)
-	{
-		Extend(index, size);
-
-		for (Type* pValue = mpData + index;
-			pValue != mpData + index + size; ++pValue)
-		{
-			*pValue = value;
-		}
-	}
-
-	template<class Type>
-	void Array<Type>::Shrink(UInt32 size)
-	{
-		mSize -= size;
-
-		// Manually destruct destroyed values
-		for (Type* pValue = mpData + mSize;
-			pValue != mpData + mSize + size; ++pValue)
-		{
-			pValue->~Type();
-		}
-	}
-
-	template<class Type>
-	void Array<Type>::Shrink(UInt32 index, UInt32 size)
-	{
-		const UInt32 remaining = mSize - index - size;
-
-		DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
-		DEBUG_ASSERT(size < remaining && "Array size out of bounds!");
-
-		MemMove(mpData + index + size, mpData + index, remaining * sizeof(Type));
-
-		mSize -= size;
-
-		// Manually destruct destroyed values
-		for (Type* pValue = mpData + mSize;
-			pValue != mpData + mSize + size; ++pValue)
-		{
-			pValue->~Type();
-		}
-	}
-
-	template<class Type>
-	void Array<Type>::ExtendToFit()
-	{
-		Resize(mCapacity);
-	}
-
-	template<class Type>
-	void Array<Type>::ShrinkToFit()
-	{
-		Reserve(mSize);
-	}
-
-	template<class Type>
-	void Array<Type>::Reserve(UInt32 capacity)
-	{
-		const UInt32 newSize = capacity > mSize ? mSize : capacity;
-
-		Type* pNewData = capacity ? static_cast<Type*>(malloc(capacity * sizeof(Type))) : nullptr;
-		//Type* pNewData = capacity ? static_cast<Type*>(calloc(capacity, sizeof(Type))) : nullptr;
-
-		if (mpData)
-		{
-			MemCopy(mpData, pNewData, newSize * sizeof(Type));
-
-			if (newSize < mSize)
-			{
-				for (Type* pValue = mpData + newSize;
-					pValue != mpData + newSize + mSize - 1; ++pValue)
-				{
-					pValue->~Type();
-				}
-			}
-
-			free(mpData);
-		}
-
-		mpData = pNewData;
-		mSize = newSize;
-		mCapacity = capacity;
-	}
-
-	template<class Type>
-	void Array<Type>::PushFront(const Type& value)
-	{
-		Extend(0, 1, value);
-	}
-
-	template<class Type>
-	void Array<Type>::PushFront(Type&& value)
-	{
-		Extend(0, 1, value);
-	}
-
-	template<class Type>
-	void Array<Type>::PushBack(const Type& value)
-	{
-		Extend();
-		new (mpData + mSize - 1) Type(value);
-	}
-
-	template<class Type>
-	void Array<Type>::PushBack(Type&& value)
-	{
-		Extend();
-		new (mpData + mSize - 1) Type(std::forward<Type>(value));
-	}
-
-	template<class Type>
-	Type Array<Type>::PopFront()
-	{
-		DEBUG_ASSERT(mSize > 0 && "Array size out of bounds!");
-
-		Type value = mpData[0];
-		Shrink(0, 1);
-
-		return value;
-	}
-
-	template<class Type>
-	Type Array<Type>::PopBack()
-	{
-		DEBUG_ASSERT(mSize > 0 && "Array size out of bounds!");
-		return mpData[--mSize];
-	}
-
-	template<class Type>
-	void Array<Type>::Insert(UInt32 index, const Type& value)
-	{
-		Extend(index, 1, value);
-	}
-
-	template<class Type>
-	void Array<Type>::Insert(UInt32 index, Type&& value)
-	{
-		Extend(index, 1, value);
-	}
-
-	template<class Type>
-	void Array<Type>::Erase(UInt32 index)
-	{
-		Shrink(index, 1);
-	}
-
-	template<class Type>
-	void Array<Type>::Clear()
-	{
-		Resize(0);
-	}
-
-	template<class Type>
-	Type& Array<Type>::Get(UInt32 index)
-	{
-		DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
-		return mpData[index];
-	}
-
-	template<class Type>
-	Type& Array<Type>::operator[](UInt32 index)
-	{
-		DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
-		return mpData[index];
-	}
-
-	template<class Type>
-	Type Array<Type>::operator[](UInt32 index) const
-	{
-		DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
-		return mpData[index];
-	}
-
-	template<class Type>
-	Array<Type>& Array<Type>::operator=(const Array& array)
-	{
-		Array<Type>(array).Swap(*this);
-		return *this;
-	}
-
-	template<class Type>
-	Array<Type>& Array<Type>::operator=(Array&& array) noexcept
-	{
-		Array<Type>(std::move(array)).Swap(*this);
-		return *this;
-	}
-
-	template<class Type>
-	typename Array<Type>::Iterator Array<Type>::begin()
-	{
-		return Iterator(mpData);
-	}
-
-	template<class Type>
-	typename Array<Type>::Iterator Array<Type>::end()
-	{
-		return Iterator(mpData + mSize);
-	}
 }

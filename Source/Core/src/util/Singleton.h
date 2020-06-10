@@ -4,17 +4,19 @@
 
 namespace Quartz
 {
-	template<typename Type>
+	template<typename ClassType>
 	class Singleton
 	{
+	protected:
+		static ClassType smInstance;
+
 	public:
-		INLINE static Type& GetInstance();
+		static ClassType& GetInstance()
+		{
+			return smInstance;
+		}
 	};
 
-	template<typename Type>
-	Type& Singleton<Type>::GetInstance()
-	{
-		static Type sInstance;
-		return sInstance;
-	}
+	template<typename ClassType>
+	ClassType Singleton<ClassType>::smInstance;
 }

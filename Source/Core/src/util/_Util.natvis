@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
-  <Type Name = "Quartz::StringImpl&lt;*&gt;">
-    <DisplayString>String {mpStr,s}</DisplayString>
+  <Type Name = "Quartz::StringBase&lt;char&gt;">
+    <DisplayString Condition="mpMeta->length == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData + metaSize,na}</DisplayString>
     <Expand>
-      <Item Name="[string]">mpStr,s8</Item>
-      <Item Name="[length]">*mpLength</Item>
-      <Item Name="[count]">*mpCount</Item>
+      <Item Name="[Length]">(int)mpMeta->length</Item>
+      <Item Name="[RefCount]">(int)mpMeta->count</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mpMeta->length == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData + metaSize,su}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">(int)mpMeta->length</Item>
+      <Item Name="[RefCount]">(int)mpMeta->count</Item>
     </Expand>
   </Type>
 
   <Type Name = "Quartz::Array&lt;*&gt;">
-    <DisplayString>Array {{Size = {mSize}}}</DisplayString>
+    <DisplayString>Size = {mSize}</DisplayString>
     <Expand>
-      <Item Name="[size]">mSize</Item>
-      <Item Name="[capacity]">mCapacity</Item>
+      <Item Name="[Size]">mSize</Item>
+      <Item Name="[Capacity]">mCapacity</Item>
       <ArrayItems>
         <Size>mSize</Size>
         <ValuePointer>mpData</ValuePointer>
@@ -22,24 +31,59 @@
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::HashEntry&lt;*&gt;">
-    <DisplayString>Entry {{Key = {key}, Value = {value}}}</DisplayString>
+  <Type Name = "Quartz::TableEntry&lt;*&gt;">
+    <DisplayString>[{keyValue}, Hash = {hash}]</DisplayString>
     <Expand>
-      <Item Name="[key]">key</Item>
-      <Item Name="[value]">value</Item>
-      <Item Name="[hash]">hash</Item>
+      <Item Name="[KeyValue]">keyValue</Item>
+      <Item Name="[Hash]">hash</Item>
+      <Item Name="[First]">isFirst</Item>
+      <Item Name="[Last]">isLast</Item>
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::Map&lt;*&gt;">
-    <DisplayString>Map {{Size = {mSize}}}</DisplayString>
+  <Type Name = "Quartz::Table&lt;*&gt;">
+    <DisplayString>Size = {mSize}</DisplayString>
     <Expand>
-      <Item Name="[size]">mSize</Item>
-      <Item Name="[capacity]">mCapacity</Item>
-      <Item Name="[threshold]">mThreshold</Item>
+      <Item Name="[Size]">mSize</Item>
+      <Item Name="[Capacity]">mCapacity</Item>
+      <Item Name="[Threshold]">mThreshold</Item>
       <ArrayItems>
         <Size>mCapacity</Size>
         <ValuePointer>mTable.mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::MapPair&lt;*,*&gt;">
+    <DisplayString>Key = {key}, Value = {value}</DisplayString>
+    <Expand>
+      <Item Name="[Key]">key</Item>
+      <Item Name="[Value]">value</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Map&lt;*,*&gt;">
+    <DisplayString>Size = {mTable.mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mTable.mSize</Item>
+      <Item Name="[Capacity]">mTable.mCapacity</Item>
+      <Item Name="[Threshold]">mTable.mThreshold</Item>
+      <ArrayItems>
+        <Size>mTable.mCapacity</Size>
+        <ValuePointer>mTable.mTable.mpData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::Set&lt;*&gt;">
+    <DisplayString>Size = {mTable.mSize}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">mTable.mSize</Item>
+      <Item Name="[Capacity]">mTable.mCapacity</Item>
+      <Item Name="[Threshold]">mTable.mThreshold</Item>
+      <ArrayItems>
+        <Size>mTable.mCapacity</Size>
+        <ValuePointer>mTable.mTable.mpData</ValuePointer>
       </ArrayItems>
     </Expand>
   </Type>

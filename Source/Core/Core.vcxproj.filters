@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\util\Array.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\util\BitField.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -25,9 +22,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\List.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\Pool.h">
@@ -40,9 +34,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\TypePack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\RefPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\Intrinsics.h">
@@ -58,9 +49,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\Singleton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\json\JSON.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\math2\Matrix.h">
@@ -111,10 +99,25 @@
     <ClInclude Include="src\math\QuaternionImpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\RefPtr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\util\String.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\StringNew.h">
+    <ClInclude Include="src\util\Table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\TypeId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -123,9 +126,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\memory\Memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\json\JSON.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

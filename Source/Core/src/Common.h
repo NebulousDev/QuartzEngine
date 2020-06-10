@@ -57,13 +57,25 @@ namespace Quartz
 	typedef Float32 Time32;
 	typedef Double64 Time64;
 
-	template<class _Type>
+	template<typename _Type>
 	struct RValue
 	{
 		using Type = _Type;
 	};
 
-	template<class _Type>
+	template<typename _Type>
+	struct RValue<_Type&>
+	{
+		using Type = _Type;
+	};
+
+	template<typename _Type>
+	struct RValue<_Type&&>
+	{
+		using Type = _Type;
+	};
+
+	template<typename _Type>
 	using RValueType = typename RValue<_Type>::Type;
 
 	template<typename Type>
@@ -72,9 +84,17 @@ namespace Quartz
 		return static_cast<RValueType<Type>&&>(value); 
 	}
 
-	template<class Type>
+	template<typename Type>
 	constexpr Type&& Forward(RValueType<Type>&& args) noexcept
 	{
 		return static_cast<Type&&>(args);
+	}
+
+	template<typename Type>
+	void Swap(Type& t1, Type& t2)
+	{
+		Type temp = Move(t1);
+		t1 = Move(t2);
+		t2 = Move(temp);
 	}
 }

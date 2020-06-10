@@ -1,392 +1,316 @@
 #pragma once
+
 #include "../Common.h"
-
 #include "Hash.h"
-#include "../memory/Memory.h"
 
-#include <utility>
-#include <cassert>
-
-#define STR(str) str##_S
-#define STR8(str) str##_S8
-#define STR16(str) str##_S16
-#define STR32(str) str##_S32
+#include <cstring>
 
 namespace Quartz
 {
-	using UTF8Char = char;
-	using UTF16Char = char16_t;
-	using UTF32Char = char32_t;
+	template<typename CharType>
+	UInt32 StringLength(const CharType* pString)
+	{ 
+		return 0;
+	}
 
-#define STRING_IMPL_HEADER \
-template \
-< \
-	typename CharType, \
-	UInt32(*StrLenFunc)(const CharType *), \
-	const CharType *(*StrFindFunc)(const CharType *, const CharType *), \
-	UInt32(*StrCmpFunc)(const CharType *, const CharType *) \
->
+	template<typename CharType>
+	Int32 StringCompare(const CharType* pString1, const CharType* pString2)
+	{
+		return false;
+	}
 
-#define STRING_IMPL_TYPE \
-	StringImpl<CharType, StrLenFunc, StrFindFunc, StrCmpFunc>
+	template<typename CharType>
+	UInt32 StringHash(const CharType* pString)
+	{
+		return false;
+	}
 
-	STRING_IMPL_HEADER
-	class StringImpl
+	template<typename _CharType>
+	class StringBase
 	{
 	public:
-		using CharValue = CharType;
+		using StringType	= StringBase<_CharType>;
+		using CharType		= typename _CharType;
+		
+	protected:
+		struct StringMeta
+		{
+			UInt32 count;
+			UInt32 length;
 
-	private:
-		CharType* mpStr;
-		UInt32* mpLength;
-		UInt32* mpCount;
+			StringMeta() :
+				count(1), length(0) { }
 
-		StringImpl(const CharType* pStr, UInt32 len, 
-			const CharType* pStr2, UInt32 len2);
+			StringMeta(UInt32 count, UInt32 length) :
+				count(count), length(length) { }
+		};
+
+		static constexpr UInt32 charSize = sizeof(CharType);
+		static constexpr UInt32 metaSize = sizeof(StringMeta);
+
+		union
+		{
+			Byte*		mpData;
+			StringMeta* mpMeta;
+		};
+
+		static StringType Append(const StringType& string1, const CharType* pString2)
+		{
+			StringType result;
+			UInt32 length = StringLength(pString2);
+			result.Resize(string1.Length() + length);
+			memcpy(result.Data(), string1.Str(), string1.Length() * sizeof(CharType));
+			memcpy(result.Data() + string1.Length(), pString2, length * sizeof(CharType));
+			return result;
+		}
+
+		static StringType Append(const CharType* pString1, const StringType& string2)
+		{
+			StringType result;
+			UInt32 length = StringLength(pString1);
+			result.Resize(length + string2.Length());
+			memcpy(result.Data(), pString1, length * sizeof(CharType));
+			memcpy(result.Data() + length, string2.Str(), string2.Length() * sizeof(CharType));
+			return result;
+		}
+
+		static StringType Append(const StringType& string1, const StringType& string2)
+		{
+			StringType result;
+			result.Resize(string1.Length() + string2.Length());
+			memcpy(result.Data(), string1.Str(), string1.Length() * sizeof(CharType));
+			memcpy(result.Data() + string1.Length(), string2.Str(), string2.Length() * sizeof(CharType));
+			return result;
+		}
 
 	public:
-		StringImpl();
-		StringImpl(const CharType* pStr);
-		StringImpl(const CharType* pStr, UInt32 length);
-		StringImpl(const StringImpl& str);
-		StringImpl(StringImpl&& str);
+		StringBase() :
+			mpMeta(new StringMeta()) { }
 
-		~StringImpl();
-
-		const CharType* Find(const CharType* pStr) const;
-		const CharType* Find(const StringImpl& str) const;
-
-		Int32 IndexOf(const CharType* pStr) const;
-		Int32 IndexOf(const StringImpl& str) const;
-
-		Bool8 StartsWith(const CharType* pStr) const;
-		Bool8 StartsWith(const StringImpl& str) const;
-		Bool8 EndsWith(const CharType* pStr) const;
-		Bool8 EndsWith(const StringImpl& str) const;
-
-		StringImpl SubString(UInt32 begin, UInt32 end) const;
-
-		UInt32 Compare(const CharType* pStr) const;
-		UInt32 Compare(const StringImpl& str) const;
-
-		Bool8 operator==(const CharType* pStr) const;
-		Bool8 operator==(const StringImpl& str) const;
-		Bool8 operator!=(const CharType* pStr) const;
-		Bool8 operator!=(const StringImpl& str) const;
-
-		StringImpl& operator=(const CharType* pStr);
-		StringImpl& operator=(StringImpl str);
-
-		StringImpl operator+(const CharType* pStr) const;
-		StringImpl operator+(const StringImpl& str) const;
-		StringImpl& operator+=(const CharType* pStr);
-		StringImpl& operator+=(const StringImpl& str);
-
-		const CharType& operator[](const UInt32 idx) const { return mpStr[idx]; };
-
-		FORCE_INLINE CharType* Data() { return mpStr; }
-		FORCE_INLINE const CharType* Str() const { return mpStr; }
-		FORCE_INLINE UInt32 Length() const { return *mpLength; }
-		FORCE_INLINE UInt32 Count() const { return *mpCount; }
-		FORCE_INLINE Bool8 Empty() const { return *mpLength == 0; }
-
-		friend void swap(StringImpl& first, StringImpl& second)
+		StringBase(const CharType* pString)
 		{
-			using std::swap;
+			const UInt32 length = StringLength(pString);
+			const UInt32 stringBufferSize = (length + 1) * charSize;
+			const UInt32 fullBufferSize = metaSize + stringBufferSize;
 
-			swap(first.mpStr, second.mpStr);
-			swap(first.mpLength, second.mpLength);
-			swap(first.mpCount, second.mpCount);
+			mpData = new Byte[fullBufferSize];
+
+			*mpMeta = StringMeta(1, length);
+			memcpy(mpData + metaSize, pString, stringBufferSize);
+
+			// Set last value to zero (null-termination)
+			reinterpret_cast<CharType*>(mpData + metaSize)[length] = 0;
+		}
+
+		StringBase(const StringType& string) :
+			mpData(string.mpData)
+		{
+			++mpMeta->count;
+		}
+
+		StringBase(StringType&& rString) noexcept :
+			StringType()
+		{
+			Swap(*this, rString);
+		}
+
+		~StringBase()
+		{
+			if (--mpMeta->count == 0)
+			{
+				delete mpData;
+			}
+		}
+
+		friend void Swap(StringType& string1, StringType& string2)
+		{
+			using Quartz::Swap;
+			Swap(string1.mpData, string2.mpData);
+		}
+
+		Bool8 operator==(const StringType& string) const
+		{
+			return (Length() == string.Length()) && 
+				(StringCompare(Str(), string.Str()) == 0);
+		}
+
+		StringType& operator=(StringType string)
+		{
+			Swap(*this, string);
+			return *this;
+		}
+
+		StringType operator+(const CharType* pString) const
+		{
+			return Append(*this, pString);
+		}
+
+		StringType operator+(const StringType& string) const
+		{
+			return Append(*this, string);
+		}
+
+		friend StringType operator+(const CharType* pString1, const StringType& string2)
+		{
+			return Append(pString1, string2);
+		}
+
+		StringType& operator+=(const CharType* pString)
+		{
+			*this = Append(*this, pString);
+			return *this;
+		}
+
+		StringType& operator+=(const StringType& string)
+		{
+			*this = Append(*this, string);
+			return *this;
+		}
+
+		StringType& Resize(UInt32 length)
+		{
+			const UInt32 stringBufferSize = (length + 1) * charSize;
+			const UInt32 fullBufferSize = metaSize + stringBufferSize;
+
+			const Byte* mpPrev = mpData;
+
+			mpData = new Byte[fullBufferSize];
+			mpMeta->count = ((StringMeta*)mpPrev)->count;
+			mpMeta->length = length;
+
+			reinterpret_cast<CharType*>(mpData + metaSize)[length] = 0;
+
+			delete mpPrev;
+
+			return *this;
+		}
+
+		const UInt32 Hash() const
+		{
+			return StringHash(Str());
+		}
+
+		const CharType* Str() const
+		{
+			return reinterpret_cast<const CharType*>(mpData + metaSize);
+		}
+
+		CharType* Data()
+		{
+			return reinterpret_cast<CharType*>(mpData + metaSize);
+		}
+
+		UInt32 Length() const
+		{
+			return mpMeta->length;
+		}
+
+		UInt32 RefCount() const
+		{
+			return mpMeta->count;
+		}
+
+		Bool8 IsUnique() const
+		{
+			return mpMeta->count == 1;
+		}
+
+		Bool8 IsEmpty() const
+		{
+			return mpMeta->length == 0;
 		}
 	};
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::StringImpl(const CharType* pStr, UInt32 len, 
-		const CharType* pStr2, UInt32 len2)
+	template<>
+	FORCE_INLINE UInt32 StringLength<char>(const char* pString)
 	{
-		const UInt32 length = len + len2;
-
-		mpStr = new CharType[length + 1];
-		MemCopy(pStr, mpStr, len);
-		MemCopy(pStr2, mpStr + len, len2);
-		mpStr[length] = '\0';
-
-		mpLength = new UInt32(length);
-		mpCount = new UInt32(1);
+		return static_cast<UInt32>(strlen(pString));
 	}
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::StringImpl()
-		: mpStr(nullptr), mpLength(new UInt32(0)), mpCount(new UInt32(1))
+	template<>
+	FORCE_INLINE UInt32 StringLength<wchar_t>(const wchar_t* pString)
 	{
-		// Nothing
+		return static_cast<UInt32>(wcslen(pString));
 	}
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::StringImpl(const CharType* pStr)
+	template<>
+	FORCE_INLINE Int32 StringCompare<char>(const char* pString1, const char* pString2)
 	{
-		const UInt32 length = StrLenFunc(pStr);
-
-		mpStr = new CharType[length + 1];
-		MemCopy(pStr, mpStr, length);
-		mpStr[length] = '\0';
-
-		mpLength = new UInt32(length);
-		mpCount = new UInt32(1);
+		return static_cast<UInt32>(strcmp(pString1, pString2));
 	}
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::StringImpl(const CharType* pStr, UInt32 length)
+	template<>
+	FORCE_INLINE Int32 StringCompare<wchar_t>(const wchar_t* pString1, const wchar_t* pString2)
 	{
-		mpStr = new CharType[length + 1];
-		MemCopy(pStr, mpStr, length);
-		mpStr[length] = '\0';
-
-		mpLength = new UInt32(length);
-		mpCount = new UInt32(1);
+		return static_cast<UInt32>(wcscmp(pString1, pString2));
 	}
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::StringImpl(const StringImpl& str)
-		: mpStr(str.mpStr), mpLength(str.mpLength), mpCount(str.mpCount)
+	template<>
+	FORCE_INLINE UInt32 StringHash<char>(const char* pString)
 	{
-		++(*mpCount);
-	}
+		// MurmurOAAT64 Hash
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::StringImpl(StringImpl&& str)
-		: STRING_IMPL_TYPE()
-	{
-		swap(*this, str);
-	}
+		UInt64 hash = 525201411107845655ull;
 
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE::~StringImpl()
-	{
-		if (!(--(*mpCount)))
+		while (*(pString++))
 		{
-			delete[] mpStr;
-			delete mpLength;
-			delete mpCount;
+			hash ^= *pString;
+			hash *= 0x5bd1e9955bd1e995;
+			hash ^= hash >> 47;
 		}
+
+		return static_cast<UInt32>(hash);
 	}
 
-	STRING_IMPL_HEADER
-	const CharType* STRING_IMPL_TYPE::Find(const CharType* pStr) const
+	template<>
+	FORCE_INLINE UInt32 StringHash<wchar_t>(const wchar_t* pString)
 	{
-		return StrFindFunc(mpStr, pStr);
+		// MurmurOAAT64 Hash
+
+		UInt64 hash = 525201411107845655ull;
+
+		while (*(pString++))
+		{
+			hash ^= *pString;
+			hash *= 0x5bd1e9955bd1e995;
+			hash ^= hash >> 47;
+		}
+
+		return static_cast<UInt32>(hash);
 	}
 
-	STRING_IMPL_HEADER
-	const CharType* STRING_IMPL_TYPE::Find(const StringImpl& str) const
-	{
-		return StrFindFunc(mpStr, str.mpStr);
-	}
+	using StringA = StringBase<char>;
+	using StringW = StringBase<wchar_t>;
 
-	STRING_IMPL_HEADER
-	Int32 STRING_IMPL_TYPE::IndexOf(const CharType* pStr) const
-	{
-		const CharType* pLoc = Find(pStr);
-		return pLoc ? static_cast<UInt32>(pLoc - mpStr) : -1;
-	}
-
-	STRING_IMPL_HEADER
-	Int32 STRING_IMPL_TYPE::IndexOf(const StringImpl& str) const
-	{
-		const CharType* pLoc = Find(str);
-		return pLoc ? static_cast<UInt32>(pLoc - mpStr) : -1;
-	}
-
-	STRING_IMPL_HEADER
-	Bool8 STRING_IMPL_TYPE::StartsWith(const CharType* pStr) const
-	{
-		return Find(pStr) == mpStr;
-	}
-
-	STRING_IMPL_HEADER
-	Bool8 STRING_IMPL_TYPE::StartsWith(const StringImpl& str) const
-	{
-		return Find(str) == mpStr;
-	}
-
-	STRING_IMPL_HEADER
-	Bool8 STRING_IMPL_TYPE::EndsWith(const CharType* pStr) const
-	{
-		//TODO: Implement reverse find
-		return Find(pStr) == mpStr + *mpLength - StrLenFunc(pStr);
-	}
-
-	STRING_IMPL_HEADER
-	Bool8 STRING_IMPL_TYPE::EndsWith(const StringImpl& str) const
-	{
-		//TODO: Implement reverse find
-		return Find(str) == mpStr + *mpLength - *str.mpLength;
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE STRING_IMPL_TYPE::SubString(UInt32 begin, UInt32 end) const
-	{
-		assert(end > begin);
-		return String(mpStr + begin, end - begin);
-	}
-
-	STRING_IMPL_HEADER
-	UInt32 STRING_IMPL_TYPE::Compare(const CharType* pStr) const
-	{
-		return StrCmpFunc(mpStr, pStr);
-	}
-
-	STRING_IMPL_HEADER
-	UInt32 STRING_IMPL_TYPE::Compare(const StringImpl& str) const
-	{
-		return StrCmpFunc(mpStr, str.mpStr);
-	}
-
-	STRING_IMPL_HEADER
-	Bool8 STRING_IMPL_TYPE::operator==(const CharType* pStr) const
-	{
-		return Compare(pStr) == 0;
-	}
-
-	STRING_IMPL_HEADER
-	Bool8 STRING_IMPL_TYPE::operator==(const StringImpl& str) const
-	{
-		return Compare(str) == 0;
-	}
-
-	STRING_IMPL_HEADER
-		Bool8 STRING_IMPL_TYPE::operator!=(const CharType* pStr) const
-	{
-		return Compare(pStr) != 0;
-	}
-
-	STRING_IMPL_HEADER
-		Bool8 STRING_IMPL_TYPE::operator!=(const StringImpl& str) const
-	{
-		return Compare(str) != 0;
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE& STRING_IMPL_TYPE::operator=(const CharType* pStr)
-	{
-		return (*this = String(pStr));
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE& STRING_IMPL_TYPE::operator=(StringImpl str)
-	{
-		swap(*this, str);
-		return *this;
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE STRING_IMPL_TYPE::operator+(const CharType* pStr) const
-	{
-		return StringImpl(mpStr, *mpLength, pStr, StrLenFunc(pStr));
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE STRING_IMPL_TYPE::operator+(const StringImpl& str) const
-	{
-		return StringImpl(mpStr, *mpLength, str.mpStr, *str.mpLength);
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE& STRING_IMPL_TYPE::operator+=(const CharType* pStr)
-	{
-		return *this = *this + pStr;
-	}
-
-	STRING_IMPL_HEADER
-	STRING_IMPL_TYPE& STRING_IMPL_TYPE::operator+=(const StringImpl& str)
-	{
-		return *this = *this + str;
-	}
-
-	FORCE_INLINE UInt32 UTF8StrLen(const UTF8Char* pStr)
-	{
-		return static_cast<UInt32>(StrLen(pStr));
-	}
-
-	FORCE_INLINE UInt32 UTF16StrLen(const UTF16Char* pStr)
-	{
-		return static_cast<UInt32>(StrLen16(pStr));
-	}
-
-	FORCE_INLINE UInt32 UTF32StrLen(const UTF32Char* pStr)
-	{
-		return static_cast<UInt32>(StrLen32(pStr));
-	}
-
-	FORCE_INLINE const UTF8Char* UTF8StrStr(const UTF8Char* pStr, const UTF8Char* pStr2)
-	{
-		return StrStr(pStr, pStr2);
-	}
-
-	FORCE_INLINE const UTF16Char* UTF16StrStr(const UTF16Char* pStr, const UTF16Char* pStr2)
-	{
-		return StrStr16(pStr, pStr2);
-	}
-
-	FORCE_INLINE const UTF32Char* UTF32StrStr(const UTF32Char* pStr, const UTF32Char* pStr2)
-	{
-		return StrStr32(pStr, pStr2);
-	}
-
-	FORCE_INLINE UInt32 UTF8StrCmp(const UTF8Char* pStr, const UTF8Char* pStr2)
-	{
-		return static_cast<UInt32>(StrCmp(pStr, pStr2));
-	}
-
-	FORCE_INLINE UInt32 UTF16StrCmp(const UTF16Char* pStr, const UTF16Char* pStr2)
-	{
-		return static_cast<UInt32>(StrCmp16(pStr, pStr2));
-	}
-
-	FORCE_INLINE UInt32 UTF32StrCmp(const UTF32Char* pStr, const UTF32Char* pStr2)
-	{
-		return static_cast<UInt32>(StrCmp32(pStr, pStr2));
-	}
-
-	using String = StringImpl<UTF8Char, UTF8StrLen, UTF8StrStr, UTF8StrCmp>;
-	using String16 = StringImpl<UTF16Char, UTF16StrLen, UTF16StrStr, UTF16StrCmp>;
-	using String32 = StringImpl<UTF32Char, UTF32StrLen, UTF32StrStr, UTF32StrCmp>;
-	
-	FORCE_INLINE String operator"" _S(const char* str, USize size)
-	{
-		return String(str, static_cast<UInt32>(size));
-	}
-
-	FORCE_INLINE String operator"" _S8(const char* str, USize size)
-	{
-		return String(str, static_cast<UInt32>(size));
-	}
-
-	FORCE_INLINE String16 operator"" _S16(const char16_t* str, USize size)
-	{
-		return String16(str, static_cast<UInt32>(size));
-	}
-
-	FORCE_INLINE String32 operator"" _S32(const char32_t* str, USize size)
-	{
-		return String32(str, static_cast<UInt32>(size));
-	}
+	using String = StringA;
 
 	template<>
 	FORCE_INLINE UInt32 Hash<String>(const String& value)
 	{
-		return CRC32(value.Str());
+		return value.Hash();
 	}
 
 	template<>
-	FORCE_INLINE UInt32 Hash<String16>(const String16& value)
+	FORCE_INLINE UInt32 Hash<StringW>(const StringW& value)
 	{
-		return 0;
+		return value.Hash();
 	}
 
-	template<>
-	FORCE_INLINE UInt32 Hash<String32>(const String32& value)
+	FORCE_INLINE StringW StringAToStringW(const StringA& stringA)
 	{
-		return 0;
+		StringW wide;
+		wide.Resize(stringA.Length());
+
+		const char* pStr = stringA.Str();
+		wchar_t* pWide = wide.Data();
+
+		while (*pStr)
+		{
+			*pWide = (wchar_t)*pStr;
+			++pWide;
+			++pStr;
+		}
+
+		return wide;
 	}
 }
