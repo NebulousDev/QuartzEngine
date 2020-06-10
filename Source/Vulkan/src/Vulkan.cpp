@@ -1,7 +1,7 @@
 #include "Vulkan.h"
 #include "VulkanUtil.h"
 
-#include "io/Log.h"
+//#include "io///Log.h"
 #include "gfx/GFXUtil.h"
 
 namespace Quartz
@@ -60,7 +60,7 @@ namespace Quartz
 	{
 		for (const VkLayerProperties layerProperty : mAvailableLayers)
 		{
-			if (StrCmp(layerName, layerProperty.layerName) == 0)
+			if (strcmp(layerName, layerProperty.layerName) == 0)
 			{
 				return true;
 			}
@@ -90,7 +90,7 @@ namespace Quartz
 	{
 		for (const VkExtensionProperties extensionProperty : mAvailableExtensions)
 		{
-			if (StrCmp(extensionName, extensionProperty.extensionName) == 0)
+			if (strcmp(extensionName, extensionProperty.extensionName) == 0)
 			{
 				return true;
 			}
@@ -186,15 +186,15 @@ namespace Quartz
 	{
 		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		{
-			Log.Error(pCallbackData->pMessage);
+			//Log.Error(pCallbackData->pMessage);
 		}
 		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
 		{
-			Log.Warning(pCallbackData->pMessage);
+			//Log.Warning(pCallbackData->pMessage);
 		}
 		else
 		{
-			Log.Debug(pCallbackData->pMessage);
+			//Log.Debug(pCallbackData->pMessage);
 		}
 
 		return VK_FALSE;
@@ -222,7 +222,7 @@ namespace Quartz
 
 				if (vkDebugMarkerSetObjectNameEXT(device, &debugNameInfo) != VK_SUCCESS)
 				{
-					Log.Warning("Failed to set debug name '%s'", name);
+					//Log.Warning("Failed to set debug name '%s'", name);
 				}
 			}
 
@@ -317,7 +317,7 @@ namespace Quartz
 
 		if (result != VK_SUCCESS)
 		{
-			Log.Critical("Failed to create Vulkan instance: vkCreateInstance failed!");
+			//Log.Critical("Failed to create Vulkan instance: vkCreateInstance failed!");
 			return false;
 		}
 
@@ -330,12 +330,12 @@ namespace Quartz
 
 		if (!vkCreateDebugUtilsMessengerEXT)
 		{
-			Log.Warning("Failed to address for \"PFN_vkCreateDebugUtilsMessengerEXT\". No validation messages will be shown!!!");
+			//Log.Warning("Failed to address for \"PFN_vkCreateDebugUtilsMessengerEXT\". No validation messages will be shown!!!");
 			errors = true;
 		}
 		else if (vkCreateDebugUtilsMessengerEXT(mVkInstance, &debugMessengerInfo, NULL, &mDebugMessenger) != VK_SUCCESS)
 		{
-			Log.Warning("Failed to create validation debug messenger. No validation messages will be shown!!!");
+			//Log.Warning("Failed to create validation debug messenger. No validation messages will be shown!!!");
 			errors = true;
 		}
 
@@ -347,7 +347,7 @@ namespace Quartz
 
 		if (mPhysicalDeviceList.Size() == 0)
 		{
-			Log.Warning("No vulkan compatable devices detected!!!");
+			//Log.Warning("No vulkan compatable devices detected!!!");
 			errors = true;
 		}
 
@@ -359,11 +359,11 @@ namespace Quartz
 
 		if (!errors)
 		{
-			Log.Info("Initialized Vulkan instance successfully!");
+			//Log.Info("Initialized Vulkan instance successfully!");
 		}
 		else
 		{
-			Log.Info("Initialized Vulkan instance with warnings/errors.");
+			//Log.Info("Initialized Vulkan instance with warnings/errors.");
 		}
 
 		return true;
@@ -377,7 +377,7 @@ namespace Quartz
 	{
 		if (!mVulkanInitialized)
 		{
-			Log.Error("Failed to destroy Vulkan instance: Instance was never created!");
+			//Log.Error("Failed to destroy Vulkan instance: Instance was never created!");
 			return false;
 		}
 
@@ -386,7 +386,7 @@ namespace Quartz
 
 		if (!vkDestroyDebugUtilsMessengerEXT)
 		{
-			Log.Warning("Failed to address for \"PFN_vkDestroyDebugUtilsMessengerEXT\". Debug messenger will not be destroyed!");
+			//Log.Warning("Failed to address for \"PFN_vkDestroyDebugUtilsMessengerEXT\". Debug messenger will not be destroyed!");
 		}
 		else
 		{
@@ -397,7 +397,7 @@ namespace Quartz
 
 		mVulkanInitialized = false;
 
-		Log.Info("Destroyed Vulkan instance successfully!");
+		//Log.Info("Destroyed Vulkan instance successfully!");
 
 		return true;
 	}
@@ -410,7 +410,7 @@ namespace Quartz
 	{
 		if (!pPhysicalDevice)
 		{
-			Log.Warning("Null physical device passed into CreateDevice!");
+			//Log.Warning("Null physical device passed into CreateDevice!");
 			return NULL;
 		}
 
@@ -480,7 +480,7 @@ namespace Quartz
 
 		if (vkCreateDevice(physicalDevice, &deviceInfo, nullptr, &device) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create logical device: vkCreateDevice failed!");
+			//Log.Error("Failed to create logical device: vkCreateDevice failed!");
 			return NULL;
 		}
 
@@ -500,7 +500,7 @@ namespace Quartz
 			vkGetDeviceQueue(device, queueInfo.familyIndex, queueInfo.queueIndex, &queue);
 
 			SetDebugName(device, VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT, (UInt64)queue, 
-				(STR("[Queue] ") + queueInfo.debugName).Str());
+				(String("[Queue] ") + queueInfo.debugName).Str());
 
 			queueMatrix[queueInfo.familyIndex][queueInfo.queueIndex] = new VulkanGFXQueue(queue, queueInfo);
 		}
@@ -509,7 +509,7 @@ namespace Quartz
 
 		// TODO: Find better naming convention for devices
 		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, (UInt64)device, 
-			(STR("[Device] ") + pPhysicalDevice->GetDeviceName()).Str());
+			(String("[Device] ") + pPhysicalDevice->GetDeviceName()).Str());
 
 		return pDevice;
 	}
@@ -547,7 +547,7 @@ namespace Quartz
 
 		if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create buffer: vkCreateBuffer failed!");
+			//Log.Error("Failed to create buffer: vkCreateBuffer failed!");
 			return NULL;
 		}
 
@@ -579,15 +579,15 @@ namespace Quartz
 		{
 			if (result == VK_ERROR_OUT_OF_HOST_MEMORY)
 			{
-				Log.Error("Failed to create buffer: Out of host memory!");
+				//Log.Error("Failed to create buffer: Out of host memory!");
 			}
 			else if (result == VK_ERROR_OUT_OF_HOST_MEMORY)
 			{
-				Log.Error("Failed to create buffer: Out of device memory!");
+				//Log.Error("Failed to create buffer: Out of device memory!");
 			}
 			else
 			{
-				Log.Error("Failed to create buffer: vkAllocateMemory failed!");
+				//Log.Error("Failed to create buffer: vkAllocateMemory failed!");
 			}
 
 			vkDestroyBuffer(device, buffer, VK_NULL_HANDLE);
@@ -597,7 +597,7 @@ namespace Quartz
 
 		if (vkBindBufferMemory(device, buffer, deviceMemory, 0) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create buffer: vkBindBufferMemory failed!");
+			//Log.Error("Failed to create buffer: vkBindBufferMemory failed!");
 
 			vkDestroyBuffer(device, buffer, VK_NULL_HANDLE);
 			vkFreeMemory(device, deviceMemory, VK_NULL_HANDLE);
@@ -606,7 +606,7 @@ namespace Quartz
 		}
 
 		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, (UInt64)buffer, 
-			(STR("[BUFFER] ") + info.debugName).Str());
+			(String("[BUFFER] ") + info.debugName).Str());
 
 		return new VulkanGFXBuffer(buffer, pDevice, deviceMemory, memoryRequirements, info);
 	}
@@ -655,11 +655,11 @@ namespace Quartz
 
 		if (vkCreateImageView(device, &imageViewInfo, nullptr, &imageView) != VK_SUCCESS)
 		{
-			Log.Warning("Failed to create swapchain image views: vkCreateImageView failed!");
+			//Log.Warning("Failed to create swapchain image views: vkCreateImageView failed!");
 		}
 
 		SetDebugName(pVulkanDevice, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, (UInt64)imageView, 
-			(STR("[ImageView] ") + info.debugName).Str());
+			(String("[ImageView] ") + info.debugName).Str());
 
 		return new VulkanGFXImageView(pVulkanImage->GetParentDevice(), pImage, imageView, info);
 	}
@@ -693,7 +693,7 @@ namespace Quartz
 
 		if (vkCreateShaderModule(device, &moduleInfo, nullptr, &shaderModule) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create shader '%s': vkCreateShaderModule failed!", info.debugName);
+			//Log.Error("Failed to create shader '%s': vkCreateShaderModule failed!", info.debugName);
 		}
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -703,7 +703,7 @@ namespace Quartz
 		vertShaderStageInfo.pName	= info.entryName;
 
 		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, (UInt64)shaderModule, 
-			(STR("[Shader] ") + info.debugName).Str());
+			(String("[Shader] ") + info.debugName).Str());
 
 		return new VulkanGFXShader(pDevice, shaderModule, vertShaderStageInfo, info);
 	}
@@ -971,7 +971,7 @@ namespace Quartz
 
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create pipeline layout: vkCreatePipelineLayout failed!");
+			//Log.Error("Failed to create pipeline layout: vkCreatePipelineLayout failed!");
 
 			delete[] pDescriptorSetLayouts;
 
@@ -1160,7 +1160,7 @@ namespace Quartz
 
 		if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create renderpass: vkCreateRenderPass failed!");
+			//Log.Error("Failed to create renderpass: vkCreateRenderPass failed!");
 
 			delete[] pAttachments;
 			delete[] pDependencies;
@@ -1210,7 +1210,7 @@ namespace Quartz
 
 		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create descriptor set layout : vkCreateDescriptorSetLayout failed!");
+			//Log.Error("Failed to create descriptor set layout : vkCreateDescriptorSetLayout failed!");
 
 			delete[] pDescriptorSetLayoutBindings;
 
@@ -1312,7 +1312,7 @@ namespace Quartz
 
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create pipeline: vkCreateGraphicsPipelines failed!");
+			//Log.Error("Failed to create pipeline: vkCreateGraphicsPipelines failed!");
 
 			delete[] pShaderStages;
 
@@ -1359,7 +1359,7 @@ namespace Quartz
 
 		if (info.attachmentCount > 16)
 		{
-			Log.Error("Failed to create framebuffer: cannot attach more than 16 image views!");
+			//Log.Error("Failed to create framebuffer: cannot attach more than 16 image views!");
 			return NULL;
 		}
 
@@ -1381,7 +1381,7 @@ namespace Quartz
 
 		if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create framebuffer: vkCreateFramebuffer failed!");
+			//Log.Error("Failed to create framebuffer: vkCreateFramebuffer failed!");
 			return NULL;
 		}
 
@@ -1414,7 +1414,7 @@ namespace Quartz
 
 		if (vkCreateCommandPool(device, &poolInfo, VK_NULL_HANDLE, &commandPool) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create command pool: vkCreateCommandPool failed!");
+			//Log.Error("Failed to create command pool: vkCreateCommandPool failed!");
 		}
 
 		return new VulkanGFXCommandPool(pDevice, commandPool, info);
@@ -1446,7 +1446,7 @@ namespace Quartz
 
 		if (vkMapMemory(device, memory, offset, size, 0, ppData) != VK_SUCCESS)
 		{
-			Log.Error("Failed map buffer memory: vkMapMemory failed!");
+			//Log.Error("Failed map buffer memory: vkMapMemory failed!");
 			return false;
 		}
 

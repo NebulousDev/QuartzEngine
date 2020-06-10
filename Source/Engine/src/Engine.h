@@ -1,7 +1,13 @@
 #pragma once
 
+#include "Platform.h"
 #include "util\Singleton.h"
-#include "platform\System.h"
+
+#include "event\EventSystem.h"
+#include "input\InputSystem.h"
+#include "renderer\RenderSystem.h"
+#include "log\DebugMessageSystem.h"
+#include "input\DeviceConnectionSystem.h"
 
 namespace Quartz
 {
@@ -11,23 +17,38 @@ namespace Quartz
 		friend class Singleton<Engine>;
 
 	private:
-		Bool8 mInitialized;
-		Bool8 mRunning;
+		Platform*				mpPlatform;
+		EventSystem				mEventSystem;
+		InputSystem				mInputSystem;
+		DeviceConnectionSystem	mDeviceConnectionSystem;
+		RenderSystem			mRenderSystem;
+		DebugMessageSystem		mDebugMessageSystem;
+
+		Bool8 mRunning = false;
 
 		Time64 mDeltaTime;
 
-		Engine() = default;
+		Engine() {};
+
+	private:
+		void Run();
 
 	public:
+		void SetPlatform(Platform* pPlatform);
+
 		void Start();
 		void Stop();
 
-		void Update();
+		Platform&					GetPlatform() { return *mpPlatform; }
 
-		FORCE_INLINE Time64 GetDeltaTime() { return mDeltaTime; }
-		FORCE_INLINE Time64 GetUptime() { return System::GetUptimeNanoseconds(); }
+		EventSystem&				GetEventSystem() { return mEventSystem; }
+		InputSystem&				GetInputSystem() { return mInputSystem; }
+		DeviceConnectionSystem&		GetDeviceConnectionSystem() { return mDeviceConnectionSystem; }
+		RenderSystem&				GetRenderSystem() { return mRenderSystem; }
+		DebugMessageSystem&			GetDebugMessageSystem() { return mDebugMessageSystem; }
 
-		FORCE_INLINE Bool8 IsInitialized() { return mInitialized; }
-		FORCE_INLINE Bool8 IsRunning() { return mRunning; }
+		Time64 GetDeltaTime() { return mDeltaTime; }
+
+		Bool8 IsRunning() { return mRunning; }
 	};
 }

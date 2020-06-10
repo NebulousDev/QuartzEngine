@@ -10,6 +10,8 @@
 #include "platform\Window.h"
 #include "platform\System.h"
 
+#include "Win32Platform.h"
+
 #include "io\Win32Console.h"
 #include "platform\Win32Window.h"
 #include "platform\Win32System.h"
@@ -31,6 +33,10 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+
+#include "event\EventSystem.h"
+
+#include "EventTesting.h"
 
 using namespace Quartz;
 
@@ -55,23 +61,28 @@ static std::vector<char> readFile(const std::string& filename)
 	return buffer;
 }
 
-int main()
+int main2()
 {
 	/* Initialize System */
 
-	System::Init(new Win32System());
+	PlatformSystem::Init(new Win32System());
 	Log.Info("System Initialized Successfully.");
+
+	Platform* pPlatform = new Win32Platform();
+	pPlatform->Initialize();
+
+	PlatformInput& input = pPlatform->GetPlatformInput();
 
 	/* Initialize Console */
 
-	SystemConsole* pConsole = System::CreateConsole();
+	SystemConsole* pConsole = PlatformSystem::CreateConsole();
 	pConsole->Init();
 	Log.SetOutputConsole(pConsole);
 	Log.Info("Log Initialized Successfully.");
 
 	/* Initialize Input */
-	Input* pInput = new Win32Input();
-	pInput->InitializeInput();
+	PlatformInput* pInput = &pPlatform->GetPlatformInput();
+	//pInput->InitializeInput();
 	//pInput->PollDeviceConnections();
 	Log.Info("Input Initialized Successfully.");
 
@@ -83,6 +94,8 @@ int main()
 
 	//InputDevice mouse;
 	//pInput->CreateDevice(pInput->GetConnectedDeviceList()[16], 0, &mouse);
+
+	TestEvents();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,7 +121,7 @@ int main()
 
 	/* Create Window */
 
-	Window* pWindow = System::CreateWindow(0, 0, 1280, 720, "Quartz Engine - Sandbox");
+	Window* pWindow = PlatformSystem::CreateWindow(0, 0, 1280, 720, "Quartz Engine - Sandbox");
 	pWindow->Show();
 	Log.Info("Window Created Successfully.");
 
@@ -672,7 +685,7 @@ int main()
 
 	/* Start Engine */
 	Log.Info("Starting Engine...");
-	Engine& engine = Engine::GetInstance();
+	Engine engine = Engine(nullptr);//Engine::GetInstance();
 
 	/* Game Loop*/
 	Time64 lastTime = 0.0;
@@ -682,7 +695,7 @@ int main()
 
 	UInt32 fps = 0;
 
-	currentTime = System::GetTimeNanoseconds();
+	currentTime = PlatformSystem::GetTimeNanoseconds();
 
 	while (true)
 	{
@@ -693,7 +706,7 @@ int main()
 		pWindow->Update();
 
 		lastTime = currentTime;
-		currentTime = System::GetTimeNanoseconds();
+		currentTime = PlatformSystem::GetTimeNanoseconds();
 		deltaTime = currentTime - lastTime;
 		elapsedTime += deltaTime;
 

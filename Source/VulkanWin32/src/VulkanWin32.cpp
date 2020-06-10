@@ -6,7 +6,7 @@
 #include "gfx\GFXPlatform.h"
 #include "Vulkan.h"
 #include "VulkanUtil.h"
-#include "io\Log.h"
+//#include "io\//Log.h"
 
 namespace Quartz
 {
@@ -44,7 +44,7 @@ namespace Quartz
 	{
 		if (!pGFX || !pDevice || !info.pWindow)
 		{
-			Log.Critical("Failed to create surface: Null or invalid parameters!");
+			//Log.Critical("Failed to create surface: Null or invalid parameters!");
 			return NULL;
 		}
 
@@ -68,13 +68,13 @@ namespace Quartz
 
 		if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to create surface: vkCreateWin32SurfaceKHR failed!");
+			//Log.Critical("Failed to create surface: vkCreateWin32SurfaceKHR failed!");
 			return NULL;
 		}
 
 		if (vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, 0, surface, &supported) != VK_SUCCESS || !supported)
 		{
-			Log.Critical("Failed to create surface: Device does not support surfaces!");
+			//Log.Critical("Failed to create surface: Device does not support surfaces!");
 			return NULL;
 		}
 
@@ -89,7 +89,7 @@ namespace Quartz
 		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.Data());
 
 		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT, (UInt64)surface,
-			(STR("[Surface] ") + info.debugName).Str());
+			(String("[Surface] ") + info.debugName).Str());
 
 		return new VulkanGFXSurface(surface, capabilities, surfaceFormats, presentModes);;
 	}
@@ -194,12 +194,12 @@ namespace Quartz
 
 		if (vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapchain) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to create Swapchain: vkCreateSwapchainKHR failed!");
+			//Log.Critical("Failed to create Swapchain: vkCreateSwapchainKHR failed!");
 			return NULL;
 		}
 
 		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, (UInt64)swapchain,
-			(STR("[Swapchain] ") + info.debugName).Str());
+			(String("[Swapchain] ") + info.debugName).Str());
 
 		return new VulkanGFXSwapchain(pDevice, pSurface, swapchain, surfaceFormat, info);
 	}

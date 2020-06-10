@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Sandbox.cpp">
+    <ClCompile Include="src\Sandbox2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -24,5 +24,13 @@
     <None Include="src\shader.frag" />
     <None Include="src\vert.spv" />
     <None Include="src\frag.spv" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\EventTesting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CopyTester.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

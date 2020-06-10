@@ -1,6 +1,6 @@
 #include "GFXContext.h"
 
-#include "io/Log.h"
+//#include "io/Log.h"
 
 #include "gfx/GFXPlatform.h"
 
@@ -15,7 +15,7 @@ namespace Quartz
 		{
 			if (!pModule->InitModule())
 			{
-				Log.Error("Failed to set graphics module to '%s'!", pModule->GetModuleName());
+				//Log.Error("Failed to set graphics module to '%s'!", pModule->GetModuleName());
 				return false;
 			}
 		}
@@ -24,14 +24,14 @@ namespace Quartz
 		{
 			if (!mpGFX->DestroyModule())
 			{
-				Log.Error("Failed to set graphics module to '%s'!", pModule->GetModuleName());
+				//Log.Error("Failed to set graphics module to '%s'!", pModule->GetModuleName());
 				return false;
 			}
 		}
 
 		mpGFX = pModule;
 
-		Log.Info("GFXContext graphics module set to '%s'", pModule->GetModuleName());
+		//Log.Info("GFXContext graphics module set to '%s'", pModule->GetModuleName());
 
 		return true;
 	}
@@ -46,7 +46,7 @@ namespace Quartz
 		{
 			if (!pPlatformModule->InitModule())
 			{
-				Log.Error("Failed to set graphics platform module to '%s'!", pPlatformModule->GetModuleName());
+				//Log.Error("Failed to set graphics platform module to '%s'!", pPlatformModule->GetModuleName());
 				return false;
 			}
 		}
@@ -55,14 +55,14 @@ namespace Quartz
 		{
 			if (!mpPlatformGFX->DestroyModule())
 			{
-				Log.Error("Failed to set graphics platform module to '%s'!", pPlatformModule->GetModuleName());
+				//Log.Error("Failed to set graphics platform module to '%s'!", pPlatformModule->GetModuleName());
 				return false;
 			}
 		}
 
 		mpPlatformGFX = pPlatformModule;
 
-		Log.Info("GFXContext graphics platform module set to '%s'", pPlatformModule->GetModuleName());
+		//Log.Info("GFXContext graphics platform module set to '%s'", pPlatformModule->GetModuleName());
 
 		return true;
 	}
@@ -77,13 +77,13 @@ namespace Quartz
 
 			if (!mpGFX || !mpGFX->IsModuleInitialized() || !mpPlatformGFX || !mpGFX->IsModuleInitialized())
 			{
-				Log.Error("Failed to initialize graphics context! GFXModule is not loaded!");
+				//Log.Error("Failed to initialize graphics context! GFXModule is not loaded!");
 				return false;
 			}
 
 			if (!mpGFX->InitGraphicsContext())
 			{
-				Log.Error("Failed to initialize graphics context with module: '%s'!", mpGFX->GetModuleName());
+				//Log.Error("Failed to initialize graphics context with module: '%s'!", mpGFX->GetModuleName());
 				return false;
 			}
 
@@ -106,13 +106,13 @@ namespace Quartz
 
 			if (!mpGFX || !mpGFX->IsModuleInitialized() || mpGFX->IsModuleDestroyed())
 			{
-				Log.Error("Failed to destroy graphics context! GFXModule is not loaded!");
+				//Log.Error("Failed to destroy graphics context! GFXModule is not loaded!");
 				return false;
 			}
 
 			if (!mpGFX->DestroyGraphicsContext())
 			{
-				Log.Error("Failed to destroy graphics context with module: '%s'!", mpGFX->GetModuleName());
+				//Log.Error("Failed to destroy graphics context with module: '%s'!", mpGFX->GetModuleName());
 				return false;
 			}
 
