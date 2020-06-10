@@ -18,30 +18,36 @@
     <ClInclude Include="src\Win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\Win32Window.h">
+    <ClInclude Include="src\Win32Platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\io\Win32Console.h">
+    <ClInclude Include="src\Win32PlatformTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\Win32System.h">
+    <ClInclude Include="src\Win32PlatformInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\input\Win32Input.h">
+    <ClInclude Include="src\Win32PlatformConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Win32PlatformWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\platform\Win32Window.cpp">
+    <ClCompile Include="src\Win32Platform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\io\Win32Console.cpp">
+    <ClCompile Include="src\Win32PlatformTime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\platform\Win32System.cpp">
+    <ClCompile Include="src\Win32PlatformInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\Win32Input.cpp">
+    <ClCompile Include="src\Win32PlatformConsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Win32PlatformWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

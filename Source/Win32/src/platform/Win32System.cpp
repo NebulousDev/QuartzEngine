@@ -1,11 +1,12 @@
 #include "Win32System.h"
 
-#include "..\io\Win32Console.h"
+#include "../Win32PlatformConsole.h"
 #include "Win32Window.h"
+#include "../Win32.h"
 
 namespace Quartz
 {
-	void Win32System::Init()
+	void Win32System::Create()
 	{
 		LARGE_INTEGER frequency;
 		LARGE_INTEGER startTime;
@@ -25,9 +26,9 @@ namespace Quartz
 		return "Windows";
 	}
 
-	SystemConsole* Win32System::CreateConsole()
+	PlatformConsole* Win32System::CreateConsole()
 	{
-		return new Win32SystemConsole();
+		return new Win32Console();
 	}
 
 	Window* Win32System::CreateWindow()

@@ -12,11 +12,11 @@ namespace Quartz
 		Double64 mNanosecondDivisor;
 
 	public:
-		void Init() override; 
+		void Create() override;
 
 		const char* GetPlatformName() override;
 
-		SystemConsole* CreateConsole() override;
+		PlatformConsole* CreateConsole() override;
 
 		Window* CreateWindow() override;
 		Window* CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;

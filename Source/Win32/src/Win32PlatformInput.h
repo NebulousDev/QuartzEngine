@@ -1,13 +1,13 @@
 #pragma once
 
-#include "input\Input.h"
+#include "PlatformInput.h"
 
-#include "../Win32.h"
+#include "Win32.h"
 #include <hidsdi.h>
 
 namespace Quartz
 {
-	class QUARTZ_API Win32Input : public Input
+	class QUARTZ_API Win32PlatformInput : public PlatformInput
 	{
 	private:
 		struct Win32InputDeviceDescExt
@@ -20,15 +20,13 @@ namespace Quartz
 		};
 
 		Array<Win32InputDeviceDescExt>	mInputDeviceDescExts;
-		Map<Handle64, InputDevice>		mHandleToDevice;
+		Map<Handle64, InputDeviceId>	mHandleToDevice;
+
+		//Bool8 CreateDevice(InputDeviceDesc deviceDesc, Flags32 flags);
+		//void DestroyDevice(InputDeviceId deviceId);
 
 	public:
-		void InitializeInput() override;
 		void PollDeviceConnections() override;
-
-		Bool8 CreateDevice(InputDeviceDescription deviceDesc, Flags32 flags, InputDevice* pDevice) override;
-		void DestroyDevice(InputDevice device) override;
-
-		void PollDeviceInputs() override;
+		void PollDeviceInput() override;
 	};
 }

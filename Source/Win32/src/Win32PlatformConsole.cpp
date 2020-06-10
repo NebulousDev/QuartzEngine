@@ -1,9 +1,9 @@
-#include "Win32Console.h"
+#include "Win32PlatformConsole.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <io.h>
 
-#include "../Win32.h"
+#include "Win32.h"
 
 namespace Quartz
 {
@@ -28,7 +28,7 @@ namespace Quartz
 		/* WIN32_COLOR_BLACK */			0x0
 	};
 
-	void Win32SystemConsole::Init()
+	void Win32Console::Create()
 	{
 		AllocConsole();
 
@@ -36,6 +36,7 @@ namespace Quartz
 		mCrtHandle = _open_osfhandle((UInt64)mConsoleHandle, _O_TEXT);
 		mpOutputStream = _fdopen(mCrtHandle, "w");
 		setvbuf(mpOutputStream, NULL, _IONBF, 1);
+		_setmode(_fileno(mpOutputStream), _O_U16TEXT);
 
 		CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 		GetConsoleScreenBufferInfo(mConsoleHandle, &consoleInfo);
@@ -102,58 +103,45 @@ namespace Quartz
 		*/
 	}
 
-	void Win32SystemConsole::Destroy()
+	void Win32Console::Destroy()
 	{
 		//CloseHandle((HANDLE)mCrtHandle);
 		//FreeConsole();
 	}
 
-	void Win32SystemConsole::Show()
+	void Win32Console::Show()
 	{
 		ShowWindow(mConsoleWindow, SW_SHOW);
 	}
 
-	void Win32SystemConsole::Hide()
+	void Win32Console::Hide()
 	{
 		ShowWindow(mConsoleWindow, SW_HIDE);
 	}
 
-	void Win32SystemConsole::SetTitle(const char* title)
+	void Win32Console::SetTitle(const wchar_t* title)
 	{
-		SetConsoleTitle(title);
+		SetConsoleTitleW(title);
 	}
 
-	void Win32SystemConsole::SetColor(const ConsoleColor foreground, const ConsoleColor background)
+	void Win32Console::SetColor(const ConsoleColor foreground, const ConsoleColor background)
 	{
 		WORD forgroundColor = !foreground ? mDefaultColor & 0x0F : sWin32Colors[foreground];
 		WORD backgroundColor = !foreground ? mDefaultColor & 0xF0 : (sWin32Colors[background] << 4) & 0xF0;
 		SetConsoleTextAttribute(mConsoleHandle, forgroundColor | backgroundColor);
 	}
 
-	void Win32SystemConsole::Print(const char* text)
+	void Win32Console::Print(const wchar_t* text)
 	{
-		Printf(text);
+		fwprintf_s(mpOutputStream, text);
 	}
 
-	void Win32SystemConsole::Printf(const char* format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-		vfprintf_s(mpOutputStream, format, args);
-		va_end(args);
-	}
-
-	void Win32SystemConsole::PrintfV(const char* format, va_list args)
-	{
-		vfprintf_s(mpOutputStream, format, args);
-	}
-
-	void Win32SystemConsole::SetCursor(const Int16 posX, const Int16 posY)
+	void Win32Console::SetCursor(const Int16 posX, const Int16 posY)
 	{
 		SetConsoleCursorPosition(mConsoleHandle, { posX, posY });
 	}
 
-	void Win32SystemConsole::Clear()
+	void Win32Console::Clear()
 	{
 		CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 		GetConsoleScreenBufferInfo(mConsoleHandle, &consoleInfo);

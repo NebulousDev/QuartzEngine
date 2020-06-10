@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "PlatformWindow.h"
 
 namespace Quartz
 {

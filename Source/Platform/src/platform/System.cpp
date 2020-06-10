@@ -2,40 +2,40 @@
 
 namespace Quartz
 {
-	SystemImpl* System::mpSystemImpl = NULL;
+	SystemImpl* PlatformSystem::mpSystemImpl = NULL;
 
-	void System::Init(SystemImpl* pPlatformLayer)
+	void PlatformSystem::Create(SystemImpl* pPlatformLayer)
 	{
 		mpSystemImpl = pPlatformLayer;
-		mpSystemImpl->Init();
+		mpSystemImpl->Create();
 	}
 
-	SystemConsole* System::CreateConsole()
+	PlatformConsole* PlatformSystem::CreateConsole()
 	{
 		return mpSystemImpl->CreateConsole();
 	}
 
-	Window* System::CreateWindow()
+	Window* PlatformSystem::CreateWindow()
 	{
 		return mpSystemImpl->CreateWindow();
 	}
 
-	Window* System::CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags)
+	Window* PlatformSystem::CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags)
 	{
 		return mpSystemImpl->CreateWindow(width, height, title, flags);
 	}
 
-	Window* System::CreateWindow(UInt32 xPos, UInt32 yPos, UInt32 width, UInt32 height, const char* title, Flags16 flags)
+	Window* PlatformSystem::CreateWindow(UInt32 xPos, UInt32 yPos, UInt32 width, UInt32 height, const char* title, Flags16 flags)
 	{
 		return mpSystemImpl->CreateWindow(xPos, yPos, width, height, title, flags);
 	}
 
-	Time64 System::GetTimeNanoseconds()
+	Time64 PlatformSystem::GetTimeNanoseconds()
 	{
 		return mpSystemImpl->GetTimeNanoseconds();
 	}
 
-	Time64 System::GetUptimeNanoseconds()
+	Time64 PlatformSystem::GetUptimeNanoseconds()
 	{
 		return mpSystemImpl->GetUptimeNanoseconds();
 	}

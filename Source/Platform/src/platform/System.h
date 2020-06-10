@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Common.h"
-#include "..\io\Console.h"
+#include "../PlatformConsole.h"
 #include "util\Singleton.h"
-#include "Window.h"
+#include "../PlatformWindow.h"
 #include "System.h"
 
 namespace Quartz
@@ -11,11 +11,11 @@ namespace Quartz
 	class QUARTZ_API SystemImpl
 	{
 	public:
-		virtual void Init() = 0;
+		virtual void Create() = 0;
 
 		virtual const char* GetPlatformName() = 0;
 
-		virtual SystemConsole* CreateConsole() = 0;
+		virtual PlatformConsole* CreateConsole() = 0;
 
 		virtual Window* CreateWindow() = 0;
 		virtual Window* CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) = 0;
@@ -25,20 +25,17 @@ namespace Quartz
 		virtual Time64 GetUptimeNanoseconds() = 0;
 	};
 
-	class QUARTZ_API System : public Singleton<System>
+	class QUARTZ_API PlatformSystem
 	{
-	public:
-		friend class Singleton<System>;
-
 	private:
 		static SystemImpl* mpSystemImpl;
 
-		System() = default;
+		PlatformSystem() = default;
 
 	public:
-		static void Init(SystemImpl* pPlatformLayer);
+		static void Create(SystemImpl* pPlatformLayer);
 
-		static SystemConsole* CreateConsole();
+		static PlatformConsole* CreateConsole();
 
 		static Window* CreateWindow();
 		static Window* CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL);

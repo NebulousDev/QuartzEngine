@@ -1,7 +1,7 @@
-#include "Win32Window.h"
+#include "Win32PlatformWindow.h"
 
-#include "../Win32.h"
-#include "io/Log.h"
+#include "Win32.h"
+//#include "io/Log.h"
 #include "util\Array.h"
 
 #include <hidsdi.h>
@@ -46,9 +46,16 @@ namespace Quartz
 	void Win32Window::Update()
 	{
 		MSG msg = {};
-		if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+
+		//Process and remove all messages before WM_INPUT
+		while (PeekMessage(&msg, NULL, 0, WM_INPUT - 1, PM_REMOVE))
 		{
-			GetMessage(&msg, NULL, 0, 0);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		//Process and remove all messages after WM_INPUT
+		while (PeekMessage(&msg, NULL, WM_INPUT + 1, (UINT)-1, PM_REMOVE))
+		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
@@ -78,7 +85,7 @@ namespace Quartz
 		
 		if(result == 0)
 		{
-			Log.Critical("Failed to register window class!");
+			//Log.Critical("Failed to register window class!");
 			return;
 		}
 
@@ -87,7 +94,7 @@ namespace Quartz
 
 		if (windowHandle == NULL)
 		{
-			Log.Critical("Failed to create window!");
+			//Log.Critical("Failed to create window!");
 			return;
 		}
 

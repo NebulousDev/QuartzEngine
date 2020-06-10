@@ -1,7 +1,5 @@
 #include "Timer.h"
 
-#include "..\platform\System.h"
-
 namespace Quartz
 {
 	Timer::Timer()
@@ -10,14 +8,16 @@ namespace Quartz
 
 	Time64 Timer::Start()
 	{
-		mStartTime = System::GetTimeNanoseconds();
+		PlatformTime& time = PlatformTime::GetInstance();
+		mStartTime = time.GetTimeNanoseconds();
 		mLastTime = mStartTime;
 		return mStartTime;
 	}
 
 	Time64 Timer::Reset()
 	{
-		mLastTime = System::GetTimeNanoseconds();
+		PlatformTime& time = PlatformTime::GetInstance();
+		mLastTime = time.GetTimeNanoseconds();
 		return mLastTime;
 	}
 
@@ -28,7 +28,8 @@ namespace Quartz
 
 	Time64 Timer::GetLapsedTime()
 	{
-		return System::GetTimeNanoseconds() - mStartTime;
+		PlatformTime& time = PlatformTime::GetInstance();
+		return time.GetTimeNanoseconds() - mStartTime;
 	}
 
 	Time64 Timer::GetLastTime()
