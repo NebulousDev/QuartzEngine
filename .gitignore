@@ -5,6 +5,7 @@
 
 # Quartz
 !Source/Core/src/debug/
+!Source/Engine/src/log/
 
 # User-specific files
 *.suo
