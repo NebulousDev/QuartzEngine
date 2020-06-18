@@ -5,7 +5,7 @@
 
 #include "event\EventSystem.h"
 #include "input\InputSystem.h"
-#include "renderer\RenderSystem.h"
+#include "gfx\RenderSystem.h"
 #include "log\DebugMessageSystem.h"
 #include "input\DeviceConnectionSystem.h"
 
@@ -31,12 +31,13 @@ namespace Quartz
 		Engine() {};
 
 	private:
-		void Run();
+		void Run(Window* pWindow);
 
 	public:
 		void SetPlatform(Platform* pPlatform);
 
-		void Start();
+		void Init();
+		void Start(Window* pWindow);
 		void Stop();
 
 		Platform&					GetPlatform() { return *mpPlatform; }

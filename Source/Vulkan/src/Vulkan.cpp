@@ -1532,7 +1532,7 @@ namespace Quartz
 		}
 
 		mDeviceName			= mPhysicalDeviceProperties.deviceName;
-		mVendorName			= GFXDeviceVendorIDName(mPhysicalDeviceProperties.vendorID);
+		mVendorName			= GFXDeviceVendorIDName(mPhysicalDeviceProperties.vendorID).Str();
 		mDeviceID			= mPhysicalDeviceProperties.deviceID;
 		mVendorID			= mPhysicalDeviceProperties.vendorID;
 		mApiVersion			= mPhysicalDeviceProperties.apiVersion;

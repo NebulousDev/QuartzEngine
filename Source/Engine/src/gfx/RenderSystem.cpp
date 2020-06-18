@@ -4,7 +4,7 @@ namespace Quartz
 {
 	void RenderSystem::Initialize()
 	{
-
+		
 	}
 
 	void RenderSystem::Update()

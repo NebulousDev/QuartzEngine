@@ -244,14 +244,19 @@
     <ClInclude Include="src\event\EventDispatcher.h" />
     <ClInclude Include="src\gfx\GFXContext.h" />
     <ClInclude Include="src\Engine.h" />
-    <ClInclude Include="src\gfx\GFXUtil.h" />
     <ClInclude Include="src\event\EventSystem.h" />
+    <ClInclude Include="src\gfx\GraphicsContext.h" />
+    <ClInclude Include="src\gfx\GraphicsDevice.h" />
+    <ClInclude Include="src\gfx\GraphicsQueue.h" />
+    <ClInclude Include="src\gfx\GraphicsSurface.h" />
+    <ClInclude Include="src\gfx\GraphicsUtil.h" />
+    <ClInclude Include="src\gfx\PhysicalDevice.h" />
     <ClInclude Include="src\input\DeviceConnectionEvent.h" />
     <ClInclude Include="src\input\DeviceConnectionSystem.h" />
     <ClInclude Include="src\log\Log.h" />
     <ClInclude Include="src\log\DebugMessageEvent.h" />
     <ClInclude Include="src\log\DebugMessageSystem.h" />
-    <ClInclude Include="src\renderer\RenderSystem.h" />
+    <ClInclude Include="src\gfx\RenderSystem.h" />
     <ClInclude Include="src\input\InputSystem.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>
@@ -259,11 +264,12 @@
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
     <ClCompile Include="src\gfx\GFXContext.cpp" />
+    <ClCompile Include="src\gfx\GraphicsUtil.cpp" />
     <ClCompile Include="src\input\DeviceConnectionSystem.cpp" />
     <ClCompile Include="src\input\InputSystem.cpp" />
     <ClCompile Include="src\log\DebugMessageSystem.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
-    <ClCompile Include="src\renderer\RenderSystem.cpp" />
+    <ClCompile Include="src\gfx\RenderSystem.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

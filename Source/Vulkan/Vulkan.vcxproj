@@ -235,11 +235,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Vulkan.h" />
+    <ClInclude Include="src\VulkanContext.h" />
+    <ClInclude Include="src\VulkanDevice.h" />
+    <ClInclude Include="src\VulkanImageView.h" />
+    <ClInclude Include="src\VulkanPhysicalDevice.h" />
+    <ClInclude Include="src\VulkanQueue.h" />
+    <ClInclude Include="src\VulkanSurface.h" />
     <ClInclude Include="src\VulkanUtil.h" />
+    <ClInclude Include="src\win32\Win32Vulkan.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Vulkan.cpp" />
+    <ClCompile Include="src\VulkanContext.cpp" />
+    <ClCompile Include="src\VulkanDevice.cpp" />
+    <ClCompile Include="src\VulkanImageView.cpp" />
+    <ClCompile Include="src\VulkanPhysicalDevice.cpp" />
+    <ClCompile Include="src\VulkanQueue.cpp" />
+    <ClCompile Include="src\VulkanSurface.cpp" />
+    <ClCompile Include="src\win32\Win32Vulkan.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

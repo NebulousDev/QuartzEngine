@@ -8,15 +8,8 @@ namespace Quartz
 		mpPlatform = pPlatform;
 	}
 
-	void Engine::Run()
+	void Engine::Run(Window* pWindow)
 	{
-		//////////////////////
-		
-		Window* pWindow = mpPlatform->CreateWindow(640, 480, "Meow", 0);
-		pWindow->Show();
-		
-		//////////////////////
-		
 		Time64 lastTime = 0.0;
 		Time64 currentTime = 0.0;
 		Time64 deltaTime = 0.0;
@@ -58,17 +51,8 @@ namespace Quartz
 		}
 	}
 
-	void Engine::Start()
+	void Engine::Init()
 	{
-		if (mRunning)
-		{
-			Log.Warning("Engine.Start() was called while the engine is running.");
-			return;
-		}
-
-		mEventSystem.InitializeEventSystem();
-		mDebugMessageSystem.Initialize();
-
 		Log.Print("-------------------------------------------------------\n");
 		Log.Print("|                    Nebulous Games                   |\n");
 		Log.Print("|                 QUARTZ ENGINE v0.2.0                |\n");
@@ -76,13 +60,25 @@ namespace Quartz
 
 		Log.Info("Engine is starting...");
 
+		mEventSystem.InitializeEventSystem();
+		mDebugMessageSystem.Initialize();
+
 		mDeviceConnectionSystem.Initialize();
 		mInputSystem.Initialize();
 		mRenderSystem.Initialize();
+	}
+
+	void Engine::Start(Window* pWindow)
+	{
+		if (mRunning)
+		{
+			Log.Warning("Engine.Start() was called while the engine is running.");
+			return;
+		}
 
 		mRunning = true;
 
-		Run();
+		Run(pWindow);
 	}
 
 	void Engine::Stop()

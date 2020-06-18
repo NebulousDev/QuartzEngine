@@ -88,8 +88,10 @@ namespace Quartz
 			mpMeta(new StringMeta()) { }
 
 		StringBase(const CharType* pString)
+			: StringBase(pString, StringLength(pString)) { }
+
+		StringBase(const CharType* pString, UInt32 length)
 		{
-			const UInt32 length = StringLength(pString);
 			const UInt32 stringBufferSize = (length + 1) * charSize;
 			const UInt32 fullBufferSize = metaSize + stringBufferSize;
 
@@ -132,6 +134,21 @@ namespace Quartz
 		{
 			return (Length() == string.Length()) && 
 				(StringCompare(Str(), string.Str()) == 0);
+		}
+
+		Bool8 operator==(const CharType* pString) const
+		{
+			return StringCompare(Str(), pString) == 0;
+		}
+
+		Bool8 operator!=(const StringType& string) const
+		{
+			return !operator==(string);
+		}
+
+		Bool8 operator!=(const CharType* pString) const
+		{
+			return !operator==(pString);
 		}
 
 		StringType& operator=(StringType string)
@@ -313,4 +330,17 @@ namespace Quartz
 
 		return wide;
 	}
+
+	FORCE_INLINE String operator"" _STRING(const char* str, USize size)
+	{
+		return String(str, static_cast<UInt32>(size));
+	}
+
+	FORCE_INLINE StringW operator"" _STRINGW(const wchar_t* str, USize size)
+	{
+		return StringW(str, static_cast<UInt32>(size));
+	}
+
+#define STRING(charstr) charstr##_STRING
+#define STRINGW(wcharstr) wcharstr##_STRINGW
 }

@@ -161,7 +161,8 @@ namespace Quartz
 			}
 		}
 
-		Array(ArrayType&& array) noexcept
+		Array(ArrayType&& array) noexcept :
+			ArrayType()
 		{
 			Swap(*this, array);
 		}
@@ -209,13 +210,17 @@ namespace Quartz
 			++mSize;
 		}
 
-		void Reserve(UInt32 capacity)
+		Bool8 Contains(const ValueType& value)
 		{
-			if (capacity > mCapacity)
+			for (const ValueType& match : *this)
 			{
-				// Only reserve if size is greater than mCapacity
-				ReserveImpl(capacity);
+				if (value == match)
+				{
+					return true;
+				}
 			}
+			
+			return false;
 		}
 
 		void Resize(UInt32 size)
@@ -317,6 +322,30 @@ namespace Quartz
 
 			return Iterator(mpData + mSize);
 		}
+
+		////////////////////////////////
+
+		Iterator begin() const
+		{
+			if (!mpData)
+			{
+				return nullptr;
+			}
+
+			return Iterator(mpData);
+		}
+
+		Iterator end() const
+		{
+			if (!mpData)
+			{
+				return nullptr;
+			}
+
+			return Iterator(mpData + mSize);
+		}
+
+		////////////////////////////////
 
 		ValueType* Data()
 		{

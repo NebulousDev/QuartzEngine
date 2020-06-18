@@ -6,6 +6,8 @@
 
 #include "../Engine.h"
 
+#define USE_MESSAGE_LOOP 0
+
 namespace Quartz
 {
 	String FormatMessage(const char* format, va_list args)
@@ -48,7 +50,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatMessage(format, args));
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Debug(const char* format, ...)
@@ -63,7 +69,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatTime() + "[DEBUG] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Info(const char* format, ...)
@@ -78,7 +88,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatTime() + "[INFO] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::General(const char* format, ...)
@@ -93,7 +107,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatTime() + "[GENERAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Warning(const char* format, ...)
@@ -108,7 +126,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatTime() + "[WARNING] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Error(const char* format, ...)
@@ -123,7 +145,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatTime() + "[ERROR] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Critical(const char* format, ...)
@@ -138,7 +164,11 @@ namespace Quartz
 		debugMessageEvent.message = StringAToStringW(FormatTime() + "[CRITICAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	/* WIDE */
@@ -180,7 +210,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatMessageW(format, args);
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Debug(const wchar_t* format, ...)
@@ -195,7 +229,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatTimeW() + L"[DEBUG] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Info(const wchar_t* format, ...)
@@ -210,7 +248,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatTimeW() + L"[INFO] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::General(const wchar_t* format, ...)
@@ -225,7 +267,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatTimeW() + L"[GENERAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Warning(const wchar_t* format, ...)
@@ -240,7 +286,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatTimeW() + L"[WARNING] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Error(const wchar_t* format, ...)
@@ -255,7 +305,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatTimeW() + L"[ERROR] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 
 	void LogUtil::Critical(const wchar_t* format, ...)
@@ -270,7 +324,11 @@ namespace Quartz
 		debugMessageEvent.message = FormatTimeW() + L"[CRITICAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
+#if USE_MESSAGE_LOOP
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
+#else
+		wprintf_s(debugMessageEvent.message.Str());
+#endif
 	}
 }
 

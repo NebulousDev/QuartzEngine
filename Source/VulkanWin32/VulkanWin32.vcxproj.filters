@@ -15,12 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\VulkanWin32.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\VulkanWin32.cpp">
+    <ClCompile Include="src\Temp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
