@@ -134,7 +134,7 @@
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);C:\VulkanSDK\1.1.130.0\Lib32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(VULKAN_SDK)\Lib32</AdditionalLibraryDirectories>
       <AdditionalDependencies>core.lib;engine.lib;platform.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -148,7 +148,7 @@
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);C:\VulkanSDK\1.1.130.0\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>core.lib;engine.lib;platform.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -168,7 +168,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);C:\VulkanSDK\1.1.130.0\Lib32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(VULKAN_SDK)\Lib32</AdditionalLibraryDirectories>
       <AdditionalDependencies>core.lib;engine.lib;platform.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -188,7 +188,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);C:\VulkanSDK\1.1.130.0\Lib32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(VULKAN_SDK)\Lib32</AdditionalLibraryDirectories>
       <AdditionalDependencies>core.lib;engine.lib;platform.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -209,7 +209,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);C:\VulkanSDK\1.2.135.0\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>core.lib;engine.lib;platform.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -222,7 +222,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>QUARTZ_USE_DEBUG_NAMES;QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -230,26 +230,40 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);C:\VulkanSDK\1.2.135.0\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(VULKAN_SDK)\Lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>core.lib;engine.lib;platform.lib;vulkan-1.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\VulkanBuffer.h" />
+    <ClInclude Include="src\VulkanCommandBuffer.h" />
     <ClInclude Include="src\VulkanContext.h" />
     <ClInclude Include="src\VulkanDevice.h" />
-    <ClInclude Include="src\VulkanImageView.h" />
+    <ClInclude Include="src\VulkanDeviceMemory.h" />
+    <ClInclude Include="src\VulkanFramebuffer.h" />
+    <ClInclude Include="src\VulkanImage.h" />
     <ClInclude Include="src\VulkanPhysicalDevice.h" />
+    <ClInclude Include="src\VulkanPipeline.h" />
     <ClInclude Include="src\VulkanQueue.h" />
+    <ClInclude Include="src\VulkanRenderPass.h" />
+    <ClInclude Include="src\VulkanShader.h" />
     <ClInclude Include="src\VulkanSurface.h" />
-    <ClInclude Include="src\VulkanUtil.h" />
+    <ClInclude Include="src\VulkanStateManager.h" />
     <ClInclude Include="src\win32\Win32Vulkan.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\VulkanBuffer.cpp" />
+    <ClCompile Include="src\VulkanCommandBuffer.cpp" />
     <ClCompile Include="src\VulkanContext.cpp" />
     <ClCompile Include="src\VulkanDevice.cpp" />
-    <ClCompile Include="src\VulkanImageView.cpp" />
+    <ClCompile Include="src\VulkanDeviceMemory.cpp" />
+    <ClCompile Include="src\VulkanFramebuffer.cpp" />
+    <ClCompile Include="src\VulkanImage.cpp" />
     <ClCompile Include="src\VulkanPhysicalDevice.cpp" />
+    <ClCompile Include="src\VulkanPipeline.cpp" />
     <ClCompile Include="src\VulkanQueue.cpp" />
+    <ClCompile Include="src\VulkanRenderPass.cpp" />
+    <ClCompile Include="src\VulkanShader.cpp" />
     <ClCompile Include="src\VulkanSurface.cpp" />
     <ClCompile Include="src\win32\Win32Vulkan.cpp" />
   </ItemGroup>

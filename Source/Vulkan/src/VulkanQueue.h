@@ -12,7 +12,7 @@ namespace Quartz
 	{
 	private:
 		VkQueue			mQueue;
-		VulkanDevice*	mpDevice;
+		VulkanDevice*	mpParentDevice;
 		UInt32			mFamilyIndex;
 		UInt32			mQueueIndex;
 		
@@ -25,10 +25,10 @@ namespace Quartz
 		};
 
 	public:
-		VulkanQueue(VulkanDevice* pDevice, UInt32 familyIndex);
+		VulkanQueue(VulkanDevice& device, UInt32 familyIndex, VkQueueFamilyProperties queueFamilyProperties);
 
-		const VkQueue& GetQueue() const { return mQueue; }
-		const VulkanDevice* GetDeviceHandle() const { return mpDevice; }
+		const VkQueue& GetQueueHandle() const { return mQueue; }
+		const VulkanDevice* GetParentDevice() const { return mpParentDevice; }
 		
 		UInt32 GetFamilyIndex() const { return mFamilyIndex; }
 		UInt32 GetQueueIndex() const { return mQueueIndex; }

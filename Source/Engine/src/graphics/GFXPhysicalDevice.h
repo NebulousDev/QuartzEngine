@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Common.h"
-#include "util\Castable.h"
+#include "GFXResource.h"
 #include "util\String.h"
 
 namespace Quartz
 {
-	class QUARTZ_API PhysicalDevice : public Castable
+	class QUARTZ_API GFXPhysicalDevice : public GFXResource
 	{
 	protected:
 		String	mDeviceName;
@@ -15,7 +15,7 @@ namespace Quartz
 		Bool8	mIsDescrete;
 
 	protected:
-		PhysicalDevice() = default;
+		GFXPhysicalDevice() = default;
 
 	public:
 		const String& GetDeviceName() const { return mDeviceName; }

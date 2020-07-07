@@ -204,7 +204,7 @@ namespace Quartz
 	/********************************************************************************************/
 
 
-	void SetDebugName(VkDevice device, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name)
+	void SetDebugMarkerObjectName(VkDevice device, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name)
 	{
 		#if USE_DEBUG_NAMES
 			
@@ -233,10 +233,10 @@ namespace Quartz
 	/********************************************************************************************/
 
 
-	void SetDebugName(GFXDevice* pDevice, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name)
+	void SetDebugMarkerObjectName(GFXDevice* pDevice, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name)
 	{
 		VkDevice device = static_cast<VulkanGFXDevice*>(pDevice)->GetVkDevice();
-		SetDebugName(device, objectType, object, name);
+		SetDebugMarkerObjectName(device, objectType, object, name);
 	}
 
 
@@ -499,7 +499,7 @@ namespace Quartz
 
 			vkGetDeviceQueue(device, queueInfo.familyIndex, queueInfo.queueIndex, &queue);
 
-			SetDebugName(device, VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT, (UInt64)queue, 
+			SetDebugMarkerObjectName(device, VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT, (UInt64)queue, 
 				(String("[Queue] ") + queueInfo.debugName).Str());
 
 			queueMatrix[queueInfo.familyIndex][queueInfo.queueIndex] = new VulkanGFXQueue(queue, queueInfo);
@@ -508,7 +508,7 @@ namespace Quartz
 		VulkanGFXDevice* pDevice = new VulkanGFXDevice(device, pPhysicalDevice, queueMatrix);
 
 		// TODO: Find better naming convention for devices
-		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, (UInt64)device, 
+		SetDebugMarkerObjectName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, (UInt64)device, 
 			(String("[Device] ") + pPhysicalDevice->GetDeviceName()).Str());
 
 		return pDevice;
@@ -605,7 +605,7 @@ namespace Quartz
 			return NULL;
 		}
 
-		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, (UInt64)buffer, 
+		SetDebugMarkerObjectName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, (UInt64)buffer, 
 			(String("[BUFFER] ") + info.debugName).Str());
 
 		return new VulkanGFXBuffer(buffer, pDevice, deviceMemory, memoryRequirements, info);
@@ -658,7 +658,7 @@ namespace Quartz
 			//Log.Warning("Failed to create swapchain image views: vkCreateImageView failed!");
 		}
 
-		SetDebugName(pVulkanDevice, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, (UInt64)imageView, 
+		SetDebugMarkerObjectName(pVulkanDevice, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, (UInt64)imageView, 
 			(String("[ImageView] ") + info.debugName).Str());
 
 		return new VulkanGFXImageView(pVulkanImage->GetParentDevice(), pImage, imageView, info);
@@ -702,7 +702,7 @@ namespace Quartz
 		vertShaderStageInfo.module	= shaderModule;
 		vertShaderStageInfo.pName	= info.entryName;
 
-		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, (UInt64)shaderModule, 
+		SetDebugMarkerObjectName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, (UInt64)shaderModule, 
 			(String("[Shader] ") + info.debugName).Str());
 
 		return new VulkanGFXShader(pDevice, shaderModule, vertShaderStageInfo, info);

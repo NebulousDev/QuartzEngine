@@ -1,6 +1,6 @@
 #include "VulkanPhysicalDevice.h"
 
-#include "gfx/GraphicsUtil.h"
+#include "graphics/GFXUtil.h"
 
 namespace Quartz
 {

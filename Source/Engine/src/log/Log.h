@@ -31,5 +31,5 @@ namespace Quartz
 		static void Critical(const wchar_t* format, ...);
 	};
 
-	#define Log LogUtil::GetInstance()
+	#define Log LogUtil::GetInstanceHandle()
 }

@@ -15,8 +15,8 @@ namespace Quartz
 	#define USE_DEBUG_NAMES (USE_VALIDATION) or OVERRIDE_USE_DEBUG_NAMES
 
 
-	void QUARTZ_API SetDebugName(VkDevice device, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name);
-	void QUARTZ_API SetDebugName(GFXDevice* pDevice, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name);
+	void QUARTZ_API SetDebugMarkerObjectName(VkDevice device, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name);
+	void QUARTZ_API SetDebugMarkerObjectName(GFXDevice* pDevice, VkDebugReportObjectTypeEXT objectType, UInt64 object, const Char* name);
 
 
 	/********************************************************************************************/

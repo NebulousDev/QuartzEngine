@@ -6,7 +6,7 @@
 
 #include "../Engine.h"
 
-#define USE_MESSAGE_LOOP 0
+#define USE_MESSAGE_LOOP 1
 
 namespace Quartz
 {
@@ -40,7 +40,7 @@ namespace Quartz
 
 	void LogUtil::Print(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_NONE;
@@ -59,7 +59,7 @@ namespace Quartz
 
 	void LogUtil::Debug(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_DEBUG;
@@ -78,7 +78,7 @@ namespace Quartz
 
 	void LogUtil::Info(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_INFO;
@@ -97,7 +97,7 @@ namespace Quartz
 
 	void LogUtil::General(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_GENERAL;
@@ -116,7 +116,7 @@ namespace Quartz
 
 	void LogUtil::Warning(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_WARNING;
@@ -135,7 +135,7 @@ namespace Quartz
 
 	void LogUtil::Error(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_ERROR;
@@ -154,7 +154,7 @@ namespace Quartz
 
 	void LogUtil::Critical(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_CRITICAL;
@@ -200,7 +200,7 @@ namespace Quartz
 
 	void LogUtil::Print(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_NONE;
@@ -219,7 +219,7 @@ namespace Quartz
 
 	void LogUtil::Debug(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_DEBUG;
@@ -238,7 +238,7 @@ namespace Quartz
 
 	void LogUtil::Info(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_INFO;
@@ -257,7 +257,7 @@ namespace Quartz
 
 	void LogUtil::General(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_GENERAL;
@@ -276,7 +276,7 @@ namespace Quartz
 
 	void LogUtil::Warning(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_WARNING;
@@ -295,7 +295,7 @@ namespace Quartz
 
 	void LogUtil::Error(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_ERROR;
@@ -314,7 +314,7 @@ namespace Quartz
 
 	void LogUtil::Critical(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		DebugMessageEvent debugMessageEvent;
 		debugMessageEvent.category = MESSAGE_CRITICAL;

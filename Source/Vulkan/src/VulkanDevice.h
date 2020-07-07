@@ -1,8 +1,9 @@
 #pragma once
 
-#include "gfx\GraphicsDevice.h"
+#include "graphics\GFXDevice.h"
 #include "VulkanPhysicalDevice.h"
 #include "VulkanQueue.h"
+#include "VulkanDeviceMemory.h"
 
 #include "util/String.h"
 #include "util/Array.h"
@@ -11,7 +12,7 @@
 
 namespace Quartz
 {
-	class QUARTZ_API VulkanDevice final : public GraphicsDevice
+	class QUARTZ_API VulkanDevice final : public GFXDevice
 	{
 	private:
 		VkDevice				mDevice;
@@ -22,10 +23,22 @@ namespace Quartz
 		Array<const char*>				mEnabledLayerNames;
 		Array<const char*>				mEnabledExtensionNames;
 
+		VulkanDeviceMemoryAllocator		mDeviceMemoryAllocator;
+		VkDescriptorPool				mDescriptorPool;
+		VkCommandPool					mGraphicsCommandPool;
+		VkCommandPool					mComputeCommandPool;
+		VkCommandPool					mTransferCommandPool;
+
 		VulkanQueue* mpGraphicsQueue;
-		VulkanQueue* mpTransferQueue;
 		VulkanQueue* mpComputeQueue;
+		VulkanQueue* mpTransferQueue;
 		VulkanQueue* mpPresentQueue;
+
+		PFN_vkDebugMarkerSetObjectTagEXT	vkDebugMarkerSetObjectTag;
+		PFN_vkDebugMarkerSetObjectNameEXT	vkDebugMarkerSetObjectName;
+		PFN_vkCmdDebugMarkerBeginEXT		vkCmdDebugMarkerBegin;
+		PFN_vkCmdDebugMarkerEndEXT			vkCmdDebugMarkerEnd;
+		PFN_vkCmdDebugMarkerInsertEXT		vkCmdDebugMarkerInsert;
 
 		struct
 		{
@@ -37,19 +50,29 @@ namespace Quartz
 
 	private:
 		Bool8 InitDevice(VulkanPhysicalDevice* pPhysicalDevice, const Array<String>& deviceExtensions);
+		Bool8 InitPools();
 
 	public:
 		VulkanDevice(VulkanPhysicalDevice* pPhysicalDevice, const Array<String>& deviceExtensions);
 
 		void DestroyDevice();
 
+		void SetDebugMarkerObjectName(Handle64 object, VkDebugReportObjectTypeEXT type, const String& debugName);
+
 		const VkDevice& GetDeviceHandle() const { return mDevice; }
-		const VulkanPhysicalDevice& GetPhysicalDeviceHandle() { return *mpPhysicalDevice; }
+		const VulkanPhysicalDevice& GetPhysicalDevice() { return *mpPhysicalDevice; }
+
+		VulkanDeviceMemoryAllocator& GetDeviceMemoryAllocator() { return mDeviceMemoryAllocator; }
+		VkDescriptorPool& GetDescriptorPool() { return mDescriptorPool; }
 
 		VulkanQueue& GetGrahpicsQueue() { return *mpGraphicsQueue; }
 		VulkanQueue& GetTransferQueue() { return *mpTransferQueue; }
 		VulkanQueue& GetComputeQueue() { return *mpComputeQueue; }
 		VulkanQueue& GetPresentQueue() { return *mpPresentQueue; }
+
+		VkCommandPool GetGraphicsCommandPoolHandle() const { return mGraphicsCommandPool; }
+		VkCommandPool GetComputeCommandPoolHandle() const { return mComputeCommandPool; }
+		VkCommandPool GetTransferCommandPoolHandle() const { return mTransferCommandPool; }
 
 		Bool8 HasUniqueTransferQueue() const { return mpTransferQueue != mpGraphicsQueue; }
 		Bool8 HasUniqueComputeQueue() const { return mpComputeQueue != mpGraphicsQueue; }

@@ -1,11 +1,10 @@
 #pragma once
 
 #include "Common.h"
-#include "util\Castable.h"
 
 namespace Quartz
 {
-	class QUARTZ_API GraphicsSurface : public Castable
+	class QUARTZ_API VulkanStateManager
 	{
 	private:
 

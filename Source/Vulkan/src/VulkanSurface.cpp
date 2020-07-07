@@ -1,7 +1,8 @@
 #include "VulkanSurface.h"
-#include "VulkanImageView.h"
+#include "VulkanImage.h"
 
 #include "win32/Win32Vulkan.h"
+#include "PlatformWindow.h"
 
 #include "log/log.h"
 
@@ -109,7 +110,7 @@ namespace Quartz
 		VkSurfaceFormatKHR	selectedFormat;
 		VkPresentModeKHR	selectedPresentMode;
 
-		const VkPhysicalDevice& physicalDevice = device.GetPhysicalDeviceHandle().GetPhysicalDeviceHandle();
+		const VkPhysicalDevice& physicalDevice = device.GetPhysicalDevice().GetPhysicalDeviceHandle();
 
 		if (!PickSurfaceFormat(physicalDevice, surface, &selectedFormat))
 		{
@@ -220,13 +221,16 @@ namespace Quartz
 			++imageIndex;
 		}
 
+		mBackBufferCount = mImages.Size();
+		mImageIndex = 0;
+
 		return true;
 	}
 
 	Bool8 VulkanSurface::CreateSemaphores()
 	{
 		mImageAcquiredSemaphores.Resize(mImages.Size());
-		mRenderCompleteSemaphores.Resize(mImages.Size());
+		mImageCompleteSemaphores.Resize(mImages.Size());
 		mImageFences.Resize(mImages.Size());
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -237,29 +241,32 @@ namespace Quartz
 		VkFenceCreateInfo fenceInfo = {};
 		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceInfo.pNext = nullptr;
-		fenceInfo.flags = 0;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Start signaled
 
 		for (UInt32 i = 0; i < mImages.Size(); i++)
 		{
 			vkCreateSemaphore(mpDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &mImageAcquiredSemaphores[i]);
-			vkCreateSemaphore(mpDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &mRenderCompleteSemaphores[i]);
+			vkCreateSemaphore(mpDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &mImageCompleteSemaphores[i]);
 			vkCreateFence(mpDevice->GetDeviceHandle(), &fenceInfo, nullptr, &mImageFences[i]);
 		}
-
-		mImageIndex = -1;
 
 		return true;
 	}
 
 	VulkanSurface::VulkanSurface(VkInstance instance, Window& window, VulkanDevice& device, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
-		: VulkanSurface()
 	{
 		mpWindow = &window;
 		mpDevice = &device;
 
+		if (!fullscreen)
+		{
+			mWidth = window.GetWidth();
+			mHeight = window.GetHeight();
+		}
+
 		if (
 			CreateSurface(instance, window) &&
-			CreateSwapChain(instance, device, mSurface, 2, width, height, fullscreen, vSync) &&
+			CreateSwapChain(instance, device, mSurface, 3, mWidth, mHeight, fullscreen, vSync) &&
 			CreateImageViews(device, mFormat) &&
 			CreateSemaphores()
 			)
@@ -268,17 +275,22 @@ namespace Quartz
 		}
 	}
 
-	Int32 VulkanSurface::AcquireNextImageIndex()
+	UInt32 VulkanSurface::AcquireNextImageIndex()
 	{
+		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &mImageFences[mImageIndex], VK_TRUE, UINT64_MAX);
+
 		UInt32 imageIndex;
 		if (vkAcquireNextImageKHR(mpDevice->GetDeviceHandle(), mSwapChain, UINT64_MAX,
 			mImageAcquiredSemaphores[mImageIndex], VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
 			Log.Error("Error acquiring next image index: vkAcquireNextImageKHR failed!");
-			return -1;
+			return (UInt32)-1;
 		}
 
+		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &mImageFences[imageIndex], VK_TRUE, UINT64_MAX);
+
 		mImageIndex = imageIndex;
+		return imageIndex;
 	}
 	
 }

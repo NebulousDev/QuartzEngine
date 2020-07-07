@@ -1,0 +1,16 @@
+#pragma once
+
+#include "Common.h"
+
+namespace Quartz
+{
+	enum GFXFormat
+	{
+		FORMAT_R8_UNORM,
+		FORMAT_RG8_UNORM,
+		FORMAT_RGB8_UNORM,
+		FORMAT_RGBA8_UNORM,
+		FORMAT_BGRA8_UNORM,
+		FORMAT_DEPTH24_UNORM_STENCIL8_UINT
+	};
+}

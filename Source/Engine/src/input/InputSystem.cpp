@@ -31,7 +31,7 @@ namespace Quartz
 
 	void InputSystem::Initialize()
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 
 		input.SetMouseMoveInputCallback(MouseMoveInputCallback);
@@ -43,7 +43,7 @@ namespace Quartz
 
 	void InputSystem::Update()
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 		input.PollDeviceInput();
 	}

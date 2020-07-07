@@ -88,7 +88,7 @@ namespace Quartz
 		presentModes.Resize(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.Data());
 
-		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT, (UInt64)surface,
+		SetDebugMarkerObjectName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT, (UInt64)surface,
 			(String("[Surface] ") + info.debugName).Str());
 
 		return new VulkanGFXSurface(surface, capabilities, surfaceFormats, presentModes);;
@@ -198,7 +198,7 @@ namespace Quartz
 			return NULL;
 		}
 
-		SetDebugName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, (UInt64)swapchain,
+		SetDebugMarkerObjectName(pDevice, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, (UInt64)swapchain,
 			(String("[Swapchain] ") + info.debugName).Str());
 
 		return new VulkanGFXSwapchain(pDevice, pSurface, swapchain, surfaceFormat, info);

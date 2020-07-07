@@ -26,7 +26,7 @@ namespace Quartz
 		DeviceConnectionEvent connectionEvent;
 		connectionEvent.desc = desc;
 
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		engine.GetEventSystem().Publish(EVENT_PRIORITY_MEDIUM, connectionEvent);
 	}
 
@@ -34,7 +34,7 @@ namespace Quartz
 	{
 		InputDeviceDesc desc;
 
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 
 		if (input.GetDeviceDescription(deviceId, &desc))
@@ -52,7 +52,7 @@ namespace Quartz
 
 	void DeviceConnectionSystem::Initialize()
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 		input.SetDeviceConnectCallback(DeviceConnectCallback);
 		input.SetDeviceDisconnectCallback(DeviceDisconnectCallback);
@@ -66,7 +66,7 @@ namespace Quartz
 
 	void DeviceConnectionSystem::Tick()
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 		input.PollDeviceConnections();
 	}
@@ -78,7 +78,7 @@ namespace Quartz
 
 	Bool8 DeviceConnectionSystem::IsDeviceConnected(InputDeviceId deviceId)
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 		return input.IsDeviceConnected(deviceId);
 	}

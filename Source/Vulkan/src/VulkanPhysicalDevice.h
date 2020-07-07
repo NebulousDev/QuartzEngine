@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gfx\PhysicalDevice.h"
+#include "graphics\GFXPhysicalDevice.h"
 #include "util/Array.h"
 
 #include <vulkan\vulkan.h>
 
 namespace Quartz
 {
-	struct QUARTZ_API VulkanPhysicalDevice : public PhysicalDevice
+	struct QUARTZ_API VulkanPhysicalDevice : public GFXPhysicalDevice
 	{
 	private:
 		String mDeviceName;

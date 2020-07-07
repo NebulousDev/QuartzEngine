@@ -5,9 +5,12 @@
 
 #include "event\EventSystem.h"
 #include "input\InputSystem.h"
-#include "gfx\RenderSystem.h"
+#include "graphics\RenderSystem.h"
 #include "log\DebugMessageSystem.h"
 #include "input\DeviceConnectionSystem.h"
+
+#include "graphics\GFXContext.h"
+#include "PlatformWindow.h"
 
 namespace Quartz
 {
@@ -17,30 +20,37 @@ namespace Quartz
 		friend class Singleton<Engine>;
 
 	private:
-		Platform*				mpPlatform;
 		EventSystem				mEventSystem;
 		InputSystem				mInputSystem;
 		DeviceConnectionSystem	mDeviceConnectionSystem;
 		RenderSystem			mRenderSystem;
 		DebugMessageSystem		mDebugMessageSystem;
 
+		Platform*				mpPlatform;
+		GFXContext*				mpGFXContext;
+		Window*					mpWindow;
+
 		Bool8 mRunning = false;
 
 		Time64 mDeltaTime;
 
-		Engine() {};
+		Engine() = default;
 
 	private:
-		void Run(Window* pWindow);
+		void Run();
 
 	public:
 		void SetPlatform(Platform* pPlatform);
+		void SetGraphicsContext(GFXContext* pGFXContext);
+		void SetWindow(Window* pWindow);
 
 		void Init();
-		void Start(Window* pWindow);
+		void Start();
 		void Stop();
 
 		Platform&					GetPlatform() { return *mpPlatform; }
+		GFXContext&					GetGFXContext() { return *mpGFXContext; }
+		Window&						GetWindow() { return *mpWindow; }
 
 		EventSystem&				GetEventSystem() { return mEventSystem; }
 		InputSystem&				GetInputSystem() { return mInputSystem; }

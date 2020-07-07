@@ -64,7 +64,7 @@ namespace Quartz
 
 	void DebugMessageSystem::Initialize()
 	{
-		Engine& engine = Engine::GetInstance();
+		Engine& engine = Engine::GetInstanceHandle();
 
 		mpDebugConsole = engine.GetPlatform().CreateConsole();
 		mpDebugConsole->Create();

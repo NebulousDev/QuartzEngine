@@ -8,7 +8,17 @@ namespace Quartz
 		mpPlatform = pPlatform;
 	}
 
-	void Engine::Run(Window* pWindow)
+	void Engine::SetGraphicsContext(GFXContext* pGFXContext)
+	{
+		mpGFXContext = pGFXContext;
+	}
+
+	void Engine::SetWindow(Window* pWindow)
+	{
+		mpWindow = pWindow;
+	}
+
+	void Engine::Run()
 	{
 		Time64 lastTime = 0.0;
 		Time64 currentTime = 0.0;
@@ -21,7 +31,7 @@ namespace Quartz
 
 		while (true)
 		{
-			pWindow->Update();
+			mpWindow->Update();
 
 			mEventSystem.DispatchEvents();
 
@@ -42,17 +52,20 @@ namespace Quartz
 				mInputSystem.Tick();
 				mRenderSystem.Tick();
 				
-				//Log.Debug("MS: %.4llfms, FPS: %d", deltaTime * 1000.0, fps);
+				Log.Debug("MS: %.4llfms, FPS: %d", deltaTime * 1000.0, fps);
 				elapsedTime = 0.0;
 				fps = 0;
 			}
 
-			fps++;
+			++fps;
 		}
 	}
 
 	void Engine::Init()
 	{
+		mEventSystem.InitializeEventSystem();
+		mDebugMessageSystem.Initialize();
+
 		Log.Print("-------------------------------------------------------\n");
 		Log.Print("|                    Nebulous Games                   |\n");
 		Log.Print("|                 QUARTZ ENGINE v0.2.0                |\n");
@@ -60,15 +73,12 @@ namespace Quartz
 
 		Log.Info("Engine is starting...");
 
-		mEventSystem.InitializeEventSystem();
-		mDebugMessageSystem.Initialize();
-
 		mDeviceConnectionSystem.Initialize();
 		mInputSystem.Initialize();
 		mRenderSystem.Initialize();
 	}
 
-	void Engine::Start(Window* pWindow)
+	void Engine::Start()
 	{
 		if (mRunning)
 		{
@@ -78,7 +88,7 @@ namespace Quartz
 
 		mRunning = true;
 
-		Run(pWindow);
+		Run();
 	}
 
 	void Engine::Stop()
