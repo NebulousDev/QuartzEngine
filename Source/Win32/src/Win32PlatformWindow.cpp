@@ -89,8 +89,14 @@ namespace Quartz
 			return;
 		}
 
+		RECT windowSize = { 0, 0, width, height };
+		AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, FALSE);
+
+		UInt32 adjustedWidth = windowSize.right - windowSize.left;
+		UInt32 adjustedHeight = windowSize.bottom - windowSize.top;
+
 		HWND windowHandle = CreateWindowEx(0, className, title, WS_OVERLAPPEDWINDOW,
-			xPos, yPos, width, height, NULL, NULL, instance, NULL);
+			xPos, yPos, adjustedWidth, adjustedHeight, NULL, NULL, instance, NULL);
 
 		if (windowHandle == NULL)
 		{
