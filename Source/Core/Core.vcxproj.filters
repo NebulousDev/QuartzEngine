@@ -123,6 +123,9 @@
     <ClInclude Include="src\util\Castable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\math2\MathUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core.cpp">

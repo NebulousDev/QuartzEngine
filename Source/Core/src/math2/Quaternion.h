@@ -54,7 +54,9 @@ namespace Quartz
 
 		FORCE_INLINE Vec3f operator*(const Vec3f& quat) const;
 
+		FORCE_INLINE Quaternion operator/(const Quaternion& quat) const;
 		FORCE_INLINE Quaternion operator/(const Float32 scalar) const;
+		FORCE_INLINE Quaternion& operator/=(const Quaternion& quat);
 		FORCE_INLINE Quaternion& operator/=(const Float32 scalar);
 
 		FORCE_INLINE Quaternion& operator=(const Quaternion& quat);
@@ -220,6 +222,12 @@ namespace Quartz
 			+ result.Cross(vec) * (2.0f * w);
 	}
 
+	FORCE_INLINE Quaternion Quaternion::operator/(const Quaternion& quat) const
+	{
+		//NOTE: If I can guarentee unit-quaternions, I can just use the conjugate
+		return *this * quat.Inverse();
+	}
+
 	FORCE_INLINE Quaternion Quaternion::operator/(const Float32 scalar) const
 	{
 		Quaternion result;
@@ -230,7 +238,12 @@ namespace Quartz
 		return result;
 	}
 
-	FORCE_INLINE Quaternion & Quaternion::operator/=(const Float32 scalar)
+	FORCE_INLINE Quaternion& Quaternion::operator/=(const Quaternion& quat)
+	{
+		return *this = *this / quat;
+	}
+
+	FORCE_INLINE Quaternion& Quaternion::operator/=(const Float32 scalar)
 	{
 		return *this = *this / scalar;
 	}

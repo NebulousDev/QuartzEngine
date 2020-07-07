@@ -178,7 +178,7 @@ namespace Quartz
 			free(mpData);
 		}
 
-		void PushBack(const ValueType& value)
+		ValueType* PushBack(const ValueType& value)
 		{
 			if (mSize + 1 > mCapacity)
 			{
@@ -186,10 +186,10 @@ namespace Quartz
 			}
 
 			// Construct at the end of the array
-			new (&mpData[mSize++]) ValueType(value);
+			return new (&mpData[mSize++]) ValueType(value);
 		}
 
-		void PushFront(const ValueType& value)
+		ValueType* PushFront(const ValueType& value)
 		{
 			if (mSize + 1 > mCapacity)
 			{
@@ -204,10 +204,11 @@ namespace Quartz
 				memmove(&mpData[1], &mpData[0], mSize * sizeof(ValueType));
 			}
 
-			// Construct at the beginning of the array
-			new (&mpData[0]) ValueType(value);
-
 			++mSize;
+
+			// Construct at the beginning of the array
+			return new (&mpData[0]) ValueType(value);
+
 		}
 
 		Bool8 Contains(const ValueType& value)
@@ -348,6 +349,11 @@ namespace Quartz
 		////////////////////////////////
 
 		ValueType* Data()
+		{
+			return mpData;
+		}
+
+		const ValueType* Data() const
 		{
 			return mpData;
 		}

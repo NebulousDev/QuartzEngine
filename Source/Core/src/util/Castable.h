@@ -6,7 +6,13 @@ namespace Quartz
 	{
 	public:
 		template<typename AsType>
-		AsType CastAs()
+		constexpr AsType CastAs()
+		{
+			return static_cast<AsType>(*this);
+		}
+
+		template<typename AsType>
+		constexpr AsType CastAs() const
 		{
 			return static_cast<AsType>(*this);
 		}

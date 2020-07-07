@@ -214,6 +214,7 @@
     <Natvis Include="src\util\_Util.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\math2\MathUtil.h" />
     <ClInclude Include="src\math\Defines.h" />
     <ClInclude Include="src\math\Math.h" />
     <ClInclude Include="src\math\MathUtil.h" />
