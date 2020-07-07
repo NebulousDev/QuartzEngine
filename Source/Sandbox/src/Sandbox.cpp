@@ -174,8 +174,8 @@ int main2()
 
 	GFXSurface* pSurface = ctx.CreateSurface(pDevice, surfaceInfo);
 
-	GFXQueue* pGraphicsQueue = pDevice->GetQueue(0, 0);
-	GFXQueue* pPresentQueue = pDevice->GetQueue(0, 1);
+	GFXQueue* pGraphicsQueue = pDevice->GetQueueHandle(0, 0);
+	GFXQueue* pPresentQueue = pDevice->GetQueueHandle(0, 1);
 
 	/////////////////
 
@@ -685,7 +685,7 @@ int main2()
 
 	/* Start Engine */
 	Log.Info("Starting Engine...");
-	Engine engine = Engine(nullptr);//Engine::GetInstance();
+	Engine engine = Engine(nullptr);//Engine::GetInstanceHandle();
 
 	/* Game Loop*/
 	Time64 lastTime = 0.0;
