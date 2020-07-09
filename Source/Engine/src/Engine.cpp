@@ -45,6 +45,8 @@ namespace Quartz
 			deltaTime = currentTime - lastTime;
 			elapsedTime += deltaTime;
 
+			mDeltaTime = deltaTime;
+
 			if (elapsedTime >= 1.0)
 			{
 				mDebugMessageSystem.Tick();
