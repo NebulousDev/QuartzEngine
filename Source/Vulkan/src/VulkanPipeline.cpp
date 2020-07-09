@@ -149,8 +149,8 @@ namespace Quartz
 		for (const VulkanVertexAttribute& attrib : pipelineState.vertexAttributes)
 		{
 			VkVertexInputAttributeDescription attributeDescription;
-			attributeDescription.location = attrib.location;
 			attributeDescription.binding = attrib.binding;
+			attributeDescription.location = attrib.location;
 			attributeDescription.format = attrib.format;
 			attributeDescription.offset = attrib.offset;
 

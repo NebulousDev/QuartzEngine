@@ -5,6 +5,10 @@
 
 #include "../Engine.h"
 
+#include "..\object\Model.h"
+#include "..\object\UniformData.h"
+#include "math\Math.h"
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -39,6 +43,39 @@ namespace Quartz
 
 		mpSurface = gfx.CreateSurface(window, window.GetWidth(), window.GetHeight(), true, false);
 
+
+		VertexFormat vertexFormat =
+		{
+			{
+				{ 0, VERTEX_ATTRIBUTE_POSITION, VERTEX_TYPE_FLOAT3 },
+				{ 1, VERTEX_ATTRIBUTE_COLOR, VERTEX_TYPE_FLOAT3 },
+			},
+			2
+		};
+
+		VertexData vertexData;
+		vertexData.format = vertexFormat;
+
+		vertexData.buffer.Push(Vector3(-0.5f, 0.5f, 0.0f));
+		vertexData.buffer.Push(Vector3(1.0f, 0.0f, 0.0f));
+
+		vertexData.buffer.Push(Vector3(0.5f, 0.5f, 0.0f));
+		vertexData.buffer.Push(Vector3(0.0f, 1.0f, 0.0f));
+
+		vertexData.buffer.Push(Vector3(0.0f, -0.5f, 0.0f));
+		vertexData.buffer.Push(Vector3(0.0f, 0.0f, 1.0f));
+
+		IndexData indexData;
+		indexData.format = INDEX_FORMAT_INT16;
+		indexData.buffer.Push((UInt16)0);
+		indexData.buffer.Push((UInt16)1);
+		indexData.buffer.Push((UInt16)2);
+
+		UniformBlockData modelUniform;
+		modelUniform.AddMatrix4("mvp", Matrix4().SetIdentity());
+
+
+
 		Array<Byte> vertexCode = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
 		GFXVertexShader* pVertexShader = gfx.CreateVertexShader(vertexCode);
 
@@ -53,7 +90,8 @@ namespace Quartz
 		shaderState.pVertexShader = pVertexShader;
 		shaderState.pPixelShader = pPixelShader;
 
-		mpGraphicsPipeline = gfx.CreateGraphicsPipeline(shaderState, *pRenderPass, *mpSurface);
+		mpGraphicsPipeline = gfx.CreateGraphicsPipeline(shaderState, vertexFormat, *pRenderPass, *mpSurface);
+		
 
 		float positions[3 * 3] =
 		{
@@ -78,14 +116,14 @@ namespace Quartz
 		ubo.mvp[10] = 1.0f;
 		ubo.mvp[15] = 1.0f;
 
-		mpVertexBuffer = gfx.CreateVertexBuffer(sizeof(Float32) * 9, true);
+		mpVertexBuffer = gfx.CreateVertexBuffer(vertexData.buffer.Size(), true);
 		void* pVertexData = gfx.MapVertexBuffer(mpVertexBuffer);
-		memcpy(pVertexData, positions, mpVertexBuffer->GetSizeBytes());
+		memcpy(pVertexData, vertexData.buffer.Data(), mpVertexBuffer->GetSizeBytes());
 		gfx.UnmapVertexBuffer(mpVertexBuffer);
 
-		mpIndexBuffer = gfx.CreateIndexBuffer(sizeof(UInt16), 3, true);
+		mpIndexBuffer = gfx.CreateIndexBuffer(sizeof(UInt16), indexData.buffer.Size() / sizeof(UInt16), true);
 		void* pIndexData = gfx.MapIndexBuffer(mpIndexBuffer);
-		memcpy(pIndexData, indices, mpIndexBuffer->GetSizeBytes());
+		memcpy(pIndexData, indexData.buffer.Data(), mpIndexBuffer->GetSizeBytes());
 		gfx.UnmapIndexBuffer(mpIndexBuffer);
 
 		for (UInt32 i = 0; i < mpSurface->GetBackBufferCount(); i++)
@@ -93,7 +131,7 @@ namespace Quartz
 			GFXUniformBuffer* pUniformBuffer = gfx.CreateUniformBuffer(sizeof(UBO), true);
 
 			void* pUniformData = gfx.MapUniformBuffer(pUniformBuffer);
-			memcpy(pUniformData, &ubo, pUniformBuffer->GetSizeBytes());
+			memcpy(pUniformData, modelUniform.GetBuffer().Data(), pUniformBuffer->GetSizeBytes());
 			gfx.MapUniformBuffer(pUniformBuffer);
 
 			mUniformBuffers.PushBack(pUniformBuffer);

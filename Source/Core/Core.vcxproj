@@ -229,6 +229,7 @@
     <ClInclude Include="src\math\Vector4.h" />
     <ClInclude Include="src\math\Vector4Impl.h" />
     <ClInclude Include="src\util\Array.h" />
+    <ClInclude Include="src\util\Buffer.h" />
     <ClInclude Include="src\util\Castable.h" />
     <ClInclude Include="src\util\Intrinsics.h" />
     <ClInclude Include="src\math2\Matrix.h" />

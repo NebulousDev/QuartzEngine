@@ -3,7 +3,7 @@
 
 layout(location = 0) in struct
 {
-	vec3 worldPosition;
+	vec3 color;
 }
 fragIn;
 
@@ -11,5 +11,5 @@ layout(location = 0) out vec4 fragOut;
 
 void main()
 {
-    fragOut = vec4(fragIn.worldPosition, 1.0);
+    fragOut = vec4(fragIn.color, 1.0);
 }

@@ -7,6 +7,8 @@
 #include "util\Array.h"
 #include "util\String.h"
 
+#include "object\Model.h"
+
 #include <vulkan\vulkan.h>
 
 namespace Quartz
@@ -55,6 +57,7 @@ namespace Quartz
 	
 		GFXGraphicsPipeline* CreateGraphicsPipeline(
 			GFXGraphicsPipelineShaderState& shaderState,
+			VertexFormat& vertexFormat,
 			GFXRenderPass& renderPass,
 			GFXSurface& surface) override;
 

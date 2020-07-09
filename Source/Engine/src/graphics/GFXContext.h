@@ -14,6 +14,8 @@
 #include "GFXRenderPass.h"
 #include "GFXQueue.h"
 
+#include "..\object\Model.h"
+
 #include "util\Array.h"
 
 namespace Quartz
@@ -32,6 +34,7 @@ namespace Quartz
 
 		virtual GFXGraphicsPipeline*	CreateGraphicsPipeline(
 			GFXGraphicsPipelineShaderState& pipelineState,
+			VertexFormat& vertexFormat,
 			GFXRenderPass& renderPass,
 			GFXSurface& surface
 			) = 0;

@@ -246,8 +246,65 @@ namespace Quartz
 		return new VulkanSurface(mVkInstance, window, *mpDevice, width, height, vSync, fullscreen);
 	}
 
+	UInt32 VertexElementSize(VertexElementType elementType)
+	{
+		switch (elementType)
+		{
+			case Quartz::VERTEX_TYPE_FLOAT:				return 1 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_FLOAT2:			return 2 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_FLOAT3:			return 3 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_FLOAT4:			return 4 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_INT:				return 1 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_INT2:				return 2 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_INT3:				return 3 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_INT4:				return 4 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_UINT:				return 1 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_UINT2:				return 2 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_UINT3:				return 3 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_UINT4:				return 4 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_INT_2_10_10_10:	return 1 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_UINT_2_10_10_10:	return 1 * sizeof(UInt32);
+			default: return 0;
+		}
+	}
+
+	UInt32 CalcVertexStride(VertexFormat& vertexFormat)
+	{
+		UInt32 stride = 0;
+		for (UInt32 i = 0; i < vertexFormat.elementCount; i++)
+		{
+			stride += VertexElementSize(vertexFormat.elements[i].type);
+		}
+
+		return stride;
+	}
+
+	VkFormat FormatFromVertexElementType(VertexElementType elementType)
+	{
+		static VkFormat formatTable[] =
+		{
+			VK_FORMAT_R32_SFLOAT,
+			VK_FORMAT_R32G32_SFLOAT,
+			VK_FORMAT_R32G32B32_SFLOAT,
+			VK_FORMAT_R32G32B32A32_SFLOAT,
+			VK_FORMAT_R32_SINT,
+			VK_FORMAT_R32G32_SINT,
+			VK_FORMAT_R32G32B32_SINT,
+			VK_FORMAT_R32G32B32A32_SINT,
+			VK_FORMAT_R32_UINT,
+			VK_FORMAT_R32G32_UINT,
+			VK_FORMAT_R32G32B32_UINT,
+			VK_FORMAT_R32G32B32A32_UINT,
+			VK_FORMAT_A2B10G10R10_SINT_PACK32,
+			VK_FORMAT_A2B10G10R10_UINT_PACK32
+		};
+
+		return formatTable[(UInt32)elementType];
+	}
+
 	GFXGraphicsPipeline* VulkanContext::CreateGraphicsPipeline(
 		GFXGraphicsPipelineShaderState& shaderState,
+		VertexFormat& vertexFormat,
 		GFXRenderPass& renderPass,
 		GFXSurface& surface)
 	{
@@ -256,23 +313,30 @@ namespace Quartz
 
 		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
 
-		struct Vertex
-		{
-			float pos[3];
-		};
-
 		VulkanGraphicsPipelineState graphicsPipelineState = {};
 
 		VulkanVertexBinding vertexBinding;
 		vertexBinding.binding = 0;
-		vertexBinding.stride = sizeof(Vertex);
+		vertexBinding.stride = CalcVertexStride(vertexFormat);
 		vertexBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		graphicsPipelineState.vertexBindings.PushBack(vertexBinding);
 
-		VulkanVertexAttribute vertexAttrib;
-		vertexAttrib.binding = 0;
-		vertexAttrib.location = 0;
-		vertexAttrib.format = VK_FORMAT_R32G32B32_SFLOAT;
-		vertexAttrib.offset = offsetof(Vertex, pos);
+		UInt32 elementOffset = 0;
+
+		for (UInt32 i = 0; i < vertexFormat.elementCount; i++)
+		{
+			VertexElement& element = vertexFormat.elements[i];
+
+			VulkanVertexAttribute vertexAttrib;
+			vertexAttrib.binding = 0;
+			vertexAttrib.location = element.location;
+			vertexAttrib.format = FormatFromVertexElementType(element.type);
+			vertexAttrib.offset = elementOffset;
+
+			elementOffset += VertexElementSize(element.type);
+
+			graphicsPipelineState.vertexAttributes.PushBack(vertexAttrib);
+		}
 
 		VulkanViewport viewport;
 		viewport.x = 0;
@@ -360,9 +424,6 @@ namespace Quartz
 		graphicsPipelineState.flags = 0;
 		graphicsPipelineState.pVertexShader = &shaderState.pVertexShader->CastAs<VulkanVertexShader&>();
 		graphicsPipelineState.pPixelShader = &shaderState.pPixelShader->CastAs<VulkanPixelShader&>();
-
-		graphicsPipelineState.vertexBindings.PushBack(vertexBinding);
-		graphicsPipelineState.vertexAttributes.PushBack(vertexAttrib);
 
 		graphicsPipelineState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
