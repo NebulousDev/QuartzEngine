@@ -308,8 +308,8 @@ namespace Quartz
 		GFXRenderPass& renderPass,
 		GFXSurface& surface)
 	{
-		const UInt32 tempWidth = 640;
-		const UInt32 tempHeight = 480;
+		const Int32 tempWidth = 640;
+		const Int32 tempHeight = 480;
 
 		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
 
@@ -340,9 +340,9 @@ namespace Quartz
 
 		VulkanViewport viewport;
 		viewport.x = 0;
-		viewport.y = 0;
+		viewport.y = tempHeight;
 		viewport.width = tempWidth;
-		viewport.height = tempHeight;
+		viewport.height = -tempHeight;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
@@ -431,7 +431,7 @@ namespace Quartz
 		graphicsPipelineState.scissors.PushBack(scissor);
 
 		graphicsPipelineState.polygonMode = VK_POLYGON_MODE_FILL;
-		graphicsPipelineState.cullMode = VK_CULL_MODE_BACK_BIT;
+		graphicsPipelineState.cullMode = VK_CULL_MODE_NONE;//VK_CULL_MODE_BACK_BIT;
 		graphicsPipelineState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		graphicsPipelineState.lineWidth = 1.0f;
 

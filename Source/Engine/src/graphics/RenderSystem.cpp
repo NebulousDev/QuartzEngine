@@ -5,10 +5,6 @@
 
 #include "../Engine.h"
 
-#include "..\object\Model.h"
-#include "..\object\UniformData.h"
-#include "math\Math.h"
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -56,24 +52,84 @@ namespace Quartz
 		VertexData vertexData;
 		vertexData.format = vertexFormat;
 
-		vertexData.buffer.Push(Vector3(-0.5f, 0.5f, 0.0f));
-		vertexData.buffer.Push(Vector3(1.0f, 0.0f, 0.0f));
+		vertexData.buffer.Push(Vector3(-0.5f, -0.5f, 0.5f));
+		vertexData.buffer.Push(Vector3(1.0f, 0.0f, 0.5f));
 
-		vertexData.buffer.Push(Vector3(0.5f, 0.5f, 0.0f));
+		vertexData.buffer.Push(Vector3(0.5f, -0.5f, 0.5f));
 		vertexData.buffer.Push(Vector3(0.0f, 1.0f, 0.0f));
 
-		vertexData.buffer.Push(Vector3(0.0f, -0.5f, 0.0f));
+		vertexData.buffer.Push(Vector3(0.5f, 0.5f, 0.5f));
 		vertexData.buffer.Push(Vector3(0.0f, 0.0f, 1.0f));
+
+		vertexData.buffer.Push(Vector3(-0.5f, 0.5f, 0.5f));
+		vertexData.buffer.Push(Vector3(1.0f, 1.0f, 1.0f));
+
+		vertexData.buffer.Push(Vector3(-0.5f, -0.5f, -0.5f));
+		vertexData.buffer.Push(Vector3(0.0f, 1.0f, 1.0f));
+
+		vertexData.buffer.Push(Vector3(0.5f, -0.5f, -0.5f));
+		vertexData.buffer.Push(Vector3(1.0f, 1.0f, 0.0f));
+
+		vertexData.buffer.Push(Vector3(0.5f, 0.5f, -0.5f));
+		vertexData.buffer.Push(Vector3(1.0f, 0.0f, 1.0f));
+
+		vertexData.buffer.Push(Vector3(-0.5f, 0.5f, -0.5f));
+		vertexData.buffer.Push(Vector3(0.0f, 0.0f, 0.0f));
 
 		IndexData indexData;
 		indexData.format = INDEX_FORMAT_INT16;
+
 		indexData.buffer.Push((UInt16)0);
 		indexData.buffer.Push((UInt16)1);
 		indexData.buffer.Push((UInt16)2);
+		indexData.buffer.Push((UInt16)0);
+		indexData.buffer.Push((UInt16)2);
+		indexData.buffer.Push((UInt16)3);
 
-		UniformBlockData modelUniform;
-		modelUniform.AddMatrix4("mvp", Matrix4().SetIdentity());
+		indexData.buffer.Push((UInt16)1);
+		indexData.buffer.Push((UInt16)5);
+		indexData.buffer.Push((UInt16)6);
+		indexData.buffer.Push((UInt16)1);
+		indexData.buffer.Push((UInt16)6);
+		indexData.buffer.Push((UInt16)2);
 
+		indexData.buffer.Push((UInt16)5);
+		indexData.buffer.Push((UInt16)4);
+		indexData.buffer.Push((UInt16)7);
+		indexData.buffer.Push((UInt16)5);
+		indexData.buffer.Push((UInt16)7);
+		indexData.buffer.Push((UInt16)6);
+
+		indexData.buffer.Push((UInt16)4);
+		indexData.buffer.Push((UInt16)0);
+		indexData.buffer.Push((UInt16)3);
+		indexData.buffer.Push((UInt16)4);
+		indexData.buffer.Push((UInt16)3);
+		indexData.buffer.Push((UInt16)7);
+
+		indexData.buffer.Push((UInt16)3);
+		indexData.buffer.Push((UInt16)2);
+		indexData.buffer.Push((UInt16)6);
+		indexData.buffer.Push((UInt16)3);
+		indexData.buffer.Push((UInt16)6);
+		indexData.buffer.Push((UInt16)7);
+
+		indexData.buffer.Push((UInt16)0);
+		indexData.buffer.Push((UInt16)1);
+		indexData.buffer.Push((UInt16)5);
+		indexData.buffer.Push((UInt16)0);
+		indexData.buffer.Push((UInt16)5);
+		indexData.buffer.Push((UInt16)4);
+
+		mModel.SetTranslation({ 0.0f, 0.0f, 0.0f });
+		mView.SetTranslation({ 0.0f, 0.0f, 2.0f });
+		mProjection.SetIdentity();
+		mProjection.SetPerspective(ToRadians(90.0f) , 640.0f / 480.0f, 0.001f, 1000.0f);
+		//mProjection.Transpose();
+
+		mModelUniform.AddMatrix4("model", mModel);
+		mModelUniform.AddMatrix4("view", mView);
+		mModelUniform.AddMatrix4("projection", mProjection);
 
 
 		Array<Byte> vertexCode = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
@@ -91,30 +147,6 @@ namespace Quartz
 		shaderState.pPixelShader = pPixelShader;
 
 		mpGraphicsPipeline = gfx.CreateGraphicsPipeline(shaderState, vertexFormat, *pRenderPass, *mpSurface);
-		
-
-		float positions[3 * 3] =
-		{
-			-0.5f,  0.5f, 0.0f,
-			 0.5f,  0.5f, 0.0f,
-			 0.0f, -0.5f, 0.0f
-		};
-
-		UInt16 indices[3] =
-		{
-			0, 1, 2
-		};
-
-		struct UBO
-		{
-			float mvp[16];
-		} 
-		ubo {};
-
-		ubo.mvp[0 ] = 1.0f;
-		ubo.mvp[5 ] = 1.0f;
-		ubo.mvp[10] = 1.0f;
-		ubo.mvp[15] = 1.0f;
 
 		mpVertexBuffer = gfx.CreateVertexBuffer(vertexData.buffer.Size(), true);
 		void* pVertexData = gfx.MapVertexBuffer(mpVertexBuffer);
@@ -128,10 +160,10 @@ namespace Quartz
 
 		for (UInt32 i = 0; i < mpSurface->GetBackBufferCount(); i++)
 		{
-			GFXUniformBuffer* pUniformBuffer = gfx.CreateUniformBuffer(sizeof(UBO), true);
+			GFXUniformBuffer* pUniformBuffer = gfx.CreateUniformBuffer(mModelUniform.GetBuffer().Size() * sizeof(Float32), true);
 
 			void* pUniformData = gfx.MapUniformBuffer(pUniformBuffer);
-			memcpy(pUniformData, modelUniform.GetBuffer().Data(), pUniformBuffer->GetSizeBytes());
+			memcpy(pUniformData, mModelUniform.GetBuffer().Data(), pUniformBuffer->GetSizeBytes());
 			gfx.MapUniformBuffer(pUniformBuffer);
 
 			mUniformBuffers.PushBack(pUniformBuffer);
@@ -160,6 +192,13 @@ namespace Quartz
 	void RenderSystem::Update()
 	{
 		GFXContext& gfx = Engine::GetInstanceHandle().GetGFXContext();
+
+		mModel *= Matrix4().SetRotation(Quaternion().SetAxisAngle({0.0f, 1.0f, 0.0f}, 1.0f * Engine::GetInstanceHandle().GetDeltaTime()));
+		mModelUniform.SetMatrix4("model", mModel);
+
+		void* pUniformData = gfx.MapUniformBuffer(mUniformBuffers[mFrameIndex]);
+		memcpy(pUniformData, mModelUniform.GetBuffer().Data(), mUniformBuffers[mFrameIndex]->GetSizeBytes());
+		gfx.MapUniformBuffer(mUniformBuffers[mFrameIndex]);
 
 		mFrameIndex = mpSurface->AcquireNextImageIndex();
 		gfx.Submit(*mGraphicsCommandBuffers[mFrameIndex], *mpSurface);
