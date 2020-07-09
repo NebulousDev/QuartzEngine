@@ -94,7 +94,7 @@ namespace Quartz
 
 			if (nextIndex > mCapacity)
 			{
-				Reserve(NextSize(mCapacity));
+				Reserve(NextSize(nextIndex));
 			}
 
 			// Construct at new index
