@@ -23,29 +23,29 @@ struct Vector3
 		};
 	};
 
-	/** Zero vector (0,0,0) */
-	static const Vector3 Zero;
+	///** Zero vector (0,0,0) */
+	//static const Vector3 Zero;
 
-	/** One vector (1,1,1) */
-	static const Vector3 One;
+	///** One vector (1,1,1) */
+	//static const Vector3 One;
 
-	/** Up vector (0,1,0) */
-	static const Vector3 Up;
+	///** Up vector (0,1,0) */
+	//static const Vector3 Up;
 
-	/** Down vector (0,-1,0) */
-	static const Vector3 Down;
+	///** Down vector (0,-1,0) */
+	//static const Vector3 Down;
 
-	/** Forward vector (0,0,1) */
-	static const Vector3 Forward;
+	///** Forward vector (0,0,1) */
+	//static const Vector3 Forward;
 
-	/** Backward vector (0,0,-1) */
-	static const Vector3 Backward;
+	///** Backward vector (0,0,-1) */
+	//static const Vector3 Backward;
 
-	/** Right vector (1,0,0) */
-	static const Vector3 Right;
+	///** Right vector (1,0,0) */
+	//static const Vector3 Right;
 
-	/** Left vector (-1,0,0) */
-	static const Vector3 Left;
+	///** Left vector (-1,0,0) */
+	//static const Vector3 Left;
 
 	/** Construct an uninitialized Vector3 */
 	FORCEINLINE Vector3();
