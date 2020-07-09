@@ -117,16 +117,23 @@ FORCEINLINE Matrix4& Matrix4::SetLookAt(const Vector3& eye, const Vector3& targe
 	return SetView(right, up, forward, -position);
 }
 
+FORCEINLINE Matrix4& Matrix4::SetOrthographic(float left, float right, float top, float bottom, float near, float far)
+{
+	SetZero();
+	return *this;
+}
+
 FORCEINLINE Matrix4& Matrix4::SetPerspective(float fov, float aspect, float zNear, float zFar)
 {
-	float fovY = 1.0f / tanf(fov / 2.0f);
+	float fovY = 1.0f / tanf(fov * 0.5f);
+	float range = (zNear - zFar);
 
 	SetZero();
 	m00 = fovY / aspect;
 	m11 = fovY;
-	m22 = -zFar / (zFar - zNear);
-	m23 = -1.0f;
-	m32 = -zFar * zNear / (zFar - zNear);
+	m22 = (-zNear - zFar) / range;
+	m23 = 1.0f;
+	m32 = 2.0f * zFar * zNear / range;
 	return *this;
 }
 

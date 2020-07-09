@@ -66,6 +66,9 @@ struct Matrix4
 	/** Set to a lookat matrix */
 	FORCEINLINE Matrix4& SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up);
 
+	/** Set to a orthographic matrix */
+	FORCEINLINE Matrix4& SetOrthographic(float left, float right, float top, float bottom, float near, float far);
+
 	/** Set to a perspective matrix */
 	FORCEINLINE Matrix4& SetPerspective(float fov, float aspect, float zNear, float zFar);
 
