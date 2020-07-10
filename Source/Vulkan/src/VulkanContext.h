@@ -73,8 +73,10 @@ namespace Quartz
 			UInt32 width, UInt32 height,
 			const Array<GFXImageView*>& images) override;
 
-		GFXFramebuffer* CreateFramebuffer(GFXGraphicsPipeline* pGrapicsPipeline,
-			GFXSurface* pSurface, UInt32 bufferIndex) override;
+		GFXImage* CreateImage(GFXImageUsage usage, UInt32 width, UInt32 height, GFXFormat format, 
+			UInt32 mipLevels, UInt32 layers) override;
+		GFXImageView* CreateImageView(GFXImageUsage usage, GFXImage* pImage, UInt32 mipLevelStart, 
+			UInt32 mipLevels, UInt32 layerStart, UInt32 layers) override;
 
 		GFXCommandBuffer* CreateGraphicsCommandBuffer() override;
 		GFXCommandBuffer* CreateComputeCommandBuffer() override;

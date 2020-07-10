@@ -6,6 +6,7 @@ namespace Quartz
 {
 	enum GFXFormat
 	{
+		FORMAT_UNDEFINED,
 		FORMAT_R8_UNORM,
 		FORMAT_RG8_UNORM,
 		FORMAT_RGB8_UNORM,

@@ -535,14 +535,62 @@ namespace Quartz
 		return new VulkanFrameBuffer(vulkanDevice, renderPass.GetRenderPassHandle(), width, height, attachments);
 	}
 
-	GFXFramebuffer* VulkanContext::CreateFramebuffer(GFXGraphicsPipeline* pGrapicsPipeline, GFXSurface* pSurface, UInt32 bufferIndex)
+	VkFormat FormatToVkFormat(GFXFormat format)
 	{
-		VulkanSurface& vulkanSurface = pSurface->CastAs<VulkanSurface&>();
+		static VkFormat sFormatTable[] =
+		{
+			VK_FORMAT_UNDEFINED,
+			VK_FORMAT_R8_UNORM,
+			VK_FORMAT_R8G8_UNORM,
+			VK_FORMAT_R8G8B8_UNORM,
+			VK_FORMAT_R8G8B8A8_UNORM,
+			VK_FORMAT_B8G8R8A8_UNORM,
+			VK_FORMAT_D24_UNORM_S8_UINT
+		};
 
-		Array<GFXImageView*> imageViews;
-		imageViews.PushBack(&vulkanSurface.GetImageViews()[bufferIndex]);
+		return sFormatTable[(UInt32)format];
+	}
 
-		return CreateFramebuffer(pGrapicsPipeline, vulkanSurface.GetWidth(), vulkanSurface.GetHeight(), imageViews);
+	VkImageAspectFlags ImageUsageToVkImageAspects(GFXImageUsage usage)
+	{
+		static VkImageAspectFlags sAspectTable[] =
+		{
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			VK_IMAGE_ASPECT_DEPTH_BIT,
+			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT
+		};
+
+		return sAspectTable[(UInt32)usage];
+	}
+
+	VkImageUsageFlags ImageUsageToVkImageUsage(GFXImageUsage usage)
+	{
+		static VkImageAspectFlags sUsageTable[] =
+		{
+			VK_IMAGE_USAGE_SAMPLED_BIT,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		};
+
+		return sUsageTable[(UInt32)usage];
+	}
+
+	GFXImage* VulkanContext::CreateImage(GFXImageUsage usage, UInt32 width, UInt32 height, GFXFormat format, UInt32 mipLevels, UInt32 layers)
+	{
+		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+		VkFormat imageFormat = FormatToVkFormat(format);
+		VkImageUsageFlags imageUsage = ImageUsageToVkImageUsage(usage);
+		return new VulkanImage(vulkanDevice, VK_IMAGE_TYPE_2D, imageUsage, imageFormat, width, height, 1, mipLevels, layers);
+	}
+
+	GFXImageView* VulkanContext::CreateImageView(GFXImageUsage usage, GFXImage* pImage, UInt32 mipLevelStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers)
+	{
+		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+		VkImageAspectFlags aspects = ImageUsageToVkImageAspects(usage);
+		VulkanImage& image = pImage->CastAs<VulkanImage&>();
+		return new VulkanImageView(image, VK_IMAGE_VIEW_TYPE_2D, aspects, mipLevelStart, mipLevels, layerStart, layers);
 	}
 
 	GFXCommandBuffer* VulkanContext::CreateGraphicsCommandBuffer()
@@ -586,21 +634,6 @@ namespace Quartz
 		return sStoreOpTable[(UInt32)storeOp];
 	}
 
-	VkFormat FormatToVkFormat(GFXFormat format)
-	{
-		static VkFormat sFormatTable[] =
-		{
-			VK_FORMAT_R8_UNORM,
-			VK_FORMAT_R8G8_UNORM,
-			VK_FORMAT_R8G8B8_UNORM,
-			VK_FORMAT_R8G8B8A8_UNORM,
-			VK_FORMAT_B8G8R8A8_UNORM,
-			VK_FORMAT_D24_UNORM_S8_UINT
-		};
-
-		return sFormatTable[(UInt32)format];
-	}
-
 	GFXRenderPass* VulkanContext::CreateRenderPass(GFXRenderPassInfo& renderPassInfo)
 	{
 		VulkanRenderPassLayout renderPassLayout = {};
@@ -631,7 +664,7 @@ namespace Quartz
 			attachment.storeOp = StoreOpToAttachmentStoreOp(depthStencil.depthStoreOp);
 			attachment.stencilLoadOp = LoadOpToAttachmentLoadOp(depthStencil.stencilLoadOp);
 			attachment.stencilStoreOp = StoreOpToAttachmentStoreOp(depthStencil.stencilStoreOp);
-			attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 			renderPassLayout.attachments.PushBack(attachment);
@@ -651,11 +684,11 @@ namespace Quartz
 
 		for (UInt32 i = 0; i < renderPassInfo.depthStencilTargets.Size(); ++i)
 		{
-			VulkanAttachmentReference colorReference;
-			colorReference.attachment = i;
-			colorReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			VulkanAttachmentReference depthReference;
+			depthReference.attachment = renderPassInfo.colorTargets.Size() + i;
+			depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-			subpass.depthStencilAttachments.PushBack(colorReference);
+			subpass.depthStencilAttachments.PushBack(depthReference);
 		}
 
 		renderPassLayout.subpasses.PushBack(subpass);
@@ -670,7 +703,11 @@ namespace Quartz
 		VulkanRenderPass& vulkanRenderPass = renderPass.CastAs<VulkanRenderPass&>();
 		VulkanFrameBuffer& vulkanFrameBuffer = frameBuffer.CastAs<VulkanFrameBuffer&>();
 
-		VkClearValue clearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+		VkClearValue clearColor[2]; 
+		clearColor[0].color = { 1.0f, 0.0f, 0.0f, 1.0f };
+		clearColor[0].depthStencil = { 1.0f, 0 };
+		clearColor[1].color = { 1.0f, 0.0f, 0.0f, 1.0f };
+		clearColor[1].depthStencil = { 1.0f, 0 };
 
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -678,8 +715,8 @@ namespace Quartz
 		renderPassInfo.framebuffer = vulkanFrameBuffer.GetFrameBufferHandle();
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = { vulkanFrameBuffer.GetWidth(), vulkanFrameBuffer.GetHeight() };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		renderPassInfo.clearValueCount = 2;
+		renderPassInfo.pClearValues = clearColor;
 
 		vkCmdBeginRenderPass(vulkanCommandBuffer.GetCommandBufferHandle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}

@@ -18,7 +18,7 @@ namespace Quartz
 		VulkanDevice*	mpDevice;
 
 		VkFormat				mFormat;
-		Array<VkImage>			mImages;
+		Array<VulkanImage>		mImages;
 		Array<VulkanImageView>	mImageViews;
 		Int32					mImageIndex;
 
@@ -59,7 +59,7 @@ namespace Quartz
 		VkFence GetImageFence(UInt32 index) { return mImageFences[index]; }
 
 		VkFormat GetFormat() const { return mFormat; }
-		Array<VkImage>& GetImages() { return mImages; }
+		Array<VulkanImage>& GetImages() { return mImages; }
 		Array<VulkanImageView>& GetImageViews() { return mImageViews; }
 
 		UInt32 GetImageIndex() const { return mImageIndex; }

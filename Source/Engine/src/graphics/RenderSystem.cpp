@@ -138,8 +138,11 @@ namespace Quartz
 		Array<Byte> pixelCode = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
 		GFXPixelShader* pPixelShader = gfx.CreatePixelShader(pixelCode);
 
+		Array<GFXImage*> depthImages;
+
 		GFXRenderPassInfo renderPassInfo = {};
 		renderPassInfo.colorTargets.PushBack({ FORMAT_BGRA8_UNORM, GFX_LOAD_DONT_CARE, GFX_STORE_STORE }); // Swapchain image
+		renderPassInfo.depthStencilTargets.PushBack({ FORMAT_DEPTH24_UNORM_STENCIL8_UINT, GFX_LOAD_CLEAR, GFX_STORE_STORE }); // depthStencil image
 		GFXRenderPass* pRenderPass = gfx.CreateRenderPass(renderPassInfo);
 
 		GFXGraphicsPipelineShaderState shaderState;
@@ -168,7 +171,14 @@ namespace Quartz
 
 			mUniformBuffers.PushBack(pUniformBuffer);
 
-			GFXFramebuffer* pPresentFramebuffer = gfx.CreateFramebuffer(mpGraphicsPipeline, mpSurface, i);
+			GFXImage* pDepthImage = gfx.CreateImage(IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT, mpSurface->GetWidth(), mpSurface->GetHeight(), FORMAT_DEPTH24_UNORM_STENCIL8_UINT, 1, 1);
+			depthImages.PushBack(pDepthImage);
+
+			Array<GFXImageView*> framebufferImages;
+			framebufferImages.PushBack(&mpSurface->GetImageView(i));
+			framebufferImages.PushBack(gfx.CreateImageView(IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT, pDepthImage, 0, 1, 0, 1));
+
+			GFXFramebuffer* pPresentFramebuffer = gfx.CreateFramebuffer(mpGraphicsPipeline, mpSurface->GetWidth(), mpSurface->GetHeight(), framebufferImages);
 			mPresentFramebuffers.PushBack(pPresentFramebuffer);
 
 			GFXCommandBuffer* pGraphicsCommandBuffer = gfx.CreateGraphicsCommandBuffer();

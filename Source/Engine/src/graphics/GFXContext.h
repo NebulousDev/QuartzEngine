@@ -58,12 +58,14 @@ namespace Quartz
 			UInt32 width, UInt32 height,
 			const Array<GFXImageView*>& images) = 0;
 
-		virtual GFXFramebuffer* CreateFramebuffer(GFXGraphicsPipeline* pGrapicsPipeline, 
-			GFXSurface* pSurface, UInt32 bufferIndex) = 0;
-
 		virtual GFXCommandBuffer* CreateGraphicsCommandBuffer() = 0;
 		virtual GFXCommandBuffer* CreateComputeCommandBuffer() = 0;
 		virtual GFXCommandBuffer* CreateTransferCommandBuffer() = 0;
+
+		virtual GFXImage* CreateImage(GFXImageUsage usage, UInt32 width, UInt32 height, GFXFormat format, 
+			UInt32 mipLevels, UInt32 layers) = 0;
+		virtual GFXImageView* CreateImageView(GFXImageUsage usage, GFXImage* pImage, UInt32 mipLevelStart, 
+			UInt32 mipLevels, UInt32 layerStart, UInt32 layers) = 0;
 
 		virtual GFXRenderPass* CreateRenderPass(GFXRenderPassInfo& renderPassInfo) = 0;
 

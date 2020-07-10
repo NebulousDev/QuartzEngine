@@ -32,18 +32,6 @@ namespace Quartz
 		return result == VK_SUCCESS;
 	}
 
-	Bool8 RetrieveSwapChainImages(VkDevice device, VkSwapchainKHR swapChain, Array<VkImage>& images)
-	{
-		VkResult result;
-		UInt32 swapChainImageCount = 0;
-
-		result = vkGetSwapchainImagesKHR(device, swapChain, &swapChainImageCount, nullptr);
-		images.Resize(swapChainImageCount);
-		result = vkGetSwapchainImagesKHR(device, swapChain, &swapChainImageCount, images.Data());
-
-		return result == VK_SUCCESS;
-	}
-
 	Bool8 PickSurfaceFormat(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceFormatKHR* pSelectedFormat)
 	{
 		Array<VkSurfaceFormatKHR> availableFormats;
@@ -105,7 +93,8 @@ namespace Quartz
 		return true;
 	}
 
-	Bool8 VulkanSurface::CreateSwapChain(VkInstance instance, VulkanDevice& device, VkSurfaceKHR surface, UInt32 bufferCount, UInt32 width, UInt32 height, Bool8 fullscreen, UInt32 vSync)
+	Bool8 VulkanSurface::CreateSwapChain(VkInstance instance, VulkanDevice& device, VkSurfaceKHR surface, UInt32 bufferCount, 
+		UInt32 width, UInt32 height, Bool8 fullscreen, UInt32 vSync)
 	{
 		VkSurfaceFormatKHR	selectedFormat;
 		VkPresentModeKHR	selectedPresentMode;
@@ -197,11 +186,26 @@ namespace Quartz
 			return false;
 		}
 
+		Array<VkImage> rawImages;
+		UInt32 swapChainImageCount = 0;
+
+		vkGetSwapchainImagesKHR(device.GetDeviceHandle(), mSwapChain, &swapChainImageCount, nullptr);
+		rawImages.Resize(swapChainImageCount);
+		vkGetSwapchainImagesKHR(device.GetDeviceHandle(), mSwapChain, &swapChainImageCount, rawImages.Data());
+
+		for (VkImage rawImage : rawImages)
+		{
+			mImages.PushBack(VulkanImage(device, rawImage, VK_IMAGE_TYPE_2D, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, selectedFormat.format,
+				swapChainInfo.imageExtent.width, swapChainInfo.imageExtent.height, 1, 1, 1));
+		}
+
+		/*
 		if (!RetrieveSwapChainImages(device.GetDeviceHandle(), mSwapChain, mImages))
 		{
 			Log.Error("Failed to create vulkan swapchain: Failed to retrieve swap chain images!");
 			return false;
 		}
+		*/
 
 		mWidth = swapChainInfo.imageExtent.width;
 		mHeight = swapChainInfo.imageExtent.height;
@@ -215,9 +219,10 @@ namespace Quartz
 		mImageViews.Resize(mImages.Size());
 
 		UInt32 imageIndex = 0;
-		for (const VkImage& image : mImages)
+		for (VulkanImage& image : mImages)
 		{
-			mImageViews[imageIndex] = VulkanImageView(device, mImages[imageIndex], VK_IMAGE_VIEW_TYPE_2D, format, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1);
+			mImageViews[imageIndex] = VulkanImageView(image, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1);
+			mBackbufferViews.PushBack(&mImageViews[imageIndex]);
 			++imageIndex;
 		}
 
