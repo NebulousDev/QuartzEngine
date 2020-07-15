@@ -292,7 +292,7 @@ namespace Quartz
 			return (UInt32)-1;
 		}
 
-		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &mImageFences[imageIndex], VK_TRUE, UINT64_MAX);
+		//vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &mImageFences[imageIndex], VK_TRUE, UINT64_MAX);
 
 		mImageIndex = imageIndex;
 		return imageIndex;

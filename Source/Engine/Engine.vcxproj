@@ -267,6 +267,7 @@
     <ClInclude Include="src\graphics\RenderSystem.h" />
     <ClInclude Include="src\input\InputSystem.h" />
     <ClInclude Include="src\object\Model.h" />
+    <ClInclude Include="src\object\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>
@@ -280,6 +281,7 @@
     <ClCompile Include="src\log\DebugMessageSystem.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\graphics\RenderSystem.cpp" />
+    <ClCompile Include="src\object\OBJLoader.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -9,6 +9,8 @@
 #include <string>
 #include <fstream>
 
+#include "../object/OBJLoader.h"
+
 namespace Quartz
 {
 	static Array<Byte> ReadFile(const String& filename)
@@ -39,98 +41,19 @@ namespace Quartz
 
 		mpSurface = gfx.CreateSurface(window, window.GetWidth(), window.GetHeight(), true, false);
 
+		Array<Byte> modelFileData = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\models\\bunny.obj");
+		String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
 
-		VertexFormat vertexFormat =
-		{
-			{
-				{ 0, VERTEX_ATTRIBUTE_POSITION, VERTEX_TYPE_FLOAT3 },
-				{ 1, VERTEX_ATTRIBUTE_COLOR, VERTEX_TYPE_FLOAT3 },
-			},
-			2
-		};
-
-		VertexData vertexData;
-		vertexData.format = vertexFormat;
-
-		vertexData.buffer.Push(Vector3(-0.5f, -0.5f, 0.5f));
-		vertexData.buffer.Push(Vector3(1.0f, 0.0f, 0.5f));
-
-		vertexData.buffer.Push(Vector3(0.5f, -0.5f, 0.5f));
-		vertexData.buffer.Push(Vector3(0.0f, 1.0f, 0.0f));
-
-		vertexData.buffer.Push(Vector3(0.5f, 0.5f, 0.5f));
-		vertexData.buffer.Push(Vector3(0.0f, 0.0f, 1.0f));
-
-		vertexData.buffer.Push(Vector3(-0.5f, 0.5f, 0.5f));
-		vertexData.buffer.Push(Vector3(1.0f, 1.0f, 1.0f));
-
-		vertexData.buffer.Push(Vector3(-0.5f, -0.5f, -0.5f));
-		vertexData.buffer.Push(Vector3(0.0f, 1.0f, 1.0f));
-
-		vertexData.buffer.Push(Vector3(0.5f, -0.5f, -0.5f));
-		vertexData.buffer.Push(Vector3(1.0f, 1.0f, 0.0f));
-
-		vertexData.buffer.Push(Vector3(0.5f, 0.5f, -0.5f));
-		vertexData.buffer.Push(Vector3(1.0f, 0.0f, 1.0f));
-
-		vertexData.buffer.Push(Vector3(-0.5f, 0.5f, -0.5f));
-		vertexData.buffer.Push(Vector3(0.0f, 0.0f, 0.0f));
-
-		IndexData indexData;
-		indexData.format = INDEX_FORMAT_INT16;
-
-		indexData.buffer.Push((UInt16)0);
-		indexData.buffer.Push((UInt16)1);
-		indexData.buffer.Push((UInt16)2);
-		indexData.buffer.Push((UInt16)0);
-		indexData.buffer.Push((UInt16)2);
-		indexData.buffer.Push((UInt16)3);
-
-		indexData.buffer.Push((UInt16)1);
-		indexData.buffer.Push((UInt16)5);
-		indexData.buffer.Push((UInt16)6);
-		indexData.buffer.Push((UInt16)1);
-		indexData.buffer.Push((UInt16)6);
-		indexData.buffer.Push((UInt16)2);
-
-		indexData.buffer.Push((UInt16)5);
-		indexData.buffer.Push((UInt16)4);
-		indexData.buffer.Push((UInt16)7);
-		indexData.buffer.Push((UInt16)5);
-		indexData.buffer.Push((UInt16)7);
-		indexData.buffer.Push((UInt16)6);
-
-		indexData.buffer.Push((UInt16)4);
-		indexData.buffer.Push((UInt16)0);
-		indexData.buffer.Push((UInt16)3);
-		indexData.buffer.Push((UInt16)4);
-		indexData.buffer.Push((UInt16)3);
-		indexData.buffer.Push((UInt16)7);
-
-		indexData.buffer.Push((UInt16)3);
-		indexData.buffer.Push((UInt16)2);
-		indexData.buffer.Push((UInt16)6);
-		indexData.buffer.Push((UInt16)3);
-		indexData.buffer.Push((UInt16)6);
-		indexData.buffer.Push((UInt16)7);
-
-		indexData.buffer.Push((UInt16)0);
-		indexData.buffer.Push((UInt16)1);
-		indexData.buffer.Push((UInt16)5);
-		indexData.buffer.Push((UInt16)0);
-		indexData.buffer.Push((UInt16)5);
-		indexData.buffer.Push((UInt16)4);
+		Model model = LoadOBJ(modelDataString);
 
 		mModel.SetTranslation({ 0.0f, 0.0f, 0.0f });
 		mView.SetTranslation({ 0.0f, 0.0f, 2.0f });
 		mProjection.SetIdentity();
-		mProjection.SetPerspective(ToRadians(90.0f) , 640.0f / 480.0f, 0.001f, 1000.0f);
-		//mProjection.Transpose();
+		mProjection.SetPerspective(ToRadians(90.0f), 640.0f / 480.0f, 0.001f, 1000.0f);
 
 		mModelUniform.AddMatrix4("model", mModel);
 		mModelUniform.AddMatrix4("view", mView);
 		mModelUniform.AddMatrix4("projection", mProjection);
-
 
 		Array<Byte> vertexCode = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
 		GFXVertexShader* pVertexShader = gfx.CreateVertexShader(vertexCode);
@@ -149,16 +72,16 @@ namespace Quartz
 		shaderState.pVertexShader = pVertexShader;
 		shaderState.pPixelShader = pPixelShader;
 
-		mpGraphicsPipeline = gfx.CreateGraphicsPipeline(shaderState, vertexFormat, *pRenderPass, *mpSurface);
+		mpGraphicsPipeline = gfx.CreateGraphicsPipeline(shaderState, model.vertexData.format, *pRenderPass, *mpSurface);
 
-		mpVertexBuffer = gfx.CreateVertexBuffer(vertexData.buffer.Size(), true);
+		mpVertexBuffer = gfx.CreateVertexBuffer(model.vertexData.buffer.Size(), true);
 		void* pVertexData = gfx.MapVertexBuffer(mpVertexBuffer);
-		memcpy(pVertexData, vertexData.buffer.Data(), mpVertexBuffer->GetSizeBytes());
+		memcpy(pVertexData, model.vertexData.buffer.Data(), mpVertexBuffer->GetSizeBytes());
 		gfx.UnmapVertexBuffer(mpVertexBuffer);
 
-		mpIndexBuffer = gfx.CreateIndexBuffer(sizeof(UInt16), indexData.buffer.Size() / sizeof(UInt16), true);
+		mpIndexBuffer = gfx.CreateIndexBuffer(sizeof(UInt32), model.indexData.buffer.Size() / sizeof(UInt32), true);
 		void* pIndexData = gfx.MapIndexBuffer(mpIndexBuffer);
-		memcpy(pIndexData, indexData.buffer.Data(), mpIndexBuffer->GetSizeBytes());
+		memcpy(pIndexData, model.indexData.buffer.Data(), mpIndexBuffer->GetSizeBytes());
 		gfx.UnmapIndexBuffer(mpIndexBuffer);
 
 		for (UInt32 i = 0; i < mpSurface->GetBackBufferCount(); i++)
@@ -203,17 +126,17 @@ namespace Quartz
 	{
 		GFXContext& gfx = Engine::GetInstanceHandle().GetGFXContext();
 
+		mFrameIndex = mpSurface->AcquireNextImageIndex();
+
 		mModel *= Matrix4().SetRotation(Quaternion().SetAxisAngle({0.0f, 1.0f, 0.0f}, 1.0f * Engine::GetInstanceHandle().GetDeltaTime()));
 		mModelUniform.SetMatrix4("model", mModel);
 
 		void* pUniformData = gfx.MapUniformBuffer(mUniformBuffers[mFrameIndex]);
 		memcpy(pUniformData, mModelUniform.GetBuffer().Data(), mUniformBuffers[mFrameIndex]->GetSizeBytes());
 		gfx.MapUniformBuffer(mUniformBuffers[mFrameIndex]);
-
-		mFrameIndex = mpSurface->AcquireNextImageIndex();
+		
 		gfx.Submit(*mGraphicsCommandBuffers[mFrameIndex], *mpSurface);
 		gfx.Present(mpSurface);
-
 	}
 
 	void RenderSystem::Tick()

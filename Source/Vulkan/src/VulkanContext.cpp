@@ -736,7 +736,7 @@ namespace Quartz
 		VkCommandBuffer commandBuffers[] = { vulkanCommandBuffer.GetCommandBufferHandle() };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		VkSemaphore waitSemaphores[] = { vulkanSurface.GetImageAqcuiredSemaphore(vulkanSurface.GetImageIndex()) };
-		VkSemaphore signalSemaphores[] = { vulkanSurface.GetImageCompleteSemaphore(vulkanSurface.GetImageIndex()) };
+		VkSemaphore completedSemaphores[] = { vulkanSurface.GetImageCompleteSemaphore(vulkanSurface.GetImageIndex()) };
 		VkFence fence = vulkanSurface.GetImageFence(vulkanSurface.GetImageIndex());
 
 		VkSubmitInfo submitInfo{};
@@ -744,7 +744,7 @@ namespace Quartz
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
+		submitInfo.pSignalSemaphores = completedSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = commandBuffers;
@@ -765,14 +765,14 @@ namespace Quartz
 		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
 		VulkanSurface& vulkanSurface = pSurface->CastAs<VulkanSurface&>();
 
-		VkSemaphore signalSemaphores[] = { vulkanSurface.GetImageCompleteSemaphore(vulkanSurface.GetImageIndex()) };
+		VkSemaphore completedSemaphores[] = { vulkanSurface.GetImageCompleteSemaphore(vulkanSurface.GetImageIndex()) };
 		VkSwapchainKHR swapChains[] = { vulkanSurface.GetSwapChainHandle() };
 		UInt32 imageIndices[] = { vulkanSurface.GetImageIndex() };
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
+		presentInfo.pWaitSemaphores = completedSemaphores;
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = imageIndices;
@@ -898,7 +898,7 @@ namespace Quartz
 		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
 		VulkanIndexBuffer& vulkanIndexBuffer = pIndexBuffer->CastAs<VulkanIndexBuffer&>();
 
-		vkCmdBindIndexBuffer(vulkanCommandBuffer.GetCommandBufferHandle(), vulkanIndexBuffer.GetBufferHandle(), 0, VK_INDEX_TYPE_UINT16);
+		vkCmdBindIndexBuffer(vulkanCommandBuffer.GetCommandBufferHandle(), vulkanIndexBuffer.GetBufferHandle(), 0, VK_INDEX_TYPE_UINT32);
 	}
 
 	void VulkanContext::BindUniformBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer)

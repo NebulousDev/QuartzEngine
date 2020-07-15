@@ -247,6 +247,7 @@
     <ClInclude Include="src\util\Singleton.h" />
     <ClInclude Include="src\util\Stack.h" />
     <ClInclude Include="src\util\String.h" />
+    <ClInclude Include="src\util\StringParser.h" />
     <ClInclude Include="src\util\Table.h" />
     <ClInclude Include="src\util\TypeId.h" />
     <ClInclude Include="src\util\TypePack.h" />

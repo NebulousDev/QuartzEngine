@@ -21,6 +21,8 @@
 #include <string>
 #include <fstream>
 
+#include "object\OBJLoader.h"
+
 using namespace Quartz;
 
 static Array<Byte> ReadFile(const String& filename)
@@ -67,9 +69,7 @@ int main()
 	extensions.PushBack("VK_KHR_win32_surface");
 
 	Array<String> validationLayers;
-	//VK_LAYER_LUNARG_parameter_validation; VK_LAYER_LUNARG_object_tracker; VK_LAYER_LUNARG_core_validation; VK_LAYER_KHRONOS_validation
 	validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
-	//validationLayers.PushBack("VK_LAYER_RENDERDOC_Capture");
 
 	VulkanContext* pContext = new VulkanContext("Sandbox", "Quartz Engine", extensions, validationLayers);
 	engine.SetGraphicsContext(pContext);
