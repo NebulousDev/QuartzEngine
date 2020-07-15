@@ -178,7 +178,7 @@ namespace Quartz
 			free(mpData);
 		}
 
-		ValueType* PushBack(const ValueType& value)
+		ValueType* PushBack(ValueType value)
 		{
 			if (mSize + 1 > mCapacity)
 			{
@@ -186,10 +186,10 @@ namespace Quartz
 			}
 
 			// Construct at the end of the array
-			return new (&mpData[mSize++]) ValueType(value);
+			return new (&mpData[mSize++]) ValueType(Move(value));
 		}
 
-		ValueType* PushFront(const ValueType& value)
+		ValueType* PushFront(ValueType value)
 		{
 			if (mSize + 1 > mCapacity)
 			{
@@ -207,7 +207,7 @@ namespace Quartz
 			++mSize;
 
 			// Construct at the beginning of the array
-			return new (&mpData[0]) ValueType(value);
+			return new (&mpData[0]) ValueType(Move(value));
 
 		}
 
