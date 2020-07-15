@@ -19,6 +19,22 @@
     </Expand>
   </Type>
 
+  <Type Name = "Quartz::SubStringBase&lt;char&gt;">
+    <DisplayString Condition="mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData,[mSubLength]na}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">mSubLength</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::SubStringBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>{mpData,[mSubLength]su}</DisplayString>
+    <Expand>
+      <Item Name="[Length]">mSubLength</Item>
+    </Expand>
+  </Type>
+
   <Type Name = "Quartz::Array&lt;*&gt;">
     <DisplayString>Size = {mSize}</DisplayString>
     <Expand>

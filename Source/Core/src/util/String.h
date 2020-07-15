@@ -4,17 +4,24 @@
 #include "Hash.h"
 
 #include <cstring>
+#include <cassert>
 
 namespace Quartz
 {
 	template<typename CharType>
-	UInt32 StringLength(const CharType* pString)
+	USize StringLength(const CharType* pString)
 	{ 
 		return 0;
 	}
 
 	template<typename CharType>
-	Int32 StringCompare(const CharType* pString1, const CharType* pString2)
+	USize StringCompare(const CharType* pString1, const CharType* pString2)
+	{
+		return false;
+	}
+
+	template<typename CharType>
+	USize StringCompareCount(const CharType* pString1, const CharType* pString2, USize count)
 	{
 		return false;
 	}
@@ -26,27 +33,33 @@ namespace Quartz
 	}
 
 	template<typename _CharType>
+	class SubStringBase;
+
+	template<typename _CharType>
 	class StringBase
 	{
 	public:
 		using StringType	= StringBase<_CharType>;
+		using SubStringType = SubStringBase<_CharType>;
 		using CharType		= typename _CharType;
 		
+		friend SubStringType;
+
 	protected:
 		struct StringMeta
 		{
-			UInt32 count;
-			UInt32 length;
+			USize count;
+			USize length;
 
 			StringMeta() :
 				count(1), length(0) { }
 
-			StringMeta(UInt32 count, UInt32 length) :
+			StringMeta(USize count, USize length) :
 				count(count), length(length) { }
 		};
 
-		static constexpr UInt32 charSize = sizeof(CharType);
-		static constexpr UInt32 metaSize = sizeof(StringMeta);
+		static constexpr USize charSize = sizeof(CharType);
+		static constexpr USize metaSize = sizeof(StringMeta);
 
 		union
 		{
@@ -57,7 +70,7 @@ namespace Quartz
 		static StringType Append(const StringType& string1, const CharType* pString2)
 		{
 			StringType result;
-			UInt32 length = StringLength(pString2);
+			USize length = StringLength(pString2);
 			result.Resize(string1.Length() + length);
 			memcpy(result.Data(), string1.Str(), string1.Length() * sizeof(CharType));
 			memcpy(result.Data() + string1.Length(), pString2, length * sizeof(CharType));
@@ -67,7 +80,7 @@ namespace Quartz
 		static StringType Append(const CharType* pString1, const StringType& string2)
 		{
 			StringType result;
-			UInt32 length = StringLength(pString1);
+			USize length = StringLength(pString1);
 			result.Resize(length + string2.Length());
 			memcpy(result.Data(), pString1, length * sizeof(CharType));
 			memcpy(result.Data() + length, string2.Str(), string2.Length() * sizeof(CharType));
@@ -87,13 +100,25 @@ namespace Quartz
 		StringBase() :
 			mpMeta(new StringMeta()) { }
 
+		StringBase(const StringType& string)
+			: mpData(string.mpData)
+		{
+			++mpMeta->count;
+		}
+
+		StringBase(StringType&& rString) noexcept
+			: StringType()
+		{
+			Swap(*this, rString);
+		}
+
 		StringBase(const CharType* pString)
 			: StringBase(pString, StringLength(pString)) { }
 
-		StringBase(const CharType* pString, UInt32 length)
+		StringBase(const CharType* pString, USize length)
 		{
-			const UInt32 stringBufferSize = (length + 1) * charSize;
-			const UInt32 fullBufferSize = metaSize + stringBufferSize;
+			const USize stringBufferSize = (length + 1) * charSize;
+			const USize fullBufferSize = metaSize + stringBufferSize;
 
 			mpData = new Byte[fullBufferSize];
 
@@ -102,18 +127,6 @@ namespace Quartz
 
 			// Set last value to zero (null-termination)
 			reinterpret_cast<CharType*>(mpData + metaSize)[length] = 0;
-		}
-
-		StringBase(const StringType& string) :
-			mpData(string.mpData)
-		{
-			++mpMeta->count;
-		}
-
-		StringBase(StringType&& rString) noexcept :
-			StringType()
-		{
-			Swap(*this, rString);
 		}
 
 		~StringBase()
@@ -136,6 +149,12 @@ namespace Quartz
 				(StringCompare(Str(), string.Str()) == 0);
 		}
 
+		Bool8 operator==(const SubStringType& substring) const
+		{
+			return (Length() == substring.Length()) &&
+				(StringCompare(Str(), substring.Str()) == 0);
+		}
+
 		Bool8 operator==(const CharType* pString) const
 		{
 			return StringCompare(Str(), pString) == 0;
@@ -144,6 +163,11 @@ namespace Quartz
 		Bool8 operator!=(const StringType& string) const
 		{
 			return !operator==(string);
+		}
+
+		Bool8 operator!=(const SubStringType& substring) const
+		{
+			return !operator==(substring);
 		}
 
 		Bool8 operator!=(const CharType* pString) const
@@ -184,10 +208,10 @@ namespace Quartz
 			return *this;
 		}
 
-		StringType& Resize(UInt32 length)
+		StringType& Resize(USize length)
 		{
-			const UInt32 stringBufferSize = (length + 1) * charSize;
-			const UInt32 fullBufferSize = metaSize + stringBufferSize;
+			const USize stringBufferSize = (length + 1) * charSize;
+			const USize fullBufferSize = metaSize + stringBufferSize;
 
 			const Byte* mpPrev = mpData;
 
@@ -202,7 +226,7 @@ namespace Quartz
 			return *this;
 		}
 
-		const UInt32 Hash() const
+		USize Hash() const
 		{
 			return StringHash(Str());
 		}
@@ -217,12 +241,12 @@ namespace Quartz
 			return reinterpret_cast<CharType*>(mpData + metaSize);
 		}
 
-		UInt32 Length() const
+		USize Length() const
 		{
 			return mpMeta->length;
 		}
 
-		UInt32 RefCount() const
+		USize RefCount() const
 		{
 			return mpMeta->count;
 		}
@@ -238,28 +262,162 @@ namespace Quartz
 		}
 	};
 
-	template<>
-	FORCE_INLINE UInt32 StringLength<char>(const char* pString)
+	template<typename _CharType>
+	class SubStringBase
 	{
-		return static_cast<UInt32>(strlen(pString));
+	public:
+		using StringType = StringBase<_CharType>;
+		using SubStringType = SubStringBase<_CharType>;
+		using CharType = typename _CharType;
+
+	protected:
+		USize	mSubLength;
+		Byte*	mpData;
+		
+		// By keeping a copy of the original,
+		// we guarantee the data is not deleted until
+		// all substrings are destroyed
+		StringType	mSrcString;
+
+	public:
+		SubStringBase()
+			: mSubLength(0), mpData(nullptr), mSrcString() {}
+
+		SubStringBase(const SubStringType& substring)
+			: mSubLength(substring.mSubLength), mpData(substring.mpData), mSrcString(substring.mSrcString) {}
+
+		SubStringBase(SubStringType&& rSubstring) noexcept :
+			SubStringType()
+		{
+			Swap(*this, rSubstring);
+		}
+
+		SubStringBase(StringType& string, USize start, USize end)
+			: mSrcString(string)
+		{
+			assert(end >= start && "Substring end index is greater than start index!");
+			assert(start <= string.Length() && end <= string.Length() && "Substring is out of bounds!");
+
+			mSubLength = end - start;
+			mpData = reinterpret_cast<Byte*>(string.Data() + start);
+		}
+
+		SubStringBase(SubStringType& substring, USize start, USize end)
+			: mSrcString(substring.mSrcString)
+		{
+			assert(end >= start && "Substring end index is greater than start index!");
+			assert(start <= substring.Length() && end <= substring.Length() && "Substring is out of bounds!");
+
+			mSubLength = end - start;
+			mpData = reinterpret_cast<Byte*>(substring.Data() + start);
+		}
+
+		friend void Swap(SubStringType& substring1, SubStringType& substring2)
+		{
+			using Quartz::Swap;
+			Swap(substring1.mSubLength, substring2.mSubLength);
+			Swap(substring1.mpData, substring2.mpData);
+			Swap(substring1.mSrcString, substring2.mSrcString);
+		}
+
+		Bool8 operator==(const StringType& string) const
+		{
+			return (mSubLength == string.Length()) &&
+				(StringCompareCount(Str(), string.Str(), mSubLength) == 0);
+		}
+
+		Bool8 operator==(const SubStringType& substring) const
+		{
+			return (mSubLength == substring.mSubLength) &&
+				(StringCompareCount(Str(), substring.Str(), mSubLength) == 0);
+		}
+
+		Bool8 operator==(const CharType* pString) const
+		{
+			return StringCompareCount(Str(), pString, mSubLength) == 0;
+		}
+
+		Bool8 operator!=(const StringType& string) const
+		{
+			return !operator==(string);
+		}
+
+		Bool8 operator!=(const SubStringType& substring) const
+		{
+			return !operator==(substring);
+		}
+
+		Bool8 operator!=(const CharType* pString) const
+		{
+			return !operator==(pString);
+		}
+
+		SubStringType& operator=(SubStringType substring)
+		{
+			Swap(*this, substring);
+			return *this;
+		}
+
+		operator StringType()
+		{
+			return String(Str(), mSubLength);
+		}
+
+		USize Hash() const
+		{
+			return StringHash(Str());
+		}
+
+		const CharType* Str() const
+		{
+			return reinterpret_cast<const CharType*>(mpData);
+		}
+
+		CharType* Data()
+		{
+			return reinterpret_cast<CharType*>(mpData);
+		}
+
+		USize Length() const
+		{
+			return mSubLength;
+		}
+	};
+
+	template<>
+	FORCE_INLINE USize StringLength<char>(const char* pString)
+	{
+		return static_cast<USize>(strlen(pString));
 	}
 
 	template<>
-	FORCE_INLINE UInt32 StringLength<wchar_t>(const wchar_t* pString)
+	FORCE_INLINE USize StringLength<wchar_t>(const wchar_t* pString)
 	{
-		return static_cast<UInt32>(wcslen(pString));
+		return static_cast<USize>(wcslen(pString));
 	}
 
 	template<>
-	FORCE_INLINE Int32 StringCompare<char>(const char* pString1, const char* pString2)
+	FORCE_INLINE USize StringCompare<char>(const char* pString1, const char* pString2)
 	{
-		return static_cast<UInt32>(strcmp(pString1, pString2));
+		return static_cast<USize>(strcmp(pString1, pString2));
 	}
 
 	template<>
-	FORCE_INLINE Int32 StringCompare<wchar_t>(const wchar_t* pString1, const wchar_t* pString2)
+	FORCE_INLINE USize StringCompare<wchar_t>(const wchar_t* pString1, const wchar_t* pString2)
 	{
-		return static_cast<UInt32>(wcscmp(pString1, pString2));
+		return static_cast<USize>(wcscmp(pString1, pString2));
+	}
+
+	template<>
+	FORCE_INLINE USize StringCompareCount<char>(const char* pString1, const char* pString2, USize count)
+	{
+		return static_cast<USize>(strncmp(pString1, pString2, count));
+	}
+
+	template<>
+	FORCE_INLINE USize StringCompareCount<wchar_t>(const wchar_t* pString1, const wchar_t* pString2, USize count)
+	{
+		return static_cast<USize>(wcsncmp(pString1, pString2, count));
 	}
 
 	template<>
@@ -298,8 +456,11 @@ namespace Quartz
 
 	using StringA = StringBase<char>;
 	using StringW = StringBase<wchar_t>;
+	using SubStringA = SubStringBase<char>;
+	using SubStringW = SubStringBase<wchar_t>;
 
 	using String = StringA;
+	using SubString = SubStringA;
 
 	template<>
 	FORCE_INLINE UInt32 Hash<String>(const String& value)
@@ -333,12 +494,12 @@ namespace Quartz
 
 	FORCE_INLINE String operator"" _STRING(const char* str, USize size)
 	{
-		return String(str, static_cast<UInt32>(size));
+		return String(str, static_cast<USize>(size));
 	}
 
 	FORCE_INLINE StringW operator"" _STRINGW(const wchar_t* str, USize size)
 	{
-		return StringW(str, static_cast<UInt32>(size));
+		return StringW(str, static_cast<USize>(size));
 	}
 
 #define STRING(charstr) charstr##_STRING
