@@ -6,6 +6,8 @@
 # Quartz
 !Source/Core/src/debug/
 !Source/Engine/src/log/
+!Source/Sandbox/src/models/
+!Source/Sandbox/src/shaders/
 
 # User-specific files
 *.suo
