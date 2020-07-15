@@ -3,12 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# Quartz
-!Source/Core/src/debug/
-!Source/Engine/src/log/
-!Source/Sandbox/src/models/*.obj
-!Source/Sandbox/src/shaders/*
-
 # User-specific files
 *.suo
 *.user
@@ -334,3 +328,8 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Quartz
+!Source/Core/src/**
+!Source/Engine/src/**
+!Source/Sandbox/src/**
