@@ -308,8 +308,8 @@ namespace Quartz
 		GFXRenderPass& renderPass,
 		GFXSurface& surface)
 	{
-		const Int32 tempWidth = 640;
-		const Int32 tempHeight = 480;
+		const Int32 tempWidth = 1280;
+		const Int32 tempHeight = 720;
 
 		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
 

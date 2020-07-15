@@ -41,7 +41,7 @@ namespace Quartz
 
 		mpSurface = gfx.CreateSurface(window, window.GetWidth(), window.GetHeight(), true, false);
 
-		Array<Byte> modelFileData = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\models\\bunny.obj");
+		Array<Byte> modelFileData = ReadFile("models/bunny.obj");
 		String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
 
 		Model model = LoadOBJ(modelDataString);
@@ -49,16 +49,16 @@ namespace Quartz
 		mModel.SetTranslation({ 0.0f, 0.0f, 0.0f });
 		mView.SetTranslation({ 0.0f, 0.0f, 2.0f });
 		mProjection.SetIdentity();
-		mProjection.SetPerspective(ToRadians(90.0f), 640.0f / 480.0f, 0.001f, 1000.0f);
+		mProjection.SetPerspective(ToRadians(90.0f), (Float32)window.GetWidth() / (Float32)window.GetHeight(), 0.001f, 1000.0f);
 
 		mModelUniform.AddMatrix4("model", mModel);
 		mModelUniform.AddMatrix4("view", mView);
 		mModelUniform.AddMatrix4("projection", mProjection);
 
-		Array<Byte> vertexCode = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\vert.spv");
+		Array<Byte> vertexCode = ReadFile("shaders/vert.spv");
 		GFXVertexShader* pVertexShader = gfx.CreateVertexShader(vertexCode);
 
-		Array<Byte> pixelCode = ReadFile("C:\\Development\\Quartz\\Quartz-Engine\\Source\\Sandbox\\src\\frag.spv");
+		Array<Byte> pixelCode = ReadFile("shaders/frag.spv");
 		GFXPixelShader* pPixelShader = gfx.CreatePixelShader(pixelCode);
 
 		Array<GFXImage*> depthImages;

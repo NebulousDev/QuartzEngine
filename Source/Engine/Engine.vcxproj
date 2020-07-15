@@ -239,6 +239,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\entity\Entity.h" />
+    <ClInclude Include="src\entity\EntitySystem.h" />
     <ClInclude Include="src\event\Event.h" />
     <ClInclude Include="src\event\EventBuffer.h" />
     <ClInclude Include="src\event\EventDispatcher.h" />

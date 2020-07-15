@@ -57,7 +57,7 @@ int main()
 
 	/* Create Window */
 
-	Window* pWindow = engine.GetPlatform().CreateWindow(640, 480, "Quartz", 0);
+	Window* pWindow = engine.GetPlatform().CreateWindow(1280, 720, "Quartz", 0);
 	pWindow->Show();
 	engine.SetWindow(pWindow);
 

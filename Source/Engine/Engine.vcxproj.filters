@@ -108,6 +108,12 @@
     <ClInclude Include="src\object\OBJLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\entity\EntitySystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entity\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp">
