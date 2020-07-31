@@ -13,8 +13,9 @@ namespace Quartz
 	class Array
 	{
 	public:
-		using ArrayType = Array<_ValueType>;
 		using ValueType = _ValueType;
+		using SizeType	= USize;
+		using ArrayType = Array<_ValueType>;
 
 		class Iterator
 		{
@@ -85,15 +86,15 @@ namespace Quartz
 			}
 		};
 
-	private:
+	protected:
 		ValueType*	mpData;
-		UInt32		mSize;
-		UInt32		mCapacity;
+		SizeType	mSize;
+		SizeType	mCapacity;
 
-	private:
-		UInt32 NextSize(UInt32 size)
+	protected:
+		SizeType NextSize(SizeType size)
 		{
-			return size == 0 ? 16 : (((Float32)size * 1.5f) + 0.5f);
+			return size == 0 ? 16 : static_cast<SizeType>(((Float32)size * 1.5f) + 0.5f);
 		}
 
 		friend void Swap(ArrayType& array1, ArrayType& array2)
@@ -104,12 +105,12 @@ namespace Quartz
 			Swap(array1.mCapacity, array2.mCapacity);
 		}
 
-		void ReserveImpl(UInt32 capacity, UInt32 offset = 0)
+		void ReserveImpl(SizeType capacity, SizeType offset = 0)
 		{
 			ValueType* mpPrev = mpData;
 			mpData = static_cast<ValueType*>(malloc(capacity * sizeof(ValueType)));
 
-			for (UInt32 i = 0; i < mSize; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
 				Swap(mpData[i + offset], mpPrev[i]);
 			}
@@ -125,24 +126,24 @@ namespace Quartz
 		Array()
 			: mpData(nullptr), mSize(0), mCapacity(0) {}
 
-		Array(UInt32 size)
+		Array(SizeType size)
 			: mSize(size), mCapacity(size)
 		{
 			mpData = static_cast<ValueType*>(malloc(size * sizeof(ValueType)));
 
-			for (UInt32 i = 0; i < mSize; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
 				// Construct new default-constructed value
 				new (&mpData[i]) ValueType();
 			}
 		}
 
-		Array(UInt32 size, const ValueType& value)
+		Array(SizeType size, const ValueType& value)
 			: mSize(size), mCapacity(size)
 		{
 			mpData = static_cast<ValueType*>(malloc(size * sizeof(ValueType)));
 
-			for (UInt32 i = 0; i < mSize; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
 				// Construct new value with given initial value
 				new (&mpData[i]) ValueType(value);
@@ -154,7 +155,7 @@ namespace Quartz
 		{
 			mpData = static_cast<ValueType*>(malloc(array.mCapacity * sizeof(ValueType)));
 
-			for (UInt32 i = 0; i < mSize; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
 				// Construct value from given value from the array
 				new (&mpData[i]) ValueType(array.mpData[i]);
@@ -169,7 +170,7 @@ namespace Quartz
 
 		~Array()
 		{
-			for (UInt32 i = 0; i < mSize; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
 				// Destruct valid entries before freeing
 				mpData[i].~ValueType();
@@ -178,18 +179,7 @@ namespace Quartz
 			free(mpData);
 		}
 
-		ValueType* PushBack(ValueType value)
-		{
-			if (mSize + 1 > mCapacity)
-			{
-				ReserveImpl(NextSize(mCapacity));
-			}
-
-			// Construct at the end of the array
-			return new (&mpData[mSize++]) ValueType(Move(value));
-		}
-
-		ValueType* PushFront(ValueType value)
+		ValueType* PushFront(const ValueType& value)
 		{
 			if (mSize + 1 > mCapacity)
 			{
@@ -207,8 +197,79 @@ namespace Quartz
 			++mSize;
 
 			// Construct at the beginning of the array
-			return new (&mpData[0]) ValueType(Move(value));
+			return new (&mpData[0]) ValueType(value);
 
+		}
+
+		ValueType* PushFront(ValueType&& rValue)
+		{
+			if (mSize + 1 > mCapacity)
+			{
+				// Reserve with offset of 1
+				// so that we dont need to move
+				// data again after resizing
+				ReserveImpl(NextSize(mCapacity), 1);
+			}
+			else
+			{
+				// Move all values right by one
+				memmove(&mpData[1], &mpData[0], mSize * sizeof(ValueType));
+			}
+
+			++mSize;
+
+			// Construct at the beginning of the array
+			return new (&mpData[0]) ValueType(Move(rValue));
+		}
+
+		ValueType* PushBack(const ValueType& value)
+		{
+			if (mSize + 1 > mCapacity)
+			{
+				ReserveImpl(NextSize(mCapacity));
+			}
+
+			// Construct at the end of the array
+			return new (&mpData[mSize++]) ValueType(value);
+		}
+
+		ValueType* PushBack(ValueType&& rValue)
+		{
+			if (mSize + 1 > mCapacity)
+			{
+				ReserveImpl(NextSize(mCapacity));
+			}
+
+			// Construct at the end of the array
+			return new (&mpData[mSize++]) ValueType(Move(rValue));
+		}
+
+		void PopBack()
+		{
+			if (mSize > 0)
+			{
+				Remove(mSize - 1);
+			}
+		}
+
+		void PopFront()
+		{
+			if (mSize > 0)
+			{
+				Remove(0);
+			}
+		}
+
+		void Remove(SizeType index)
+		{
+			mpData[index].~ValueType();
+
+			if (mSize > 0 && index < mSize)
+			{
+				// Move all values left by one
+				memmove(&mpData[index], &mpData[index + 1], (mSize - index) * sizeof(ValueType));
+				--mSize;
+			}
 		}
 
 		Bool8 Contains(const ValueType& value)
@@ -224,7 +285,7 @@ namespace Quartz
 			return false;
 		}
 
-		void Resize(UInt32 size)
+		void Resize(SizeType size)
 		{
 			if (size < mSize)
 			{
@@ -238,7 +299,7 @@ namespace Quartz
 				ReserveImpl(size);
 			}
 
-			for (UInt32 i = mSize; i < size; i++)
+			for (SizeType i = mSize; i < size; i++)
 			{
 				// Construct new default-constructed value
 				new (&mpData[i]) ValueType();
@@ -247,27 +308,40 @@ namespace Quartz
 			mSize = size;
 		}
 
-		void Resize(UInt32 size, const ValueType& value)
+		void Resize(SizeType size, const ValueType& value)
 		{
-			if (size < mSize)
+			if (size > mCapacity)
+			{
+				Reserve(NextSize(size));
+				
+				for (SizeType i = mSize; i < size; i++)
+				{
+					// Construct new value with given initial value
+					new (&mpData[i]) ValueType(value);
+				}
+			}
+
+			else if (size < mSize)
+			{
+				for (SizeType i = mSize; i >= size; --i)
+				{
+					// Destruct valid entries
+					mpData[i].~ValueType();
+				}
+			}
+
+			mSize = size;
+		}
+
+		void Reserve(SizeType capacity)
+		{
+			if (capacity < mSize)
 			{
 				// Cannot resize smaller than mSize
 				return;
 			}
 
-			if (size > mCapacity)
-			{
-				// Size is larger than capacity, reserve more space
-				ReserveImpl(size);
-			}
-
-			for (UInt32 i = mSize; i < size; i++)
-			{
-				// Construct new value with given initial value
-				new (&mpData[i]) ValueType(value);
-			}
-
-			mSize = size;
+			ReserveImpl(capacity);
 		}
 
 		void Shrink()
@@ -277,7 +351,7 @@ namespace Quartz
 
 		void Clear()
 		{
-			for (UInt32 i = 0; i < mSize; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
 				// Destruct valid entries
 				mpData[i].~ValueType();
@@ -292,13 +366,13 @@ namespace Quartz
 			return *this;
 		}
 
-		ValueType& operator[](UInt32 index)
+		ValueType& operator[](SizeType index)
 		{
 			DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
 			return mpData[index];
 		}
 
-		const ValueType& operator[](UInt32 index) const
+		const ValueType& operator[](SizeType index) const
 		{
 			DEBUG_ASSERT(index < mSize && "Array index out of bounds!");
 			return mpData[index];
@@ -358,12 +432,12 @@ namespace Quartz
 			return mpData;
 		}
 
-		UInt32 Size() const
+		SizeType Size() const
 		{
 			return mSize;
 		}
 
-		UInt32 Capacity() const
+		SizeType Capacity() const
 		{
 			return mCapacity;
 		}
