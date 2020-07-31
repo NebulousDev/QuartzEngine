@@ -32,5 +32,8 @@
     <ClInclude Include="src\CopyTester.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\TestSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
