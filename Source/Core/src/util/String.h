@@ -465,13 +465,13 @@ namespace Quartz
 	template<>
 	FORCE_INLINE UInt32 Hash<String>(const String& value)
 	{
-		return value.Hash();
+		return static_cast<UInt32>(value.Hash());
 	}
 
 	template<>
 	FORCE_INLINE UInt32 Hash<StringW>(const StringW& value)
 	{
-		return value.Hash();
+		return static_cast<UInt32>(value.Hash());
 	}
 
 	FORCE_INLINE StringW StringAToStringW(const StringA& stringA)
