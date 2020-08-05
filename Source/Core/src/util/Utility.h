@@ -118,4 +118,22 @@ namespace Quartz
 			return comp(value, recurValue) ? value : recurValue;
 		}
 	}
+
+	//////////////////////////////////////////////////////////////
+
+	template<typename RefType>
+	struct AnyRef
+	{
+		RefType&& ref;
+
+		template <typename Value>
+		constexpr AnyRef(Value&& ref) noexcept
+			: ref(Move(ref)) { }
+
+		constexpr operator RefType& () const& noexcept { return ref; }
+		constexpr operator RefType&& () const&& noexcept { return Move(ref); }
+		constexpr RefType& operator*() const noexcept { return ref; }
+		constexpr RefType* operator->() const noexcept { return &ref; }
+	};
+
 }

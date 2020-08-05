@@ -64,6 +64,9 @@ namespace Quartz
 		using KeyType	= _Key;
 		using ValueType = _Value;
 		using PairType	= MapPair<KeyType, ValueType>;
+		using TableType = Table<PairType>;
+
+		using Iterator = typename TableType::Iterator;
 
 	private:
 		Table<PairType> mTable;
@@ -111,12 +114,12 @@ namespace Quartz
 			return Put(key, ValueType());
 		}
 
-		typename Table<PairType>::Iterator begin() noexcept
+		Iterator begin()
 		{
 			return mTable.begin();
 		}
 
-		typename Table<PairType>::Iterator end() noexcept
+		Iterator end()
 		{
 			return mTable.end();
 		}

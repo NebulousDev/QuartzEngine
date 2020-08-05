@@ -17,6 +17,8 @@ namespace Quartz
 		Type value;
 
 	public:
+		constexpr TupleValue() = default;
+
 		constexpr TupleValue(const Type& value)
 			: value(value) { }
 
@@ -37,6 +39,8 @@ namespace Quartz
 	struct TupleBase<index, Type, Types...>
 		: public TupleValue<index, Type>, public TupleBase<index + 1, Types...>
 	{
+		constexpr TupleBase() = default;
+
 		template<typename ValType, typename... ValTypes>
 		constexpr TupleBase(ValType&& value, ValTypes&&... values)
 			: TupleValue<index, ValType>(std::forward<ValType>(value)),
@@ -92,6 +96,8 @@ namespace Quartz
 	template<typename Type, typename... Types>
 	struct Tuple : public TupleBase<0, Type, Types...>
 	{
+		constexpr Tuple() = default;
+
 		template<typename... ValTypes>
 		constexpr Tuple(ValTypes&&... values)
 			: TupleBase<0, Type, Types...>(std::forward<ValTypes>(values)...) {}

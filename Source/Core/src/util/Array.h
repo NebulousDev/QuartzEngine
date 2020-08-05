@@ -94,7 +94,7 @@ namespace Quartz
 	protected:
 		SizeType NextSize(SizeType size)
 		{
-			return size == 0 ? 16 : static_cast<SizeType>(((Float32)size * 1.5f) + 0.5f);
+			return size == 0 ? 16 : static_cast<SizeType>((static_cast<Float32>(size) * 1.5f) + 0.5f);
 		}
 
 		friend void Swap(ArrayType& array1, ArrayType& array2)
@@ -170,12 +170,7 @@ namespace Quartz
 
 		~Array()
 		{
-			for (SizeType i = 0; i < mSize; i++)
-			{
-				// Destruct valid entries before freeing
-				mpData[i].~ValueType();
-			}
-
+			Clear();
 			free(mpData);
 		}
 
@@ -310,9 +305,12 @@ namespace Quartz
 
 		void Resize(SizeType size, const ValueType& value)
 		{
-			if (size > mCapacity)
+			if (size > mSize)
 			{
-				Reserve(NextSize(size));
+				if (size > mCapacity)
+				{
+					Reserve(NextSize(size));
+				}
 				
 				for (SizeType i = mSize; i < size; i++)
 				{
