@@ -443,6 +443,7 @@ namespace Quartz
 		{
 			mTable.Clear();
 			mTable.Resize(mCapacity, TableEntryType());
+			mTable[mCapacity - 1].isLast = true;
 			mSize = 0;
 		}
 

@@ -98,10 +98,10 @@ namespace Quartz
 			return mTable.Insert(hash, PairType(key, value)).value;
 		}
 
-		/*void Remove(const KeyType& key)
+		void Remove(const KeyType& key)
 		{
 			mTable.Remove(Hash(key), PairType(key));
-		}*/
+		}
 
 		MapType& operator=(MapType map)
 		{
@@ -143,6 +143,11 @@ namespace Quartz
 		void Shrink()
 		{
 			mTable.Shrink();
+		}
+
+		void Clear()
+		{
+			mTable.Clear();
 		}
 
 		Bool8 Contains(const KeyType& key)
