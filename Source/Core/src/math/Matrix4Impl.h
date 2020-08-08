@@ -86,7 +86,7 @@ FORCEINLINE Matrix4& Matrix4::SetRotation(const Quaternion& rotation)
 	m32 = 0.0f;
 	m33 = 1.0f;
 
-	return *this;
+	return this->Transpose();
 }
 
 FORCEINLINE Matrix4& Matrix4::SetScale(const Vector3& scale)
