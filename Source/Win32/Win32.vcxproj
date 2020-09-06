@@ -171,7 +171,7 @@
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_CRT_SECURE_NO_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -213,7 +213,7 @@
       <PreprocessorDefinitions>QUARTZ_64;QUARTZ_API_EXPORT;_CRT_SECURE_NO_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -248,16 +248,18 @@
     <ClInclude Include="src\Win32PlatformInput.h" />
     <ClInclude Include="src\Win32.h" />
     <ClInclude Include="src\Win32PlatformConsole.h" />
-    <ClInclude Include="src\Win32PlatformWindow.h" />
     <ClInclude Include="src\Win32Platform.h" />
     <ClInclude Include="src\Win32PlatformTime.h" />
+    <ClInclude Include="src\Win32Window.h" />
+    <ClInclude Include="src\Win32WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Win32PlatformInput.cpp" />
-    <ClCompile Include="src\Win32PlatformWindow.cpp" />
     <ClCompile Include="src\Win32PlatformConsole.cpp" />
     <ClCompile Include="src\Win32Platform.cpp" />
     <ClCompile Include="src\Win32PlatformTime.cpp" />
+    <ClCompile Include="src\Win32Window.cpp" />
+    <ClCompile Include="src\Win32WindowManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

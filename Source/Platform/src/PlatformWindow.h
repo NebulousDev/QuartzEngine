@@ -11,7 +11,7 @@ namespace Quartz
 {
 	QUARTZ_API typedef void* WindowHandle;
 
-	class QUARTZ_API Window
+	class QUARTZ_API OldWindow
 	{
 	protected:
 		UInt32 mPosX;
@@ -21,7 +21,7 @@ namespace Quartz
 		const char* mTitle;
 		Bool8  mVisible;
 
-		Window() = default;
+		OldWindow() = default;
 
 		virtual Bool8 ShowImpl() = 0;
 		virtual Bool8 HideImpl() = 0;

@@ -2,7 +2,7 @@
 
 namespace Quartz
 {
-	Bool8 Window::Show()
+	Bool8 OldWindow::Show()
 	{
 		if (ShowImpl())
 		{
@@ -13,7 +13,7 @@ namespace Quartz
 		return false;
 	}
 
-	Bool8 Window::Hide()
+	Bool8 OldWindow::Hide()
 	{
 		if (HideImpl())
 		{
@@ -24,7 +24,7 @@ namespace Quartz
 		return false;
 	}
 
-	Bool8 Window::SetPosition(UInt32 xPos, UInt32 yPos)
+	Bool8 OldWindow::SetPosition(UInt32 xPos, UInt32 yPos)
 	{
 		if (SetPositionImpl(xPos, yPos))
 		{
@@ -36,7 +36,7 @@ namespace Quartz
 		return false;
 	}
 
-	Bool8 Window::SetSize(UInt32 width, UInt32 height)
+	Bool8 OldWindow::SetSize(UInt32 width, UInt32 height)
 	{
 		if (SetSizeImpl(width, height))
 		{
@@ -48,7 +48,7 @@ namespace Quartz
 		return false;
 	}
 
-	Bool8 Window::SetTitle(const char* title)
+	Bool8 OldWindow::SetTitle(const char* title)
 	{
 		if (SetTitleImpl(title))
 		{
@@ -59,7 +59,7 @@ namespace Quartz
 		return false;
 	}
 
-	WindowHandle Window::GetNativeHandle()
+	WindowHandle OldWindow::GetNativeHandle()
 	{
 		return GetNativeHandleImpl();
 	}

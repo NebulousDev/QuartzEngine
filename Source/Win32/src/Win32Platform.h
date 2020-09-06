@@ -4,7 +4,7 @@
 #include "Win32PlatformInput.h"
 #include "Win32PlatformTime.h"
 #include "Win32PlatformConsole.h"
-#include "Win32PlatformWindow.h"
+//#include "Win32PlatformWindow.h"
 
 namespace Quartz
 {
@@ -19,8 +19,8 @@ namespace Quartz
 
 		PlatformConsole* CreateConsole() override;
 
-		Window* CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;
-		Window* CreateWindow(UInt32 xPos, UInt32 yPos, UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;
+		//Window* CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;
+		//Window* CreateWindow(UInt32 xPos, UInt32 yPos, UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;
 
 		PlatformInput& GetPlatformInput() override;
 		PlatformTime& GetPlatformTime() override;

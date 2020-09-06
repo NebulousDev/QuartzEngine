@@ -6,8 +6,8 @@
 
 namespace Quartz
 {
-	struct DeviceConnectionEvent : public Event<DeviceConnectionEvent>
+	struct ConnectionEvent : public Event<ConnectionEvent>
 	{
-		InputDeviceDesc desc;
+		InputDeviceInfo desc;
 	};
 }

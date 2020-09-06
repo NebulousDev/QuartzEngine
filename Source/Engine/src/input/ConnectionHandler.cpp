@@ -1,13 +1,13 @@
-#include "DeviceConnectionSystem.h"
+#include "ConnectionHandler.h"
 
 #include "../log/Log.h"
 #include "../Engine.h"
 
-#include "DeviceConnectionEvent.h"
+#include "ConnectionEvent.h"
 
 namespace Quartz
 {
-	void DeviceConnectCallback(InputDeviceId deviceId, InputDeviceDesc desc)
+	void DeviceConnectCallback(InputDeviceId deviceId, InputDeviceInfo desc)
 	{
 #if 0
 		Log.Info(L"Device Connected \n   | TYPE: %s\n   | NAME: %s\n   | ID:   %llu", 
@@ -23,7 +23,7 @@ namespace Quartz
 			deviceId);
 #endif
 
-		DeviceConnectionEvent connectionEvent;
+		ConnectionEvent connectionEvent;
 		connectionEvent.desc = desc;
 
 		Engine& engine = Engine::GetInstanceHandle();
@@ -32,16 +32,16 @@ namespace Quartz
 
 	void DeviceDisconnectCallback(InputDeviceId deviceId)
 	{
-		InputDeviceDesc desc;
+		InputDeviceInfo* pInfo;
 
 		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 
-		if (input.GetDeviceDescription(deviceId, &desc))
+		if ((pInfo = input.GetDeviceInfo(deviceId)) != nullptr)
 		{
 			Log.Info(L"Device Disconnected [TYPE: %s | NAME: %s | ID: %llu]",
-				desc.deviceType == INPUT_DEVICE_TYPE_KEYBOARD ? L"KEYBOARD" : (desc.deviceType == INPUT_DEVICE_TYPE_MOUSE ? L"MOUSE" : L"HID"),
-				desc.deviceName.Str(),
+				pInfo->deviceType == INPUT_DEVICE_TYPE_KEYBOARD ? L"KEYBOARD" : (pInfo->deviceType == INPUT_DEVICE_TYPE_MOUSE ? L"MOUSE" : L"HID"),
+				pInfo->deviceName.Str(),
 				deviceId);
 		}
 		else
@@ -50,33 +50,28 @@ namespace Quartz
 		}
 	}
 
-	void DeviceConnectionSystem::Initialize()
+	void ConnectionHandler::Init()
 	{
 		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
 		input.SetDeviceConnectCallback(DeviceConnectCallback);
 		input.SetDeviceDisconnectCallback(DeviceDisconnectCallback);
-		input.PollDeviceConnections();
+		input.PollConnections();
 	}
 
-	void DeviceConnectionSystem::Update()
-	{
-		
-	}
-
-	void DeviceConnectionSystem::Tick()
+	void ConnectionHandler::Update()
 	{
 		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();
-		input.PollDeviceConnections();
+		input.PollConnections();
 	}
 
-	void DeviceConnectionSystem::Destroy()
+	void ConnectionHandler::Destroy()
 	{
 
 	}
 
-	Bool8 DeviceConnectionSystem::IsDeviceConnected(InputDeviceId deviceId)
+	Bool8 ConnectionHandler::IsDeviceConnected(InputDeviceId deviceId)
 	{
 		Engine& engine = Engine::GetInstanceHandle();
 		PlatformInput& input = engine.GetPlatform().GetPlatformInput();

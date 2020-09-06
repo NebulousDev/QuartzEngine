@@ -5,9 +5,17 @@
 #include "util\Map.h"
 #include "util\Set.h"
 #include "util\String.h"
+#include "application\Window.h"
 
 namespace Quartz
 {
+	/*
+		The type of and input device
+		
+		INPUT_DEVICE_TYPE_KEYBOARD - keyboard input devices
+		INPUT_DEVICE_TYPE_MOUSE - mouse input devices
+		INPUT_DEVICE_TYPE_HID - controllers, special input devices
+	*/
 	enum QUARTZ_API InputDeviceType
 	{
 		INPUT_DEVICE_TYPE_KEYBOARD,
@@ -15,40 +23,18 @@ namespace Quartz
 		INPUT_DEVICE_TYPE_HID
 	};
 
-	enum QUARTZ_API ButtonState : UInt8
+	/* A button/key's state */
+	enum QUARTZ_API InputButtonState : UInt8
 	{
 		BUTTON_STATE_UP,
 		BUTTON_STATE_DOWN,
 	};
 
-	/*
-	struct QUARTZ_API InputButtonState
-	{
-		ButtonState buttonValue;
-		ButtonState lastButtonValue;
-	};
-
-	struct QUARTZ_API InputAnalogState
-	{
-		Float32 value;
-		Float32 lastValue;
-		Float32 minValue;
-		Float32 maxValue;
-	};
-
-	struct QUARTZ_API InputMouseState
-	{
-		Int32	relativeX;
-		Int32	relativeY;
-		Int32	absolueX;
-		Int32	absolueY;
-		Float32	mouseWheel;
-	};
-	*/
-
+	/* Numeric id of a device */
 	typedef UInt64 InputDeviceId;
 
-	struct QUARTZ_API InputDeviceDesc
+	/* The desctiption/info of a device */
+	struct QUARTZ_API InputDeviceInfo
 	{
 		InputDeviceId	deviceId;
 		InputDeviceType deviceType;
@@ -62,38 +48,24 @@ namespace Quartz
 		void*			pHandle;
 	};
 
-	/*
-	struct QUARTZ_API InputDeviceData
-	{
-		InputMouseState			mouseState;
-		Array<InputButtonState> buttonStates;
-		Array<InputAnalogState> analogStates;
-		Bool8					isConnected;
-		Bool8					isDirty;
-	};
-
-	struct QUARTZ_API InputDevice
-	{
-		InputDeviceDescription	desc;
-		InputDeviceData			data;
-	};
-	*/
-
-	typedef void(*InputDeviceConnectCallbackFunc)(InputDeviceId deviceId, InputDeviceDesc deviceDesc);
+	typedef void(*InputDeviceConnectCallbackFunc)(InputDeviceId deviceId, InputDeviceInfo deviceDesc);
 	typedef void(*InputDeviceDisconnectCallbackFunc)(InputDeviceId deviceId);
 
 	typedef void(*MouseMoveInputCallbackFunc)(InputDeviceId deviceId, Int64 relX, Int64 relY);
-	typedef void(*MouseButtonInputCallbackFunc)(InputDeviceId deviceId, UInt32 button, ButtonState state);
+	typedef void(*MouseButtonInputCallbackFunc)(InputDeviceId deviceId, UInt32 button, InputButtonState state);
 	typedef void(*MouseWheelInputCallbackFunc)(InputDeviceId deviceId, Float32 value);
-	typedef void(*KeyboardInputCallbackFunc)(InputDeviceId deviceId, UInt32 scancode, ButtonState state);
-	typedef void(*ButtonInputCallbackFunc)(InputDeviceId deviceId, UInt32 buttonIdx, ButtonState state);
-	typedef void(*AnalogInputCallbackFunc)(InputDeviceId deviceId, UInt32 AnalogIdx, Float32 value);
+	typedef void(*KeyboardInputCallbackFunc)(InputDeviceId deviceId, UInt32 scancode, InputButtonState state);
+	typedef void(*ButtonInputCallbackFunc)(InputDeviceId deviceId, UInt32 button, InputButtonState state);
+	typedef void(*AnalogInputCallbackFunc)(InputDeviceId deviceId, UInt32 analog, Float32 value);
 
+	/* 
+		Handles the connection of input devices and publishes input events
+	*/
 	class QUARTZ_API PlatformInput
 	{
 	protected:
 		Set<InputDeviceId>					mConnectedDevices;
-		Map<InputDeviceId, InputDeviceDesc> mDeviceIdMap;
+		Map<InputDeviceId, InputDeviceInfo> mDeviceInfos;
 
 		InputDeviceConnectCallbackFunc		mDeviceConnectCallbackFunc;
 		InputDeviceDisconnectCallbackFunc	mDeviceDisconnectCallbackFunc;
@@ -115,10 +87,55 @@ namespace Quartz
 		void SetButtonInputCallback(ButtonInputCallbackFunc buttonInputCallback);
 		void SetAnalogInputCallback(AnalogInputCallbackFunc analogInputCallback);
 
-		virtual void PollDeviceConnections() = 0;
-		virtual void PollDeviceInput() = 0;
+		/*
+			Polls all device connections, populates the connected device infos list,
+			and publish connection events accordingly.
+		*/
+		virtual void PollConnections() = 0;
 
+		/*
+			Polls all input from connected devices, and publishes events accordingly.
+		*/
+		virtual void PollInput() = 0;
+
+		/*
+			Restrict mouse cursor movement to bounds
+		*/
+		virtual void SetCursorBounds(Bounds2i bounds) = 0;
+
+		/*
+			Remove cursor movement bounds
+		*/
+		virtual void ReleaseCursorBounds() = 0;
+
+		/*
+			Disables the mouse cursor
+		*/
+		virtual void HideCursor() = 0;
+
+		/*
+			Enables the mouse cursor
+		*/
+		virtual void ShowCursor() = 0;
+
+		/*
+			Get the absolute position of the mouse
+		*/
+		virtual Point2i GetMousePosition() const = 0;
+
+		/*
+			Sets the absolute position of the mouse
+		*/
+		virtual void SetMousePosition(Point2i position) = 0;
+
+		/*
+			Check if device is connected
+		*/
 		Bool8 IsDeviceConnected(InputDeviceId deviceId);
-		Bool8 GetDeviceDescription(InputDeviceId deviceId, InputDeviceDesc* pDeviceDesc);
+
+		/*
+			Get the device info of a device
+		*/
+		InputDeviceInfo* GetDeviceInfo(InputDeviceId deviceId);
 	};
 }

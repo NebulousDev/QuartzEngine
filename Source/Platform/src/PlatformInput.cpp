@@ -47,17 +47,9 @@ namespace Quartz
 		return mConnectedDevices.Contains(deviceId);
 	}
 
-	Bool8 PlatformInput::GetDeviceDescription(InputDeviceId deviceId, InputDeviceDesc* pDeviceDesc)
+	InputDeviceInfo* PlatformInput::GetDeviceInfo(InputDeviceId deviceId)
 	{
-		InputDeviceDesc* pInputDeviceDesc = mDeviceIdMap.Get(deviceId);
-
-		if (pInputDeviceDesc != nullptr)
-		{
-			*pDeviceDesc = *pInputDeviceDesc;
-			return true;
-		}
-
-		return false;
+		return mDeviceInfos.Get(deviceId);
 	}
 }
 
