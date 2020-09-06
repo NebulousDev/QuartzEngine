@@ -272,6 +272,7 @@
     <ClInclude Include="src\graphics\GFXSurface.h" />
     <ClInclude Include="src\graphics\GFXUtil.h" />
     <ClInclude Include="src\graphics\GFXPhysicalDevice.h" />
+    <ClInclude Include="src\graphics\system\CameraSystem.h" />
     <ClInclude Include="src\graphics\system\Transform.h" />
     <ClInclude Include="src\input\ConnectionEvent.h" />
     <ClInclude Include="src\input\ConnectionHandler.h" />
