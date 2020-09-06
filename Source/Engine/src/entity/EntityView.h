@@ -24,7 +24,7 @@ namespace Quartz
 			EntityView<Component...>* pView;
 		public:
 			Iterator()
-				: itr(nullptr) { }
+				: itr(EntitySet::Iterator(nullptr)) { }
 
 			Iterator(EntitySet::Iterator itr, EntityView<Component...>* pView)
 				: itr(itr), pView(pView) { }
@@ -125,18 +125,21 @@ namespace Quartz
 		}
 
 	public:
+		EntityView()
+			: mStorages(), mPrimarySet(nullptr) { }
+
 		EntityView(ComponentStorage<Component>*... sets)
 			: mStorages(static_cast<ComponentStorage<Component>*>(sets)...),
 			mPrimarySet(FindSmallest()) { }
 
 		Iterator begin()
 		{
-			return Iterator(mPrimarySet->begin(), this);
+			return mPrimarySet != nullptr ? Iterator(mPrimarySet->begin(), this) : Iterator();
 		}
 
 		Iterator end()
 		{
-			return Iterator(mPrimarySet->end(), this);
+			return  mPrimarySet != nullptr ? Iterator(mPrimarySet->end(), this) : Iterator();
 		}
 	};
 }

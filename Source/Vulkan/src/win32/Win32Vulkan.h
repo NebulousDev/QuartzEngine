@@ -13,8 +13,9 @@
 
 #include "Common.h"
 #include <vulkan\vulkan.h>
+#include "application/Window.h"
 
 namespace Quartz
 {
-	Bool8 QUARTZ_API CreateWin32VulkanSurface(VkInstance instance, Handle64 window, VkSurfaceKHR* pSurface);
+	Bool8 QUARTZ_API CreateWin32VulkanSurface(VkInstance instance, Window& window, VkSurfaceKHR* pSurface);
 }

@@ -136,8 +136,10 @@ namespace Quartz
 				{
 					if (indexCount > 2)
 					{
-						indices.PushBack(indices[indices.Size() - 3]);
-						indices.PushBack(indices[indices.Size() - 2]);
+						OBJIndex index0 = indices[indices.Size() - 3];
+						OBJIndex index1 = indices[indices.Size() - 1];
+						indices.PushBack(Move(index0));
+						indices.PushBack(Move(index1));
 						indexCount += 2;
 					}
 
@@ -191,8 +193,8 @@ namespace Quartz
 		{
 			{
 				{ 0, VERTEX_ATTRIBUTE_POSITION, VERTEX_TYPE_FLOAT3 },
-		{ 1, VERTEX_ATTRIBUTE_NORMAL, VERTEX_TYPE_FLOAT3 },
-		{ 2, VERTEX_ATTRIBUTE_TEXCOORD, VERTEX_TYPE_FLOAT2 },
+				{ 1, VERTEX_ATTRIBUTE_NORMAL, VERTEX_TYPE_FLOAT3 },
+				{ 2, VERTEX_ATTRIBUTE_TEXCOORD, VERTEX_TYPE_FLOAT2 },
 			},
 			3
 		};

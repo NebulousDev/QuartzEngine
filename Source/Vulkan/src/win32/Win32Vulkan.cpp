@@ -14,12 +14,14 @@
 
 namespace Quartz
 {
-	Bool8 CreateWin32VulkanSurface(VkInstance instance, Handle64 window, VkSurfaceKHR* pSurface)
+	Bool8 CreateWin32VulkanSurface(VkInstance instance, Window& window, VkSurfaceKHR* pSurface)
 	{
+		//TODO: Add check that window is of type Win32Window?
+
 		VkWin32SurfaceCreateInfoKHR win32SurfaceInfo = {};
 		win32SurfaceInfo.sType		= VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		win32SurfaceInfo.hinstance	= GetModuleHandle(nullptr);
-		win32SurfaceInfo.hwnd		= (HWND)window;
+		win32SurfaceInfo.hwnd		= (HWND)window.GetNativeHandle();
 
 		VkResult result = vkCreateWin32SurfaceKHR(instance, &win32SurfaceInfo, nullptr, pSurface);
 

@@ -159,7 +159,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/VulkanWin32/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -201,7 +201,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/VulkanWin32/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_64;_CRT_SECURE_NO_WARNINGS;QUARTZ_64;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>

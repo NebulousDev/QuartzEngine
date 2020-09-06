@@ -13,6 +13,11 @@ namespace Quartz
 		mpGFXContext = pGFXContext;
 	}
 
+	void Engine::SetWindowManager(WindowManager& manager)
+	{
+		mpWindowManager = &manager;
+	}
+
 	void Engine::SetWindow(Window* pWindow)
 	{
 		mpWindow = pWindow;
@@ -31,28 +36,23 @@ namespace Quartz
 
 		while (true)
 		{
-			mpWindow->Update();
-
-			mEventSystem.DispatchEvents();
-
-			mDebugMessageSystem.Update();
-			mDeviceConnectionSystem.Update();
-			mInputSystem.Update();
-			mRenderSystem.Update();
-
 			lastTime = currentTime;
 			currentTime = mpPlatform->GetPlatformTime().GetTimeNanoseconds();
 			deltaTime = currentTime - lastTime;
 			elapsedTime += deltaTime;
-
 			mDeltaTime = deltaTime;
+
+			mpInputHandler->Update();
+			mpWindowManager->Update();
+			//mpWindow->Update();
+			mpEventSystem->DispatchEvents();
+
+			mWorld.Update(deltaTime);
 
 			if (elapsedTime >= 1.0)
 			{
-				mDebugMessageSystem.Tick();
-				mDeviceConnectionSystem.Tick();
-				mInputSystem.Tick();
-				mRenderSystem.Tick();
+				mpConnectionHandler->Update();
+				mWorld.Tick(deltaTime);
 				
 				Log.Debug("MS: %.4llfms, FPS: %d", deltaTime * 1000.0, fps);
 				elapsedTime = 0.0;
@@ -65,8 +65,25 @@ namespace Quartz
 
 	void Engine::Init()
 	{
+		mpEventSystem = new EventSystem();
+		mpEventSystem->InitializeEventSystem();
+
+		mpInputHandler = new InputHandler();
+		mpInputHandler->Init();
+
+		mpConnectionHandler = new ConnectionHandler();
+		mpConnectionHandler->Init();
+
+		mWorld.RegisterSystem<DebugMessageSystem>();
+		mWorld.RegisterSystem<RenderSystem>();
+
+		mpDebugMessageSystem = &mWorld.GetSystem<DebugMessageSystem>();
+		mpRenderSystem = &mWorld.GetSystem<RenderSystem>();
+
+		/*
 		mEventSystem.InitializeEventSystem();
 		mDebugMessageSystem.Initialize();
+		*/
 
 		Log.Print("-------------------------------------------------------\n");
 		Log.Print("|                    Nebulous Games                   |\n");
@@ -75,9 +92,11 @@ namespace Quartz
 
 		Log.Info("Engine is starting...");
 
+		/*
 		mDeviceConnectionSystem.Initialize();
 		mInputSystem.Initialize();
 		mRenderSystem.Initialize();
+		*/
 	}
 
 	void Engine::Start()
@@ -95,10 +114,11 @@ namespace Quartz
 
 	void Engine::Stop()
 	{
-		mInputSystem.Destroy();
-		mDeviceConnectionSystem.Destroy();
-		mRenderSystem.Destroy();
-		mDebugMessageSystem.Destroy();
+		mWorld.DeregisterSystem<DebugMessageSystem>();
+		mWorld.DeregisterSystem<RenderSystem>();
+
+		mpInputHandler->Destroy();
+		mpConnectionHandler->Destroy();
 
 		mRunning = false;
 	}

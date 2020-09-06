@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../system/System.h"
+#include "../entity/System.h"
 #include "PlatformConsole.h"
 
 #include "DebugMessageEvent.h"
 
 namespace Quartz
 {
-	class QUARTZ_API DebugMessageSystem : public System
+	class QUARTZ_API DebugMessageSystem : public SingletonSystem
 	{
 	private:
 		PlatformConsole* mpDebugConsole;
@@ -15,9 +15,9 @@ namespace Quartz
 		Bool8 ParseDebugMessageEvent(const DebugMessageEvent& event);
 
 	public:
-		void Initialize() override;
-		void Update() override;
-		void Tick() override;
-		void Destroy() override;
+		void OnInit(EntityWorld& world) override;
+		void OnUpdate(EntityWorld& world, Float32 deltaTime) override;
+		void OnTick(EntityWorld& world, Float32 deltaTime) override;
+		void OnDestroy(EntityWorld& world) override;
 	};
 }

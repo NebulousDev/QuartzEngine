@@ -6,7 +6,7 @@
 namespace Quartz
 {
 	template<typename... Component>
-	class EntitySystem : public SystemBase
+	class System : public SystemBase
 	{
 	private:
 		void UpdateAll(EntityWorld& world, Float32 deltaTime) override
@@ -29,6 +29,26 @@ namespace Quartz
 		virtual void OnInit(EntityWorld& world) {};
 		virtual void OnUpdate(EntityWorld& world, Entity entity, Float32 deltaTime) {};
 		virtual void OnTick(EntityWorld& world, Entity entity, Float32 deltaTime) {};
+		virtual void OnDestroy(EntityWorld& world) {};
+	};
+
+	class SingletonSystem : public SystemBase
+	{
+	private:
+		FORCE_INLINE void UpdateAll(EntityWorld& world, Float32 deltaTime) override
+		{
+			OnUpdate(world, deltaTime);
+		}
+
+		FORCE_INLINE void TickAll(EntityWorld& world, Float32 deltaTime) override
+		{
+			OnTick(world, deltaTime);
+		}
+
+	public:
+		virtual void OnInit(EntityWorld& world) {};
+		virtual void OnUpdate(EntityWorld& world, Float32 deltaTime) {};
+		virtual void OnTick(EntityWorld& world, Float32 deltaTime) {};
 		virtual void OnDestroy(EntityWorld& world) {};
 	};
 }

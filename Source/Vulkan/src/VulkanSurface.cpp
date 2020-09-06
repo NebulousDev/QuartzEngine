@@ -84,7 +84,7 @@ namespace Quartz
 
 	Bool8 VulkanSurface::CreateSurface(VkInstance instance, Window& window)
 	{
-		if (!CreateWin32VulkanSurface(instance, (Handle64)window.GetNativeHandle(), &mSurface))
+		if (!CreateWin32VulkanSurface(instance, window, &mSurface))
 		{
 			Log.Critical("Failed to create vulkan surface: CreateWin32VulkanSurface failed!");
 			return false;
@@ -265,8 +265,8 @@ namespace Quartz
 
 		if (!fullscreen)
 		{
-			mWidth = window.GetWidth();
-			mHeight = window.GetHeight();
+			mWidth = window.Width();
+			mHeight = window.Height();
 		}
 
 		if (

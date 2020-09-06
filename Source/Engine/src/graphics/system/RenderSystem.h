@@ -1,17 +1,17 @@
 #pragma once
 
-#include "../system/System.h"
+#include "../../entity/System.h"
 
-#include "GFXContext.h"
+#include "../GFXContext.h"
 #include "util\Array.h"
 
-#include "..\object\Model.h"
-#include "..\object\UniformData.h"
+#include "..\..\object\Model.h"
+#include "..\..\object\UniformData.h"
 #include "math\Math.h"
 
 namespace Quartz
 {
-	class QUARTZ_API RenderSystem : public System
+	class QUARTZ_API RenderSystem : public SingletonSystem
 	{
 	private:
 		GFXSurface*				mpSurface;
@@ -30,9 +30,9 @@ namespace Quartz
 		Matrix4 mModel, mView, mProjection;
 
 	public:
-		void Initialize() override;
-		void Update() override;
-		void Tick() override;
-		void Destroy() override;
+		void OnInit(EntityWorld& world) override;
+		void OnUpdate(EntityWorld& world, Float32 deltaTime) override;
+		void OnTick(EntityWorld& world, Float32 deltaTime) override;
+		void OnDestroy(EntityWorld& world) override;
 	};
 }

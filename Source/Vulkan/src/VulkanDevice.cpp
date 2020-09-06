@@ -104,6 +104,8 @@ namespace Quartz
 
 			mEnabledLayerNames.PushBack(layer.layerName);
 
+#if 0 // Append layer extensions
+
 			for (const VkExtensionProperties& extension : availableLayerExtensionProperties)
 			{
 				if (!mEnabledExtensionNames.Contains(extension.extensionName))
@@ -111,6 +113,7 @@ namespace Quartz
 					mEnabledExtensionNames.PushBack(extension.extensionName);
 				}
 			}
+#endif
 
 			++layerPropertiesIndex;
 		}
@@ -207,6 +210,7 @@ namespace Quartz
 		VkPhysicalDeviceFeatures deviceFeatures {};
 
 		VkDeviceCreateInfo deviceInfo		= {};
+		deviceInfo.sType					= VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount		= queueCreateInfos.Size();
 		deviceInfo.pQueueCreateInfos		= queueCreateInfos.Data();
 		deviceInfo.enabledLayerCount		= mEnabledLayerNames.Size();

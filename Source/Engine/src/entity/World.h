@@ -100,19 +100,19 @@ namespace Quartz
 		}
 
 	public:
-		FORCE_INLINE void Update()
+		FORCE_INLINE void Update(Float32 deltaTime)
 		{
 			for (SystemBase* system : mSystems)
 			{
-				system->UpdateAll(*this, 0);
+				system->UpdateAll(*this, deltaTime);
 			}
 		}
 
-		FORCE_INLINE void Tick()
+		FORCE_INLINE void Tick(Float32 deltaTime)
 		{
 			for (SystemBase* system : mSystems)
 			{
-				system->TickAll(*this, 0);
+				system->TickAll(*this, deltaTime);
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace Quartz
 			if (typeIndex >= mSystems.Size() || mSystems[typeIndex] == nullptr)
 			{
 				mSystems.Resize(typeIndex + 1);
-				mSystems[typeIndex] = new SystemType();
+				mSystems[typeIndex] = static_cast<SystemBase*>(new SystemType());
 				mSystems[typeIndex]->OnInit(*this);
 			}
 		}
@@ -147,6 +147,14 @@ namespace Quartz
 		{
 			USize typeIndex = SystemTypeIndex<SystemType>::Value();
 			return typeIndex < mSystems.Size() && mSystems[typeIndex] != nullptr;
+		}
+
+		// Warning! no checks!!
+		template<typename SystemType>
+		SystemType& GetSystem()
+		{
+			USize typeIndex = SystemTypeIndex<SystemType>::Value();
+			return *static_cast<SystemType*>(mSystems[typeIndex]);
 		}
 
 		template<typename... Component>
@@ -184,9 +192,21 @@ namespace Quartz
 			return static_cast<ComponentStorage<ComponentType>*>(mStorageSets[typeIndex])->Get(entity.index);
 		}
 
+		template<typename Component>
+		Bool8 ComponentExists()
+		{
+			return ComponentTypeIndex<Component>::Value() < mStorageSets.Size();
+		}
+
 		template<typename... Component>
 		EntityView<Component...> CreateView()
 		{
+			if ((!ComponentExists<Component>() || ...))
+			{
+				// One or more components does not exist in this world
+				return EntityView<Component...>();
+			}
+
 			return EntityView<Component...>(
 				static_cast<ComponentStorage<Component>*>(mStorageSets[ComponentTypeIndex<Component>::Value()])...);
 		}

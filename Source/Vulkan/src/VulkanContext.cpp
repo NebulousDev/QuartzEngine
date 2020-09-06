@@ -143,7 +143,7 @@ namespace Quartz
 		appInfo.applicationVersion	= VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName			= engineName.Str();
 		appInfo.engineVersion		= VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion			= VK_API_VERSION_1_1; // NOTE: 1_2 is not yet needed
+		appInfo.apiVersion			= VK_API_VERSION_1_2; // NOTE: 1_2 is not yet needed
 
 		VkInstanceCreateInfo createInfo		= {};
 		createInfo.sType					= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -213,7 +213,9 @@ namespace Quartz
 
 		Array<String> deviceExtensions;
 		deviceExtensions.PushBack(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-		deviceExtensions.PushBack("VK_EXT_full_screen_exclusive");
+		//deviceExtensions.PushBack("VK_EXT_debug_report");
+		//deviceExtensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		//deviceExtensions.PushBack("VK_EXT_full_screen_exclusive");
 
 		mpDevice = new VulkanDevice(pPhyiscalDeviceCandidate, deviceExtensions);
 

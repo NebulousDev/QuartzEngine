@@ -4,7 +4,7 @@
 #include "util\Array.h"
 #include "VulkanImage.h"
 #include "VulkanDevice.h"
-#include "PlatformWindow.h"
+#include "application/Window.h"
 
 namespace Quartz
 {

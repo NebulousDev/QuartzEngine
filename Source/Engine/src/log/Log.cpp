@@ -6,7 +6,7 @@
 
 #include "../Engine.h"
 
-#define USE_MESSAGE_LOOP 1
+#define USE_MESSAGE_LOOP 0
 
 namespace Quartz
 {

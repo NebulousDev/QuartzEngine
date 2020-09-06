@@ -62,7 +62,7 @@ namespace Quartz
 		return true;
 	}
 
-	void DebugMessageSystem::Initialize()
+	void DebugMessageSystem::OnInit(EntityWorld& world)
 	{
 		Engine& engine = Engine::GetInstanceHandle();
 
@@ -73,17 +73,17 @@ namespace Quartz
 		engine.GetEventSystem().Subscribe(SUBSCTIPTION_PRIORITY_HIGH, this, &DebugMessageSystem::ParseDebugMessageEvent);
 	}
 
-	void DebugMessageSystem::Update()
+	void DebugMessageSystem::OnUpdate(EntityWorld& world, Float32 deltaTime)
 	{
 		
 	}
 
-	void DebugMessageSystem::Tick()
+	void DebugMessageSystem::OnTick(EntityWorld& world, Float32 deltaTime)
 	{
 
 	}
 
-	void DebugMessageSystem::Destroy()
+	void DebugMessageSystem::OnDestroy(EntityWorld& world)
 	{
 
 	}

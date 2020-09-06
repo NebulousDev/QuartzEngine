@@ -12,7 +12,7 @@ namespace Quartz
 		inline TestComponent(UInt32 value) : value(value) {};
 	};
 
-	class TestSystem : public EntitySystem<TestComponent>
+	class TestSystem : public System<TestComponent>
 	{
 	public:
 		inline void OnInit(EntityWorld& world) override
