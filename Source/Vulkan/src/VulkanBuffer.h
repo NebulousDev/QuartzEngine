@@ -61,4 +61,12 @@ namespace Quartz
 	
 		VkDescriptorSet GetDescriptorSet() { return mDescriptorSet; }
 	};
+
+	class QUARTZ_API VulkanTextureBuffer : public GFXTextureBuffer, public VulkanBuffer
+	{
+	public:
+		VulkanTextureBuffer(VulkanDevice& device, UInt64 sizeBytes, VkMemoryPropertyFlags memoryProperties, Bool8 hostVisible)
+			: GFXTextureBuffer(sizeBytes, hostVisible),
+			VulkanBuffer(device, sizeBytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, memoryProperties) {}
+	};
 }

@@ -27,24 +27,6 @@ namespace Quartz
 		UInt32		offset;
 	};
 
-	struct QUARTZ_API VulkanViewport
-	{
-		Float32 x;
-		Float32 y;
-		Float32 width;
-		Float32 height;
-		Float32 minDepth;
-		Float32 maxDepth;
-	};
-
-	struct QUARTZ_API VulkanScissor
-	{
-		UInt32 x;
-		UInt32 y;
-		UInt32 width;
-		UInt32 height;
-	};
-
 	struct QUARTZ_API VulkanBlendAttachment
 	{
 		Bool8 enableBlend;
@@ -121,8 +103,8 @@ namespace Quartz
 
 		VkPrimitiveTopology topology;
 
-		Array<VulkanViewport> viewports;
-		Array<VulkanScissor> scissors;
+		Array<VkViewport> viewports;
+		Array<VkRect2D> scissors;
 
 		VkPolygonMode polygonMode;
 		VkCullModeFlags cullMode;

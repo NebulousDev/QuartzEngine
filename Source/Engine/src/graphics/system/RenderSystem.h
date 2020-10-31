@@ -27,7 +27,22 @@ namespace Quartz
 
 		UInt32 mFrameIndex;
 
-		Matrix4 mModel, mView, mProjection;
+		GFXContext* mpGfx;
+		Window* mpWindow;
+
+		Model mModel;
+
+		GFXRenderPass* mpRenderPass;
+
+		GFXImageView* mpDiffuse;
+
+		Matrix4 mModelMatrix, mViewMatrix, mProjectionMatrix;
+
+	private:
+		void CreateSurface();
+		void CreateTextures();
+		void CreateGeometry();
+		void CreatePipeline();
 
 	public:
 		void OnInit(EntityWorld& world) override;

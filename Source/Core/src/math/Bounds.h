@@ -27,14 +27,23 @@ namespace Quartz
 		constexpr Bounds2(const Bounds2& bounds2)
 			: start(bounds2.start), end(bounds2.end) { }
 
-		const ValueType& Width() const
+		ValueType Width() const
 		{
 			return end.x - start.x;
 		}
 
-		const ValueType& Height() const
+		ValueType Height() const
 		{
 			return end.y - start.y;
+		}
+
+		template<typename OtherValueType>
+		operator Bounds2<OtherValueType>() const
+		{
+			Bounds2<OtherValueType> result;
+			result.start = (Point2<OtherValueType>)start;
+			result.end = (Point2<OtherValueType>)end;
+			return result;
 		}
 	};
 
@@ -63,19 +72,28 @@ namespace Quartz
 		constexpr Bounds3(const Bounds3& bounds3)
 			: start(bounds3.start), end(bounds3.end) { }
 
-		const ValueType& Width() const
+		ValueType Width() const
 		{
 			return end.x - start.x;
 		}
 
-		const ValueType& Height() const
+		ValueType Height() const
 		{
 			return end.y - start.y;
 		}
 
-		const  ValueType& Depth() const
+		ValueType Depth() const
 		{
 			return end.z - start.z;
+		}
+
+		template<typename OtherValueType>
+		operator Bounds3<OtherValueType>() const
+		{
+			Bounds3<OtherValueType> result;
+			result.start = (Point3<OtherValueType>)start;
+			result.end = (Point3<OtherValueType>)end;
+			return result;
 		}
 	};
 

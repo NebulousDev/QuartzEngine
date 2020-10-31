@@ -51,4 +51,18 @@ namespace Quartz
 		UInt64 GetSizeBytes() const { return mSizeBytes; }
 		Bool8 IsHostVisible() const { return mHostVisible; }
 	};
+
+	class QUARTZ_API GFXTextureBuffer : public GFXResource
+	{
+	private:
+		UInt64 mSizeBytes;
+		Bool8 mHostVisible;
+
+	public:
+		GFXTextureBuffer(UInt64 sizeBytes, Bool8 hostVisible)
+			: mSizeBytes(sizeBytes), mHostVisible(hostVisible) {}
+
+		UInt64 GetSizeBytes() const { return mSizeBytes; }
+		Bool8 IsHostVisible() const { return mHostVisible; }
+	};
 }

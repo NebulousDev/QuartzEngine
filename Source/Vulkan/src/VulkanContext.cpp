@@ -304,11 +304,254 @@ namespace Quartz
 		return formatTable[(UInt32)elementType];
 	}
 
+	VkFormat ConvertAttributeType(AttributeType type)
+	{
+		static VkFormat typeTable[] =
+		{
+			VK_FORMAT_R32_SFLOAT,
+			VK_FORMAT_R32G32_SFLOAT,
+			VK_FORMAT_R32G32B32_SFLOAT,
+			VK_FORMAT_R32G32B32A32_SFLOAT,
+			VK_FORMAT_R32_SINT,
+			VK_FORMAT_R32G32_SINT,
+			VK_FORMAT_R32G32B32_SINT,
+			VK_FORMAT_R32G32B32A32_SINT,
+			VK_FORMAT_R32_UINT,
+			VK_FORMAT_R32G32_UINT,
+			VK_FORMAT_R32G32B32_UINT,
+			VK_FORMAT_R32G32B32A32_UINT,
+			VK_FORMAT_A2B10G10R10_SINT_PACK32,
+			VK_FORMAT_A2B10G10R10_UINT_PACK32
+		};
+
+		return typeTable[(UInt32)type];
+	}
+
+	UInt32 AttributeSize(AttributeType elementType)
+	{
+		switch (elementType)
+		{
+			case Quartz::VERTEX_TYPE_FLOAT:				return 1 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_FLOAT2:			return 2 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_FLOAT3:			return 3 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_FLOAT4:			return 4 * sizeof(Float32);
+			case Quartz::VERTEX_TYPE_INT:				return 1 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_INT2:				return 2 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_INT3:				return 3 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_INT4:				return 4 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_UINT:				return 1 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_UINT2:				return 2 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_UINT3:				return 3 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_UINT4:				return 4 * sizeof(UInt32);
+			case Quartz::VERTEX_TYPE_INT_2_10_10_10:	return 1 * sizeof(Int32);
+			case Quartz::VERTEX_TYPE_UINT_2_10_10_10:	return 1 * sizeof(UInt32);
+			default: return 0;
+		}
+	}
+
+	VkPrimitiveTopology ConvertPrimitiveTopology(PrimitiveTopology topology)
+	{
+		static VkPrimitiveTopology topologyTable[] =
+		{
+			VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+			VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+		};
+
+		return topologyTable[(UInt32)topology];
+	}
+
+	VkPolygonMode ConvertPolygonMode(PolygonMode mode)
+	{
+		static VkPolygonMode modeTable[] =
+		{
+			VK_POLYGON_MODE_FILL,
+			VK_POLYGON_MODE_LINE,
+			VK_POLYGON_MODE_POINT
+		};
+
+		return modeTable[(UInt32)mode];
+	}
+
+	VkCullModeFlags ConvertCullMode(CullMode mode)
+	{
+		static VkCullModeFlags modeTable[] =
+		{
+			VK_CULL_MODE_NONE,
+			VK_CULL_MODE_FRONT_BIT,
+			VK_CULL_MODE_BACK_BIT
+		};
+
+		return modeTable[(UInt32)mode];
+	}
+
+	VkFrontFace ConvertFaceWind(FaceWind wind)
+	{
+		static VkFrontFace windTable[] =
+		{
+			VK_FRONT_FACE_COUNTER_CLOCKWISE,
+			VK_FRONT_FACE_CLOCKWISE
+		};
+
+		return windTable[(UInt32)wind];
+	}
+
+	UInt32 ConvertMultisample(Multisample multisample)
+	{
+		//TODO: Add check for support
+		
+		static UInt32 multisampleTable[] =
+		{
+			1, 2, 4, 8
+		};
+
+		return multisampleTable[(UInt32)multisample];
+	}
+
+	VkDescriptorType ConvertDescriptorType(DescriptorType type)
+	{
+		static VkDescriptorType typeTable[] =
+		{
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+		};
+
+		return typeTable[(UInt32)type];
+	}
+
+	VkPipelineStageFlags ConvertShaderStages(ShaderStages stages)
+	{
+		VkPipelineStageFlags resultStages = 0;
+
+		if ((stages & SHADER_STAGE_VERTEX) == SHADER_STAGE_VERTEX)
+		{
+			resultStages |= VK_SHADER_STAGE_VERTEX_BIT;
+		}
+		if ((stages & SHADER_STAGE_FRAGMENT) == SHADER_STAGE_FRAGMENT)
+		{
+			resultStages |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		}
+		
+		return resultStages;
+	}
+
+	GFXGraphicsPipeline* VulkanContext::CreateGraphicsPipeline2(GraphicsPipelineState& state, GFXRenderPass& renderPass)
+	{
+		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+
+		VulkanGraphicsPipelineState graphicsPipelineState = {};
+
+		graphicsPipelineState.flags = 0;
+
+		graphicsPipelineState.pVertexShader = &state.pVertexShader->CastAs<VulkanVertexShader&>();
+		graphicsPipelineState.pPixelShader = &state.pPixelShader->CastAs<VulkanPixelShader&>();
+
+		graphicsPipelineState.topology = ConvertPrimitiveTopology(state.topology);
+
+		VkViewport viewport;
+		viewport.x = state.viewport.bounds.start.x;
+		viewport.y = state.viewport.bounds.Height() - state.viewport.bounds.start.y;
+		viewport.width = state.viewport.bounds.Width();
+		viewport.height = -state.viewport.bounds.Height();
+		viewport.minDepth = state.viewport.minDepth;
+		viewport.maxDepth = state.viewport.maxDepth;
+
+		VkRect2D scissor;
+		scissor.offset.x = state.scissor.bounds.start.x;
+		scissor.offset.y = state.scissor.bounds.start.y;
+		scissor.extent.width = state.scissor.bounds.Width();
+		scissor.extent.height = state.scissor.bounds.Height();
+
+		graphicsPipelineState.viewports.PushBack(viewport);
+		graphicsPipelineState.scissors.PushBack(scissor);
+
+		graphicsPipelineState.polygonMode = ConvertPolygonMode(state.polygonMode);
+		graphicsPipelineState.cullMode = ConvertCullMode(state.cullMode);
+		graphicsPipelineState.frontFace = ConvertFaceWind(state.faceWind);
+		graphicsPipelineState.lineWidth = state.lineWidth;
+
+		graphicsPipelineState.multisamples = ConvertMultisample(state.multisample);
+
+		graphicsPipelineState.enableDepthTest = state.depthTesting;
+		graphicsPipelineState.enableDepthWrite = true;
+		graphicsPipelineState.enableDepthBoundsTest = false;
+		graphicsPipelineState.enableStencilTest = false;
+		graphicsPipelineState.depthCompareOp = VK_COMPARE_OP_LESS;
+		graphicsPipelineState.minDepth = 0.0f;
+		graphicsPipelineState.maxDepth = 1.0f;
+
+		graphicsPipelineState.enableColorBlendLogicOp = false;
+		graphicsPipelineState.colorBlendLogicOp = VK_LOGIC_OP_COPY;
+
+		for (BufferAttachent bufferAttachment : state.bufferAttachemnts)
+		{
+			VulkanVertexBinding bufferBinding;
+			bufferBinding.binding = bufferAttachment.binding;
+			bufferBinding.stride = bufferAttachment.stride;
+			bufferBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			graphicsPipelineState.vertexBindings.PushBack(bufferBinding);
+		}
+
+		UInt32 elementOffset = 0;
+		for (VertexAttribute vertexAttribute : state.vertexAttributes)
+		{
+			VulkanVertexAttribute vertexAttrib;
+			vertexAttrib.binding = vertexAttribute.binding;
+			vertexAttrib.location = vertexAttribute.location;
+			vertexAttrib.format = ConvertAttributeType(vertexAttribute.type);
+			vertexAttrib.offset = elementOffset;
+
+			elementOffset += AttributeSize(vertexAttribute.type);
+
+			graphicsPipelineState.vertexAttributes.PushBack(vertexAttrib);
+		}
+
+		for (BlendAttachment blendAttachment : state.blendAttachments)
+		{
+			VulkanBlendAttachment blend;
+			blend.enableBlend = VK_TRUE;
+			blend.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			blend.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			blend.colorBlendOp = VK_BLEND_OP_ADD;
+			blend.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			blend.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			blend.alphaBlendOp = VK_BLEND_OP_ADD;
+			blend.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+			graphicsPipelineState.colorBlendAttachments.PushBack(blend);
+		}
+
+		Array<VulkanDescriptorSetLayoutBinding> descriptorBindings;
+		for (DescriptorAttachment descriptorAttachment : state.descriptorAttachents)
+		{
+			VulkanDescriptorSetLayoutBinding binding;
+			binding.binding = descriptorAttachment.binding;
+			binding.descriptorCount = descriptorAttachment.arraySize;
+			binding.descriptorType = ConvertDescriptorType(descriptorAttachment.type);
+			binding.stageFlags = ConvertShaderStages(descriptorAttachment.stages);
+
+			descriptorBindings.PushBack(binding);
+		}
+
+		Array<VulkanDescriptorSetLayout> descriptorSets;
+		VulkanDescriptorSetLayout descriptorLayout(vulkanDevice, descriptorBindings);
+		descriptorSets.PushBack(descriptorLayout);
+
+		VulkanPipelineLayout pipelineLayout(vulkanDevice, descriptorSets);
+		graphicsPipelineState.pipelineLayout = pipelineLayout;
+
+		graphicsPipelineState.renderPass = renderPass.CastAs<VulkanRenderPass&>();
+		graphicsPipelineState.subpassIndex = 0;
+
+		return new VulkanGraphicsPipeline(vulkanDevice, graphicsPipelineState, nullptr);
+	}
+
 	GFXGraphicsPipeline* VulkanContext::CreateGraphicsPipeline(
 		GFXGraphicsPipelineShaderState& shaderState,
 		VertexFormat& vertexFormat,
 		GFXRenderPass& renderPass,
-		GFXSurface& surface)
+		GFXSurface& surface, Array<GFXImageView>& imageViews)
 	{
 		const Int32 tempWidth = 1280;
 		const Int32 tempHeight = 720;
@@ -340,7 +583,7 @@ namespace Quartz
 			graphicsPipelineState.vertexAttributes.PushBack(vertexAttrib);
 		}
 
-		VulkanViewport viewport;
+		VkViewport viewport;
 		viewport.x = 0;
 		viewport.y = tempHeight;
 		viewport.width = tempWidth;
@@ -348,11 +591,11 @@ namespace Quartz
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
-		VulkanScissor scissor;
-		scissor.x = 0;
-		scissor.y = 0;
-		scissor.width = tempWidth;
-		scissor.height = tempHeight;
+		VkRect2D scissor;
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+		scissor.extent.width = tempWidth;
+		scissor.extent.height = tempHeight;
 
 		VulkanBlendAttachment colorBlendAttachment;
 		colorBlendAttachment.enableBlend = true;
@@ -366,14 +609,62 @@ namespace Quartz
 
 		///////////////////////////////////////////////////////////////////////////////////
 
-		VulkanDescriptorSetLayoutBinding binding;
-		binding.binding = 0;
-		binding.descriptorCount = 1;
-		binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		VulkanDescriptorSetLayoutBinding uniformBinding;
+		uniformBinding.binding = 0;
+		uniformBinding.descriptorCount = 1;
+		uniformBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		uniformBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+
+
+
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = 16.0f;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 0.0f;
+
+		VkSampler textureSampler;
+
+		if (vkCreateSampler(vulkanDevice.GetDeviceHandle(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+		{
+			// Failed
+		}
+
+		for (GFXImageView& view : imageViews)
+		{
+			VulkanImageView& vulkanImageView = view.CastAs<VulkanImageView&>();
+
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = vulkanImageView.GetImageViewHandle();
+			imageInfo.sampler = textureSampler;
+		}
+
+
+		VulkanDescriptorSetLayoutBinding diffuseTextureBinding;
+		diffuseTextureBinding.binding = 1;
+		diffuseTextureBinding.descriptorCount = 1;
+		diffuseTextureBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		diffuseTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		diffuseTextureBinding.pImmutableSamplers = nullptr;
 
 		Array<VulkanDescriptorSetLayoutBinding> descriptorBindings;
-		descriptorBindings.PushBack(binding);
+		descriptorBindings.PushBack(uniformBinding);
+		descriptorBindings.PushBack(diffuseTextureBinding);
+
 		VulkanDescriptorSetLayout descriptorLayout(vulkanDevice, descriptorBindings);
 
 		///////////////////////////////////////////////////////////////////////////////////
@@ -512,6 +803,20 @@ namespace Quartz
 		}
 
 		return new VulkanUniformBuffer(vulkanDevice, sizeBytes, memoryProperties, hostVisable);
+	}
+
+	GFXTextureBuffer* VulkanContext::CreateTextureBuffer(UInt32 sizeBytes, Bool8 hostVisable)
+	{
+		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+
+		VkMemoryPropertyFlags memoryProperties = 0;
+		if (hostVisable)
+		{
+			memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+			memoryProperties |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		}
+
+		return new VulkanTextureBuffer(vulkanDevice, sizeBytes, memoryProperties, hostVisable);
 	}
 
 	GFXFramebuffer* VulkanContext::CreateFramebuffer(GFXGraphicsPipeline* pGrapicsPipeline, UInt32 width, UInt32 height, const Array<GFXImageView*>& images)
@@ -751,7 +1056,7 @@ namespace Quartz
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = commandBuffers;
 
-		VulkanQueue& graphicsQueue = vulkanDevice.GetGrahpicsQueue();
+		VulkanQueue& graphicsQueue = vulkanDevice.GetGraphicsQueue();
 
 		//vkWaitForFences(vulkanDevice.GetDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
 		vkResetFences(vulkanDevice.GetDeviceHandle(), 1, &fence);
@@ -789,6 +1094,102 @@ namespace Quartz
 	{
 		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
 		vkCmdDrawIndexed(vulkanCommandBuffer.GetCommandBufferHandle(), indexCount, 1, indexOffset, 0, 0);
+	}
+
+	// This is all sorts of bad
+	void VulkanContext::CopyTextureBufferToImage(GFXTextureBuffer* pTextureBuffer, GFXImage* pImage)
+	{
+		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+		VulkanTextureBuffer& textureBuffer = pTextureBuffer->CastAs<VulkanTextureBuffer&>();
+		VulkanImage& image = pImage->CastAs<VulkanImage&>();
+
+		//TODO: I really shouldn't build all new command buffers for this,
+		// plus I should use a utility here
+
+		VulkanCommandBuffer* pCmdBuffer = &CreateGraphicsCommandBuffer()->CastAs<VulkanCommandBuffer&>();
+
+		pCmdBuffer->Begin();
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image.GetImageHandle();
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		vkCmdPipelineBarrier(
+			pCmdBuffer->GetCommandBufferHandle(),
+			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+
+		VkBufferImageCopy region{};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.mipLevel = 0;
+		region.imageSubresource.baseArrayLayer = 0;
+		region.imageSubresource.layerCount = 1;
+		region.imageOffset = { 0, 0, 0 };
+		region.imageExtent = {
+			image.GetWidth(),
+			image.GetHeight(),
+			1
+		};
+
+		vkCmdCopyBufferToImage(pCmdBuffer->GetCommandBufferHandle(), textureBuffer.GetBufferHandle(), image.GetImageHandle(),
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+		VkImageMemoryBarrier barrier2{};
+		barrier2.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier2.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier2.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier2.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier2.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier2.image = image.GetImageHandle();
+		barrier2.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier2.subresourceRange.baseMipLevel = 0;
+		barrier2.subresourceRange.levelCount = 1;
+		barrier2.subresourceRange.baseArrayLayer = 0;
+		barrier2.subresourceRange.layerCount = 1;
+		barrier2.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier2.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(
+			pCmdBuffer->GetCommandBufferHandle(),
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier2
+		);
+
+		pCmdBuffer->End();
+
+		VkCommandBuffer buffer = pCmdBuffer->GetCommandBufferHandle();
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &buffer;
+
+		vkQueueSubmit(vulkanDevice.GetGraphicsQueue().GetQueueHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(vulkanDevice.GetGraphicsQueue().GetQueueHandle());
+
+		//Destroy command buffer
+		pCmdBuffer->CastAs<VulkanCommandBuffer&>().Destroy();
 	}
 
 	void VulkanContext::WaitSurfaceReady(GFXSurface& surface)
@@ -855,6 +1256,18 @@ namespace Quartz
 		return nullptr;
 	}
 
+	void* VulkanContext::MapTextureBuffer(GFXTextureBuffer* textureBuffer)
+	{
+		if (textureBuffer != nullptr && textureBuffer->IsHostVisible())
+		{
+			VulkanTextureBuffer& buffer = textureBuffer->CastAs<VulkanTextureBuffer&>();
+			void* pMapData = buffer.GetDeviceMemoryAllocation()->MapMemory(0, buffer.GetSizeBytes());
+			return pMapData;
+		}
+
+		return nullptr;
+	}
+
 	void VulkanContext::UnmapVertexBuffer(GFXVertexBuffer* pVertexBuffer)
 	{
 		if (pVertexBuffer != nullptr && pVertexBuffer->IsHostVisible())
@@ -878,6 +1291,15 @@ namespace Quartz
 		if (pUniformBuffer != nullptr && pUniformBuffer->IsHostVisible())
 		{
 			VulkanUniformBuffer& buffer = pUniformBuffer->CastAs<VulkanUniformBuffer&>();
+			buffer.GetDeviceMemoryAllocation()->UnmapMemory();
+		}
+	}
+
+	void VulkanContext::UnmapTextureBuffer(GFXTextureBuffer* textureBuffer)
+	{
+		if (textureBuffer != nullptr && textureBuffer->IsHostVisible())
+		{
+			VulkanTextureBuffer& buffer = textureBuffer->CastAs<VulkanTextureBuffer&>();
 			buffer.GetDeviceMemoryAllocation()->UnmapMemory();
 		}
 	}
@@ -916,6 +1338,11 @@ namespace Quartz
 			vulkanPipeline.GetPipelineState().pipelineLayout.GetPipelineLayoutHandle(), 0, 1, descriptorSets, 0, nullptr);
 	}
 
+	void VulkanContext::BindTextureBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXTextureBuffer* textureBuffer)
+	{
+
+	}
+
 	void VulkanContext::UnbindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* vertexBuffer)
 	{
 
@@ -927,6 +1354,11 @@ namespace Quartz
 	}
 
 	void VulkanContext::UnbindUniformBuffer(GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer)
+	{
+
+	}
+
+	void VulkanContext::UnbindTextureBuffer(GFXCommandBuffer& commandBuffer, GFXTextureBuffer* textureBuffer)
 	{
 
 	}

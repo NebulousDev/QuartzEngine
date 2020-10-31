@@ -110,6 +110,8 @@ namespace Quartz
 
 		mImageFormat = FormatFromVkFormat(format);
 		mImageType = ImageTypeFromVkImageType(imageType);
+
+		mSizeBytes = memRequirements.size;
 	}
 
 	VulkanImageView::VulkanImageView(VulkanImage& image, VkImageViewType viewType, 

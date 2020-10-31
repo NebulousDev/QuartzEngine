@@ -30,6 +30,7 @@ namespace Quartz
 		UInt32 mDepth;
 		UInt32 mMipLevels;
 		UInt32 mLayers;
+		UInt32 mSizeBytes;
 
 		GFXFormat mImageFormat;
 		GFXImageType mImageType;
@@ -42,6 +43,7 @@ namespace Quartz
 		UInt32 GetDepth() const { return mWidth; }
 		UInt32 GetMipLevels() const { return mMipLevels; }
 		UInt32 GetLayers() const { return mLayers; }
+		UInt32 GetSizeBytes() const { return mSizeBytes; }
 		GFXFormat GetFormat() const { return mImageFormat; }
 		GFXImageType GetType() const { return mImageType; }
 	};

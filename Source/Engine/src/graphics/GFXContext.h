@@ -14,6 +14,8 @@
 #include "GFXRenderPass.h"
 #include "GFXQueue.h"
 
+#include "PipelineState.h"
+
 #include "..\object\Model.h"
 
 #include "util\Array.h"
@@ -32,11 +34,13 @@ namespace Quartz
 
 		virtual GFXSurface* CreateSurface(Window& window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) = 0;
 
+		virtual GFXGraphicsPipeline* CreateGraphicsPipeline2(GraphicsPipelineState& state, GFXRenderPass& renderPass) = 0;
+
 		virtual GFXGraphicsPipeline*	CreateGraphicsPipeline(
 			GFXGraphicsPipelineShaderState& pipelineState,
 			VertexFormat& vertexFormat,
 			GFXRenderPass& renderPass,
-			GFXSurface& surface
+			GFXSurface& surface, Array<GFXImageView>& imageViews
 			) = 0;
 		//virtual GFXComputePipelineRef	CreateComputePipeline() {};
 
@@ -52,7 +56,7 @@ namespace Quartz
 		virtual GFXVertexBuffer*		CreateVertexBuffer(UInt64 sizeBytes, Bool8 hostVisable) = 0;
 		virtual GFXIndexBuffer*			CreateIndexBuffer(UInt32 stride, UInt64 size, Bool8 hostVisable) = 0;
 		virtual GFXUniformBuffer*		CreateUniformBuffer(UInt32 sizeBytes, Bool8 hostVisable) = 0;
-
+		virtual GFXTextureBuffer*		CreateTextureBuffer(UInt32 sizeBytes, Bool8 hostVisable) = 0;
 		virtual GFXFramebuffer*			CreateFramebuffer(
 			GFXGraphicsPipeline* pGrapicsPipeline,
 			UInt32 width, UInt32 height,
@@ -77,7 +81,7 @@ namespace Quartz
 
 		virtual void DrawIndexed(GFXCommandBuffer& commandBuffer, UInt32 indexCount, UInt32 indexOffset) = 0;
 
-		//virtual void TransitionImageLayout()
+		virtual void CopyTextureBufferToImage(GFXTextureBuffer* pTextureBuffer, GFXImage* pImage) = 0;
 
 		virtual void WaitSurfaceReady(GFXSurface& surface) = 0;
 
@@ -89,18 +93,22 @@ namespace Quartz
 		virtual void* MapVertexBuffer(GFXVertexBuffer* pVertexBuffer) = 0;
 		virtual void* MapIndexBuffer(GFXIndexBuffer* pIndexBuffer) = 0;
 		virtual void* MapUniformBuffer(GFXUniformBuffer* pUniformBuffer) = 0;
+		virtual void* MapTextureBuffer(GFXTextureBuffer* pTextureBuffer) = 0;
 
 		virtual void UnmapVertexBuffer(GFXVertexBuffer* pVertexBuffer) = 0;
 		virtual void UnmapIndexBuffer(GFXIndexBuffer* pIndexBuffer) = 0;
 		virtual void UnmapUniformBuffer(GFXUniformBuffer* pUniformBuffer) = 0;
+		virtual void UnmapTextureBuffer(GFXTextureBuffer* pTextureBuffer) = 0;
 
 		virtual void BindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* pVertexBuffer) = 0;
 		virtual void BindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) = 0;
 		virtual void BindUniformBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) = 0;
+		virtual void BindTextureBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXTextureBuffer* pTextureBuffer) = 0;
 
 		virtual void UnbindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* vertexBuffer) = 0;
 		virtual void UnbindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) = 0;
 		virtual void UnbindUniformBuffer(GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) = 0;
+		virtual void UnbindTextureBuffer(GFXCommandBuffer& commandBuffer, GFXTextureBuffer* pTextureBuffer) = 0;
 
 		void SetDebugName(GFXResource* pResource, const String& debugName);
 

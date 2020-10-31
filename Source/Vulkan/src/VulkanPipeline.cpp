@@ -182,18 +182,18 @@ namespace Quartz
 		viewportInfo.flags = 0;
 
 		Array<VkViewport> viewports;
-		for (const VulkanViewport& viewport : pipelineState.viewports)
+		for (const VkViewport& viewport : pipelineState.viewports)
 		{
-			viewports.PushBack(reinterpret_cast<const VkViewport&>(viewport));
+			viewports.PushBack(viewport);
 		}
 
 		viewportInfo.viewportCount = viewports.Size();
 		viewportInfo.pViewports = viewports.Data();
 
 		Array<VkRect2D> scissors;
-		for (const VulkanScissor& scissor : pipelineState.scissors)
+		for (const VkRect2D& scissor : pipelineState.scissors)
 		{
-			scissors.PushBack(reinterpret_cast<const VkRect2D&>(scissor));
+			scissors.PushBack(scissor);
 		}
 
 		viewportInfo.scissorCount = scissors.Size();

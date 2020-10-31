@@ -20,6 +20,8 @@ namespace Quartz
 			return;
 		}
 
+		mCommandPool = commandPool;
+
 		mValidCommandBuffer = true;
 	}
 
@@ -40,6 +42,12 @@ namespace Quartz
 		{
 			Log.Error("Failed to end command buffer recording: vkBeginCommandBuffer failed!");
 		}
+	}
+
+	void VulkanCommandBuffer::Destroy()
+	{
+		vkFreeCommandBuffers(mpParentDevice->GetDeviceHandle(), mCommandPool, 1, &mCommandBuffer);
+		mValidCommandBuffer = false;
 	}
 }
 

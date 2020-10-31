@@ -12,6 +12,7 @@ namespace Quartz
 	private:
 		VulkanDevice*	mpParentDevice;
 		VkCommandBuffer mCommandBuffer;
+		VkCommandPool	mCommandPool;
 		Bool8			mValidCommandBuffer;
 
 	public:
@@ -19,6 +20,8 @@ namespace Quartz
 
 		void Begin() override;
 		void End() override;
+
+		void Destroy();
 
 		VulkanDevice& GetParentDevice() { return *mpParentDevice; }
 		VkCommandBuffer GetCommandBufferHandle() const { return mCommandBuffer; }

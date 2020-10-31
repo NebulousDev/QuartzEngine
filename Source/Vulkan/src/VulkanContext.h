@@ -55,11 +55,13 @@ namespace Quartz
 
 		GFXSurface* CreateSurface(Window& window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) override;
 	
+		GFXGraphicsPipeline* CreateGraphicsPipeline2(GraphicsPipelineState& state, GFXRenderPass& renderPass) override;
+
 		GFXGraphicsPipeline* CreateGraphicsPipeline(
 			GFXGraphicsPipelineShaderState& shaderState,
 			VertexFormat& vertexFormat,
 			GFXRenderPass& renderPass,
-			GFXSurface& surface) override;
+			GFXSurface& surface, Array<GFXImageView>& imageViews) override;
 
 		GFXVertexShader* CreateVertexShader(const Array<Byte>& shaderCode) override;
 		GFXPixelShader* CreatePixelShader(const Array<Byte>& shaderCode) override;
@@ -67,7 +69,7 @@ namespace Quartz
 		GFXVertexBuffer* CreateVertexBuffer(UInt64 sizeBytes, Bool8 hostVisable) override;
 		GFXIndexBuffer* CreateIndexBuffer(UInt32 stride, UInt64 size, Bool8 hostVisable) override;
 		GFXUniformBuffer* CreateUniformBuffer(UInt32 sizeBytes, Bool8 hostVisable) override;
-
+		GFXTextureBuffer* CreateTextureBuffer(UInt32 sizeBytes, Bool8 hostVisable) override;
 		GFXFramebuffer*	CreateFramebuffer(
 			GFXGraphicsPipeline* pGrapicsPipeline,
 			UInt32 width, UInt32 height,
@@ -92,6 +94,8 @@ namespace Quartz
 
 		void DrawIndexed(GFXCommandBuffer& commandBuffer, UInt32 indexCount, UInt32 indexOffset) override;
 
+		void CopyTextureBufferToImage(GFXTextureBuffer* pTextureBuffer, GFXImage* pImage) override;
+
 		void WaitSurfaceReady(GFXSurface& surface) override;
 
 		void WaitForPresent() override;
@@ -102,18 +106,22 @@ namespace Quartz
 		void* MapVertexBuffer(GFXVertexBuffer* vertexBuffer) override;
 		void* MapIndexBuffer(GFXIndexBuffer* indexBuffer) override;
 		void* MapUniformBuffer(GFXUniformBuffer* uniformBuffer) override;
+		void* MapTextureBuffer(GFXTextureBuffer* textureBuffer) override;
 
 		void UnmapVertexBuffer(GFXVertexBuffer* vertexBuffer) override;
 		void UnmapIndexBuffer(GFXIndexBuffer* indexBuffer) override;
 		void UnmapUniformBuffer(GFXUniformBuffer* uniformBuffer) override;
+		void UnmapTextureBuffer(GFXTextureBuffer* textureBuffer) override;
 
 		void BindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* pVertexBuffer) override;
 		void BindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) override;
 		void BindUniformBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) override;
+		void BindTextureBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXTextureBuffer* textureBuffer) override;
 
 		void UnbindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* vertexBuffer) override;
 		void UnbindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) override;
 		void UnbindUniformBuffer(GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) override;
+		void UnbindTextureBuffer(GFXCommandBuffer& commandBuffer, GFXTextureBuffer* textureBuffer) override;
 
 		GFXDevice& GetDefaultDevice() override;
 	};

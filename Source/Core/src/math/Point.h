@@ -44,6 +44,15 @@ namespace Quartz
 		{
 			return Point2Type(x / point2.x, y / point2.y);
 		}
+
+		template<typename OtherValueType>
+		operator Point2<OtherValueType>() const
+		{
+			Point2<OtherValueType> result;
+			result.x = (OtherValueType)x;
+			result.y = (OtherValueType)y;
+			return result;
+		}
 	};
 
 	typedef Point2<Int32> Point2i;
@@ -88,6 +97,16 @@ namespace Quartz
 		Point3Type operator/(const Point3Type& point3)
 		{
 			return Point3Type(x / point3.x, y / point3.y, z / point3.z);
+		}
+
+		template<typename OtherValueType>
+		operator Point3<OtherValueType>() const
+		{
+			Point3<OtherValueType> result;
+			result.x = (OtherValueType)x;
+			result.y = (OtherValueType)y;
+			result.z = (OtherValueType)z;
+			return result;
 		}
 	};
 

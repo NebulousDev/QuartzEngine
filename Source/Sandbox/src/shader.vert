@@ -22,5 +22,5 @@ vertOut;
 void main()
 {
     gl_Position = (ubo.projection * ubo.view * ubo.model) * vec4(inPosition, 1.0);
-	vertOut.color = inNormal;
+	vertOut.color = vec3(inTexCoord, 0.0);
 }
