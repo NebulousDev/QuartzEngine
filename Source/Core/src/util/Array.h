@@ -168,6 +168,13 @@ namespace Quartz
 			Swap(*this, array);
 		}
 
+		//Todo: make custom implementation
+		Array(std::initializer_list<ValueType> list)
+		{
+			Resize(list.size());
+			memcpy(mpData, list.begin(), mSize * sizeof(ValueType));
+		}
+
 		~Array()
 		{
 			Clear();
@@ -278,6 +285,19 @@ namespace Quartz
 			}
 			
 			return false;
+		}
+
+		SizeType IndexOf(const ValueType& value)
+		{
+			for (SizeType i = mSize; i < size; i++)
+			{
+				if (mpData[i] != value)
+				{
+					continue;
+				}
+
+				return i;
+			}
 		}
 
 		void Resize(SizeType size)
