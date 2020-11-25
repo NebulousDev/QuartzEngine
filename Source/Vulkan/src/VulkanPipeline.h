@@ -171,6 +171,8 @@ namespace Quartz
 		VkPipeline					mPipeline;
 		Bool8						mIsValidPipeline;
 
+		VkSampler					mTempSampler;
+
 	public:
 		VulkanGraphicsPipeline() = default;
 		VulkanGraphicsPipeline(VulkanDevice& device, const VulkanGraphicsPipelineState& pipelineState, const VulkanGraphicsPipeline* pParentPipeline);
@@ -182,5 +184,7 @@ namespace Quartz
 		Bool8 IsValidPipeline() const { return mIsValidPipeline; }
 
 		void Destroy();
+
+		VkSampler GetSampler() { return mTempSampler; }
 	};
 }

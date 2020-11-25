@@ -244,6 +244,7 @@
     <ClInclude Include="src\event\EventDispatcher.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\event\EventSystem.h" />
+<<<<<<< Updated upstream
     <ClInclude Include="src\graphics\GFXFormat.h" />
     <ClInclude Include="src\graphics\GFXRenderPass.h" />
     <ClInclude Include="src\graphics\GFXCommandBuffer.h" />
@@ -261,6 +262,20 @@
     <ClInclude Include="src\graphics\GFXPhysicalDevice.h" />
     <ClInclude Include="src\input\DeviceConnectionEvent.h" />
     <ClInclude Include="src\input\DeviceConnectionSystem.h" />
+=======
+    <ClInclude Include="src\graphics2\RenderSequence.h" />
+    <ClInclude Include="src\graphics2\VGFXContext.h" />
+    <ClInclude Include="src\graphics\GFXUtil.h" />
+    <ClInclude Include="src\graphics\system\Camera.h" />
+    <ClInclude Include="src\graphics\system\CameraManager.h" />
+    <ClInclude Include="src\graphics\system\CameraSystem.h" />
+    <ClInclude Include="src\graphics2\RenderSystem2.h" />
+    <ClInclude Include="src\graphics\system\Transform.h" />
+    <ClInclude Include="src\input\ConnectionEvent.h" />
+    <ClInclude Include="src\input\ConnectionHandler.h" />
+    <ClInclude Include="src\input\InputContext.h" />
+    <ClInclude Include="src\input\InputState.h" />
+>>>>>>> Stashed changes
     <ClInclude Include="src\log\Log.h" />
     <ClInclude Include="src\log\DebugMessageEvent.h" />
     <ClInclude Include="src\log\DebugMessageSystem.h" />
@@ -271,7 +286,7 @@
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
-    <ClCompile Include="src\graphics\GFXContext.cpp" />
+    <ClCompile Include="src\graphics2\RenderSystem2.cpp" />
     <ClCompile Include="src\graphics\GFXUtil.cpp" />
     <ClCompile Include="src\input\DeviceConnectionSystem.cpp" />
     <ClCompile Include="src\input\InputSystem.cpp" />

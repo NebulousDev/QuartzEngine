@@ -11,12 +11,21 @@ ubo;
 
 layout(location = 0) out struct
 {
+<<<<<<< Updated upstream
 	vec3 worldPosition;
+=======
+	vec2 texCoord;
+>>>>>>> Stashed changes
 }
 vertOut;
 
 void main()
 {
+<<<<<<< Updated upstream
     gl_Position = ubo.mvp * vec4(position, 1.0);
 	vertOut.worldPosition = position;
+=======
+    gl_Position = (ubo.projection * ubo.view * ubo.model) * vec4(inPosition, 1.0);
+	vertOut.texCoord = inTexCoord;
+>>>>>>> Stashed changes
 }

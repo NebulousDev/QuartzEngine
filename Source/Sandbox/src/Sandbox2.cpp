@@ -21,6 +21,16 @@
 #include <string>
 #include <fstream>
 
+<<<<<<< Updated upstream
+=======
+#include "input/InputContext.h"
+
+#include "application/WindowManager.h"
+#include "Win32WindowManager.h"
+
+#include "Win32VulkanContext.h"
+
+>>>>>>> Stashed changes
 using namespace Quartz;
 
 static Array<Byte> ReadFile(const String& filename)
@@ -44,8 +54,13 @@ static Array<Byte> ReadFile(const String& filename)
 	return buffer;
 }
 
+#include "graphics2/VGFXContext.h"
+#include "vulkan2/VulkanContext2.h"
+#include "vulkan2/VulkanPipeline2.h"
+
 int main()
 {
+	/**/
 	Engine& engine = Engine::GetInstanceHandle();
 
 	/* Initialize Platform */
@@ -61,6 +76,7 @@ int main()
 
 	/* Graphics Context */
 
+<<<<<<< Updated upstream
 	Array<String> extensions;
 	extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	extensions.PushBack(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -71,6 +87,8 @@ int main()
 	validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
 	//validationLayers.PushBack("VK_LAYER_RENDERDOC_Capture");
 
+=======
+>>>>>>> Stashed changes
 	VulkanContext* pContext = new VulkanContext("Sandbox", "Quartz Engine", extensions, validationLayers);
 	engine.SetGraphicsContext(pContext);
 

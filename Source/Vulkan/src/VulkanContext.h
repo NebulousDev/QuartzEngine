@@ -105,10 +105,18 @@ namespace Quartz
 		void BindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* pVertexBuffer) override;
 		void BindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) override;
 		void BindUniformBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) override;
+<<<<<<< Updated upstream
+=======
+		void BindImageView(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXImageView* imageView) override;
+>>>>>>> Stashed changes
 
 		void UnbindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* vertexBuffer) override;
 		void UnbindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) override;
 		void UnbindUniformBuffer(GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) override;
+<<<<<<< Updated upstream
+=======
+		void UnbindImageView(GFXCommandBuffer& commandBuffer, GFXImageView* imageView) override;
+>>>>>>> Stashed changes
 
 		GFXDevice& GetDefaultDevice() override;
 	};

@@ -288,7 +288,7 @@ namespace Quartz
 		VkAttachmentDescription mVkAttachmentDescription;
 
 	public:
-		VulkanGFXRenderAttachment(VkAttachmentDescription description, GFXRenderAttachmentInfo info);
+		VulkanGFXRenderAttachment(VkAttachmentDescription description, GFXRenderAttachment info);
 
 		FORCE_INLINE VkAttachmentDescription GetVkAttachmentDescription() { return mVkAttachmentDescription; }
 	};
@@ -486,7 +486,7 @@ namespace Quartz
 		void					DestroyColorBlendState(GFXColorBlendState* pColorBlendState) final override;
 		GFXPipelineLayout*		CreatePipelineLayout(GFXDevice* pDevice, GFXPipelineLayoutInfo info) final override;
 		void					DestroyPipelineLatout(GFXPipelineLayout* pPipelineLayout) final override;
-		GFXRenderAttachment*	CreateRenderAttachment(GFXRenderAttachmentInfo info) final override;
+		GFXRenderAttachment*	CreateRenderAttachment(GFXRenderAttachment info) final override;
 		void					DestroyRenderAttachment(GFXRenderAttachment* pRenderAttachment) final override;
 		GFXRenderSubpass*		CreateRenderSubpass(GFXRenderSubpassInfo info) final override;
 		void					DestroyRenderSubpass(GFXRenderSubpass* pRenderSubpass) final override;

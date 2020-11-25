@@ -130,7 +130,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+<<<<<<< Updated upstream
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
+=======
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+>>>>>>> Stashed changes
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -160,7 +164,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+<<<<<<< Updated upstream
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
+=======
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+>>>>>>> Stashed changes
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -180,7 +188,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+<<<<<<< Updated upstream
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
+=======
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+>>>>>>> Stashed changes
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -235,37 +247,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\VulkanBuffer.h" />
-    <ClInclude Include="src\VulkanCommandBuffer.h" />
-    <ClInclude Include="src\VulkanContext.h" />
+    <ClInclude Include="src\vulkan2\VulkanContext2.h" />
+    <ClInclude Include="src\vulkan2\VulkanUtil2.h" />
     <ClInclude Include="src\VulkanDevice.h" />
     <ClInclude Include="src\VulkanDeviceMemory.h" />
-    <ClInclude Include="src\VulkanFramebuffer.h" />
-    <ClInclude Include="src\VulkanImage.h" />
     <ClInclude Include="src\VulkanPhysicalDevice.h" />
-    <ClInclude Include="src\VulkanPipeline.h" />
     <ClInclude Include="src\VulkanQueue.h" />
-    <ClInclude Include="src\VulkanRenderPass.h" />
-    <ClInclude Include="src\VulkanShader.h" />
-    <ClInclude Include="src\VulkanSurface.h" />
-    <ClInclude Include="src\VulkanStateManager.h" />
-    <ClInclude Include="src\win32\Win32Vulkan.h" />
+    <ClInclude Include="src\VulkanUtil.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\VulkanBuffer.cpp" />
-    <ClCompile Include="src\VulkanCommandBuffer.cpp" />
-    <ClCompile Include="src\VulkanContext.cpp" />
+    <ClCompile Include="src\vulkan2\VulkanContext2.cpp" />
     <ClCompile Include="src\VulkanDevice.cpp" />
     <ClCompile Include="src\VulkanDeviceMemory.cpp" />
-    <ClCompile Include="src\VulkanFramebuffer.cpp" />
-    <ClCompile Include="src\VulkanImage.cpp" />
     <ClCompile Include="src\VulkanPhysicalDevice.cpp" />
-    <ClCompile Include="src\VulkanPipeline.cpp" />
     <ClCompile Include="src\VulkanQueue.cpp" />
-    <ClCompile Include="src\VulkanRenderPass.cpp" />
-    <ClCompile Include="src\VulkanShader.cpp" />
-    <ClCompile Include="src\VulkanSurface.cpp" />
-    <ClCompile Include="src\win32\Win32Vulkan.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

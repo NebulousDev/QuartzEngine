@@ -205,6 +205,7 @@ namespace Quartz
 		}
 
 		VkPhysicalDeviceFeatures deviceFeatures {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;	//TODO: expose
 
 		VkDeviceCreateInfo deviceInfo		= {};
 		deviceInfo.queueCreateInfoCount		= queueCreateInfos.Size();

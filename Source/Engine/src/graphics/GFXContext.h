@@ -92,10 +92,18 @@ namespace Quartz
 		virtual void BindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* pVertexBuffer) = 0;
 		virtual void BindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) = 0;
 		virtual void BindUniformBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) = 0;
+<<<<<<< Updated upstream
+=======
+		virtual void BindImageView(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXImageView* pImageView) = 0;
+>>>>>>> Stashed changes
 
 		virtual void UnbindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* vertexBuffer) = 0;
 		virtual void UnbindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer) = 0;
 		virtual void UnbindUniformBuffer(GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer) = 0;
+<<<<<<< Updated upstream
+=======
+		virtual void UnbindImageView(GFXCommandBuffer& commandBuffer, GFXImageView* pImageView) = 0;
+>>>>>>> Stashed changes
 
 		void SetDebugName(GFXResource* pResource, const String& debugName);
 
