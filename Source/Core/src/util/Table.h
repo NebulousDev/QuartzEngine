@@ -34,9 +34,11 @@ namespace Quartz
 		TableEntry() :
 			keyValue(), hash(0), meta(0) { }
 
-		template<typename... ValueType>
 		TableEntry(UInt32 hash, KeyValueType&& keyValue) :
 			hash(hash), keyValue(Move(keyValue)), meta(0) {}
+
+		TableEntry(UInt32 hash, const KeyValueType& keyValue) :
+			hash(hash), keyValue(keyValue), meta(0) {}
 
 		TableEntry(const TableEntry& entry) :
 			hash(entry.hash), keyValue(entry.keyValue), meta(entry.meta) {}
@@ -119,8 +121,10 @@ namespace Quartz
 						++pItr;
 						return *this;
 					}
+
+					++pItr;
 				}
-				while ((++pItr)->IsEmpty());
+				while (pItr->IsEmpty());
 
 				return *this;
 			}
@@ -128,17 +132,7 @@ namespace Quartz
 			Iterator operator++(int)
 			{
 				Iterator temp(*this);
-
-				do
-				{
-					if (pItr->IsLast())
-					{
-						++pItr;
-						return *this;
-					}
-				}
-				while ((++pItr)->IsEmpty());
-
+				++(*this);
 				return *temp;
 			}
 
@@ -228,7 +222,8 @@ namespace Quartz
 			return nullptr;
 		}
 
-		TableEntryType& FindInsertEntry(UInt32 hash, const KeyValueType& keyValue)
+		template<typename KeyValue>
+		TableEntryType& FindInsertEntry(UInt32 hash, KeyValue&& keyValue)
 		{
 			hash = PrepHash(hash);
 
@@ -247,7 +242,7 @@ namespace Quartz
 				}
 
 				// Found previous key entry
-				if (mTable[index].keyValue == keyValue)
+				if (mTable[index].keyValue == std::forward<KeyValue>(keyValue))
 				{
 					return mTable[index];
 				}
@@ -272,7 +267,8 @@ namespace Quartz
 			}
 		}
 
-		KeyValueType& InsertImpl(UInt32 hash, KeyValueType&& keyValue)
+		template<typename KeyValue>
+		KeyValueType& InsertImpl(UInt32 hash, KeyValue&& keyValue)
 		{
 			hash = PrepHash(hash);
 
@@ -280,13 +276,14 @@ namespace Quartz
 			UInt32 original = index;
 			UInt32 dist = 0;
 
-			TableEntryType entry(hash, Move(keyValue));
+			TableEntryType entry(hash, std::forward<KeyValue>(keyValue));
 
 			while (true)
 			{
 				// Entry is empty
 				if (mTable[index].hash == 0)
 				{
+					++mSize;
 					Swap(entry, mTable[index]);
 					return mTable[index].keyValue;
 				}
@@ -305,6 +302,7 @@ namespace Quartz
 					// Entry is erased
 					if (mTable[index].isDeleted)
 					{
+						++mSize;
 						Swap(entry, mTable[index]);
 						return mTable[index].keyValue;
 					}
@@ -325,16 +323,21 @@ namespace Quartz
 
 			TableEntryType* pEntry = &mTable[0];
 
-			// Advance to fist valid entry
-			while (pEntry->IsEmpty() && !pEntry->IsLast()) { ++pEntry; };
-
-			while (!pEntry->IsEmpty() || !pEntry->IsLast())
+			while (!pEntry->IsLast())
 			{
-				Swap(mNewTable.FindInsertEntry(pEntry->hash, pEntry->keyValue), *pEntry);
-				while (pEntry->IsEmpty() && !pEntry->IsLast()) { ++pEntry; };
+				if (!pEntry->IsEmpty())
+				{
+					mNewTable.Insert(pEntry->hash, pEntry->keyValue);
+				}
+
+				++pEntry;
 			}
 
-			mNewTable.mSize = mSize;
+			if (!pEntry->IsEmpty())
+			{
+				mNewTable.Insert(pEntry->hash, pEntry->keyValue);
+			}
+
 			Swap(mNewTable, *this);
 		}
 
@@ -365,14 +368,15 @@ namespace Quartz
 			Swap(*this, table);
 		}
 
-		KeyValueType& Insert(UInt32 hash, KeyValueType&& keyValue)
+		template<typename Value>
+		KeyValueType& Insert(UInt32 hash, Value&& keyValue)
 		{
-			if (mSize++ >= mThreshold)
+			if (mSize + 1 >= mThreshold)
 			{
 				ResizeRehash(NextGreaterPowerOf2(mCapacity));
 			}
 			
-			return InsertImpl(hash, Move(keyValue));
+			return InsertImpl(hash, std::forward<Value>(keyValue));
 		}
 
 		void Remove(UInt32 hash, const KeyValueType& keyValue)
@@ -436,41 +440,40 @@ namespace Quartz
 			return Find(hash, keyValue) != nullptr;
 		}
 
-		Iterator begin() noexcept
+		void Clear()
+		{
+			mTable.Clear();
+			mTable.Resize(mCapacity, TableEntryType());
+			mTable[mCapacity - 1].isLast = true;
+			mSize = 0;
+		}
+
+		Iterator begin()
 		{
 			if (mTable.IsEmpty())
 			{
 				return nullptr;
 			}
 
-			Iterator itr(&mTable[0]);
-			if (mTable[0].IsEmpty()) { ++itr; }
-			return itr;
+			Iterator it(&mTable[0]);
+
+			if (mTable[0].IsEmpty())
+			{
+				return ++it;
+			}
+
+			return it;
 		}
 
-		Iterator end() noexcept
+		Iterator end()
 		{
 			if (mTable.IsEmpty())
 			{
 				return nullptr;
 			}
 
-			return Iterator(&mTable[0] + mCapacity);
+			return Iterator(mTable.Data() + mCapacity);
 		}
-
-		/*
-		const Iterator begin() const noexcept
-		{
-			Iterator itr(&mTable[0]);
-			if (mTable[0].IsEmpty()) { ++itr; }
-			return itr;
-		}
-
-		const Iterator end() const noexcept
-		{
-			return Iterator(&mTable[mCapacity - 1]);
-		}
-		*/
 
 		TableEntryType* Data()
 		{

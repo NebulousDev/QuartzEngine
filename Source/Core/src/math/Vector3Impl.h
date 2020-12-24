@@ -7,6 +7,7 @@
 #include "Vector3.h"
 #include "MathUtil.h"
 
+/*
 const Vector3 Vector3::Zero		= {  0.0f,  0.0f,  0.0f };
 const Vector3 Vector3::One		= {  1.0f,  1.0f,  1.0f };
 const Vector3 Vector3::Up		= {  0.0f,  1.0f,  0.0f };
@@ -15,6 +16,7 @@ const Vector3 Vector3::Forward	= {  0.0f,  0.0f,  1.0f };
 const Vector3 Vector3::Backward = {  0.0f,  0.0f, -1.0f };
 const Vector3 Vector3::Right	= {  1.0f,  0.0f,  0.0f };
 const Vector3 Vector3::Left		= { -1.0f,  0.0f,  0.0f };
+*/
 
 FORCEINLINE Vector3::Vector3()
 {
@@ -69,7 +71,7 @@ FORCEINLINE Vector3 Cross(const Vector3& vec1, const Vector3& vec2)
 	float x = vec1.y * vec2.z - vec1.z * vec2.y;
 	float y = vec1.z * vec2.x - vec1.x * vec2.z;
 	float z = vec1.x * vec2.y - vec1.y * vec2.x;
-	return Vector3(x, y, z);
+	return Vector3(-x, -y, -z);
 }
 
 FORCEINLINE Vector3& Vector3::Normalize()

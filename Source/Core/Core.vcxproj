@@ -30,46 +30,46 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{564ED702-D369-4CD6-A961-EAFCF8EF5401}</ProjectGuid>
     <RootNamespace>Core</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -215,11 +215,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\math2\MathUtil.h" />
+    <ClInclude Include="src\math\Bounds.h" />
     <ClInclude Include="src\math\Defines.h" />
     <ClInclude Include="src\math\Math.h" />
     <ClInclude Include="src\math\MathUtil.h" />
     <ClInclude Include="src\math\Matrix4.h" />
     <ClInclude Include="src\math\Matrix4Impl.h" />
+    <ClInclude Include="src\math\Point.h" />
     <ClInclude Include="src\math\Quaternion.h" />
     <ClInclude Include="src\math\QuaternionImpl.h" />
     <ClInclude Include="src\math\Vector2.h" />
@@ -229,7 +231,10 @@
     <ClInclude Include="src\math\Vector4.h" />
     <ClInclude Include="src\math\Vector4Impl.h" />
     <ClInclude Include="src\util\Array.h" />
+    <ClInclude Include="src\util\BitSet.h" />
+    <ClInclude Include="src\util\Buffer.h" />
     <ClInclude Include="src\util\Castable.h" />
+    <ClInclude Include="src\util\Heap.h" />
     <ClInclude Include="src\util\Intrinsics.h" />
     <ClInclude Include="src\math2\Matrix.h" />
     <ClInclude Include="src\math2\Quaternion.h" />
@@ -244,12 +249,17 @@
     <ClInclude Include="src\util\RefPtr.h" />
     <ClInclude Include="src\util\Set.h" />
     <ClInclude Include="src\util\Singleton.h" />
+    <ClInclude Include="src\util\SparseSet.h" />
     <ClInclude Include="src\util\Stack.h" />
+    <ClInclude Include="src\util\Storage.h" />
     <ClInclude Include="src\util\String.h" />
+    <ClInclude Include="src\util\StringParser.h" />
     <ClInclude Include="src\util\Table.h" />
+    <ClInclude Include="src\util\Tuple.h" />
     <ClInclude Include="src\util\TypeId.h" />
     <ClInclude Include="src\util\TypePack.h" />
     <ClInclude Include="src\Common.h" />
+    <ClInclude Include="src\util\Utility.h" />
     <ClInclude Include="src\util\Utils.h" />
   </ItemGroup>
   <ItemGroup>

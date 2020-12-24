@@ -11,6 +11,7 @@ namespace Quartz
 	public:
 		using SetType	= Set<_Value>;
 		using ValueType = _Value;
+		using Iterator  = typename Table<ValueType>::Iterator;
 
 	private:
 		Table<ValueType> mTable;
@@ -36,9 +37,10 @@ namespace Quartz
 			Swap(set1.mTable, set2.mTable);
 		}
 
-		ValueType& Add(ValueType value)
+		template<typename Value>
+		ValueType& Add(Value&& value)
 		{
-			return mTable.Insert(Hash(value), Move(value));
+			return mTable.Insert(Hash<ValueType>(value), std::forward<Value>(value));
 		}
 
 		/*void Remove(const ValueType& value)
@@ -52,12 +54,17 @@ namespace Quartz
 			return *this;
 		}
 
-		typename Table<ValueType>::Iterator begin() noexcept
+		void Clear()
+		{
+			mTable.Clear();
+		}
+
+		Iterator begin()
 		{
 			return mTable.begin();
 		}
 
-		typename Table<ValueType>::Iterator end() noexcept
+		Iterator end()
 		{
 			return mTable.end();
 		}
@@ -79,17 +86,17 @@ namespace Quartz
 
 		UInt32 Size() const
 		{
-			return mTable.mSize;
+			return mTable.Size();
 		}
 
 		UInt32 Capacity() const
 		{
-			return mTable.mCapacity;
+			return mTable.Capacity();
 		}
 
 		UInt32 Threshold() const
 		{
-			return mTable.mThreshold;
+			return mTable.Threshold();
 		}
 	};
 }

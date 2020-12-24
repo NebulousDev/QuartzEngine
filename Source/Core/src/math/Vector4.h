@@ -6,7 +6,7 @@
 
 #include "Defines.h"
 
-#define VEC4_ALIGN ALIGN(16)
+#define VEC4_ALIGN //ALIGN(16)
 
 struct Vector3;
 

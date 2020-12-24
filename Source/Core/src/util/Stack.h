@@ -3,61 +3,64 @@
 
 namespace Quartz
 {
-	template<class Type>
-	class Stack : private Array<Type>
+	template<class _Type>
+	class ArrayStack : protected Array<_Type>
 	{
 	public:
-		Stack();
-		Stack(const Array<Type>& array);
+		using Type				= _Type;
+		using ArrayStackType	= ArrayStack<_Type>;
+		using ArrayType			= Array<_Type>;
 
-		void Push(const Type& value);
-		void Push(Type&& value);
+	public:
+		ArrayStack() {}
 
-		Type& Peek();
+		ArrayStack(const ArrayStackType& stack)
+			: ArrayType(static_cast<ArrayType&>(stack)) {}
 
-		Type Pop();
+		ArrayStack(const ArrayType& array)
+			: ArrayType(array) {}
 
-		using Array<Type>::begin;
-		using Array<Type>::end;
+		void Push(const Type& value)
+		{
+			Array<Type>::PushBack(value);
+		}
 
-		FORCE_INLINE Bool8 IsEmpty() const { return Array<Type>::mSize == 0; }
-		FORCE_INLINE UInt32 GetSize() const { return Array<Type>::mSize; }
+		void Push(Type&& value)
+		{
+			Array<Type>::PushBack(Move(value));
+		}
+
+		Type* Peek()
+		{
+			// TODO: Replace with asserts?
+			if (Array<Type>::mSize == 0)
+			{
+				return nullptr;
+			}
+
+			return &Array<Type>::mpData[Array<Type>::mSize - 1];
+		}
+
+		void Pop()
+		{
+			// TODO: Replace with asserts?
+			if (!Array<Type>::mSize == 0)
+			{
+				Array<Type>::Remove(Array<Type>::mSize - 1);
+			}
+		}
+
+		using ArrayType::Contains;
+
+		using ArrayType::begin;
+		using ArrayType::end;
+
+		using ArrayType::Data;
+		using ArrayType::Size;
+		using ArrayType::Capacity;
+		using ArrayType::IsEmpty;
 	};
 
 	template<class Type>
-	Stack<Type>::Stack()
-	{
-		// Nothing
-	}
-
-	template<class Type>
-	Stack<Type>::Stack(const Array<Type>& array)
-		: Array<Type>(array)
-	{
-		// Nothing
-	}
-
-	template<class Type>
-	void Stack<Type>::Push(const Type& value)
-	{
-		Array<Type>::PushBack(value);
-	}
-
-	template<class Type>
-	void Stack<Type>::Push(Type&& value)
-	{
-		Array<Type>::PushBack(value);
-	}
-
-	template<class Type>
-	Type& Stack<Type>::Peek()
-	{
-		return Array<Type>::mpData[mSize - 1];
-	}
-
-	template<class Type>
-	Type Stack<Type>::Pop()
-	{
-		return Array<Type>::PopBack();
-	}
+	using Stack = ArrayStack<Type>;
 }

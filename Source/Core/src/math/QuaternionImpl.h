@@ -110,11 +110,11 @@ FORCEINLINE Quaternion Quaternion::Conjugate() const
 
 FORCEINLINE Quaternion Quaternion::Inverse() const
 {
-	float magsq = MagnitudeSquared();
-	float rx = -x / magsq;
-	float ry = -y / magsq;
-	float rz = -z / magsq;
-	float rw = w / magsq;
+	float mag = Magnitude();
+	float rx = -x / mag;
+	float ry = -y / mag;
+	float rz = -z / mag;
+	float rw = w / mag;
 	return Quaternion(rx, ry, rz, rw);
 }
 
@@ -129,8 +129,10 @@ FORCEINLINE Quaternion Quaternion::operator*(const Quaternion& quat) const
 
 FORCEINLINE Vector3 Quaternion::operator*(const Vector3& vec3) const
 {
-	Quaternion res = *this * Quaternion(vec3.x, vec3.y, vec3.z, 0) * Inverse();
-	return Vector3(res.x, res.y, res.z);
+	Vector3 quatVec(x, y, z);
+	return 2.0 * Dot(quatVec, vec3) * quatVec + 
+		(w*w - Dot(quatVec, quatVec)) * vec3 +
+		2.0f * w * Cross(quatVec, vec3);
 }
 
 FORCEINLINE Vector3 operator*(const Vector3& vec3, const Quaternion& quat)
