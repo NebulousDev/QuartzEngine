@@ -18,7 +18,7 @@
 
 _declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 
-#define MODEL_PATH "models/testScene.obj"
+#define MODEL_PATH "models/dragon.obj"
 #define DIFFUSE_PATH "textures/default.png"
 
 namespace Quartz

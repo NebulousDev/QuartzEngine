@@ -136,7 +136,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Vulkan/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Engine/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -150,7 +150,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Vulkan/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Engine/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -166,7 +166,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Vulkan/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Engine/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -186,7 +186,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Vulkan/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Engine/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -206,7 +206,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Vulkan/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Engine/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -226,7 +226,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Engine/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)ThirdParty/Vulkan;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Vulkan/src;$(SolutionDir)Source/Win32/src;$(SolutionDir)Source/Engine/src;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>

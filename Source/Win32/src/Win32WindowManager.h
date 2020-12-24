@@ -2,7 +2,7 @@
 
 #include "Win32.h"
 #include "Win32Window.h"
-#include "application/WindowManager.h"
+#include "platform/WindowManager.h"
 
 namespace Quartz
 {

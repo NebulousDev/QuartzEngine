@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Win32.h"
-#include "application/Window.h"
+#include "platform/Window.h"
 
 namespace Quartz
 {

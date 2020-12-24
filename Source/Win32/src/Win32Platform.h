@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Platform.h"
+#include "platform/Platform.h"
 #include "Win32PlatformInput.h"
 #include "Win32PlatformTime.h"
 #include "Win32PlatformConsole.h"

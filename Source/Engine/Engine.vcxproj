@@ -261,6 +261,12 @@
     <ClInclude Include="src\object\Model.h" />
     <ClInclude Include="src\object\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
+    <ClInclude Include="src\platform\Window.h" />
+    <ClInclude Include="src\platform\WindowManager.h" />
+    <ClInclude Include="src\platform\Platform.h" />
+    <ClInclude Include="src\platform\Console.h" />
+    <ClInclude Include="src\platform\Input.h" />
+    <ClInclude Include="src\platform\Time.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>
   <ItemGroup>
@@ -269,6 +275,9 @@
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\object\OBJLoader.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
+    <ClCompile Include="src\platform\Window.cpp" />
+    <ClCompile Include="src\platform\WindowManager.cpp" />
+    <ClCompile Include="src\platform\Input.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

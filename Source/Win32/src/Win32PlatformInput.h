@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PlatformInput.h"
+#include "platform/Input.h"
 
 #include "Win32.h"
 #include <hidsdi.h>

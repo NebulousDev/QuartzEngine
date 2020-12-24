@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "util/Array.h"
 
-#include "application/Window.h"
+#include "platform/Window.h"
 
 namespace Quartz
 {

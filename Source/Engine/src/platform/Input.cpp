@@ -1,4 +1,4 @@
-#include "PlatformInput.h"
+#include "Input.h"
 
 namespace Quartz
 {

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Common.h"
-#include "PlatformInput.h"
-#include "PlatformTime.h"
-#include "PlatformConsole.h"
-//#include "PlatformWindow.h"
+#include "Input.h"
+#include "Time.h"
+#include "Console.h"
+//#include "Window.h"
 
 namespace Quartz
 {

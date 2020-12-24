@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PlatformConsole.h"
+#include "platform/Console.h"
 #include "Win32.h"
 
 #include <stdio.h>
