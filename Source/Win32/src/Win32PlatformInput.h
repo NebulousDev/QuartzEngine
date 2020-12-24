@@ -10,7 +10,7 @@ namespace Quartz
 	class QUARTZ_API Win32PlatformInput : public PlatformInput
 	{
 	private:
-		struct Win32InputDeviceDescExt
+		struct Win32InputDeviceInfo
 		{
 			HANDLE					deviceHandle;
 			Array<HIDP_BUTTON_CAPS> buttonCapsBuffer;
@@ -19,14 +19,23 @@ namespace Quartz
 			PHIDP_VALUE_CAPS		pValueCaps;
 		};
 
-		Array<Win32InputDeviceDescExt>	mInputDeviceDescExts;
+		Array<Win32InputDeviceInfo>		mWin32InputDeviceInfos;
 		Map<Handle64, InputDeviceId>	mHandleToDevice;
 
-		//Bool8 CreateDevice(InputDeviceDesc deviceDesc, Flags32 flags);
-		//void DestroyDevice(InputDeviceId deviceId);
+		Array<RAWINPUTDEVICELIST>	mPolledRawInputDevices;
+		Set<InputDeviceId>			mPolledIds;
+
+		Window* mpCapturedWindow;
 
 	public:
-		void PollDeviceConnections() override;
-		void PollDeviceInput() override;
+		void PollConnections() override;
+		void PollInput() override;
+		Point2i GetMousePosition() const override;
+		void SetMousePosition(Point2i position) override;
+
+		void HideCursor() override;
+		void ShowCursor() override;
+		void SetCursorBounds(Bounds2i bounds) override;
+		void ReleaseCursorBounds() override;
 	};
 }

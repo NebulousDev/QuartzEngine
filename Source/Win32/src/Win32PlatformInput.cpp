@@ -3,6 +3,7 @@
 //#include "io///Log.h"
 #include "Common.h"
 #include "util\Array.h"
+#include <cstdio>
 
 //#include <hidsdi.h>
 #pragma comment(lib,"Hid.lib")
@@ -132,233 +133,199 @@ namespace Quartz
 		return StringW(serialBuffer.Data());
 	}
 
-	void Win32PlatformInput::PollDeviceConnections()
+	HANDLE GetDeviceHandle(const StringW& devicePath)
 	{
-		Set<InputDeviceId>				newDeviceIdList(32);
-		Map<Handle64, InputDeviceId>	newHandleToDevice;
-		Array<RAWINPUTDEVICELIST>		rawInputDeviceList;
-
-		EnumerateDevices(rawInputDeviceList);
-		
-		for (UInt32 i = 0; i < rawInputDeviceList.Size(); i++)
-		{
-			RAWINPUTDEVICELIST& rawInputDevice = rawInputDeviceList[i];
-			RID_DEVICE_INFO ridDeviceInfo;
-
-			if (!GetDeviceInfo(rawInputDevice, &ridDeviceInfo))
-			{
-				// Failed to retrieve device info, ignore device
-				continue;
-			}
-
-			StringW devicePath = GetDevicePathName(rawInputDevice);
-			InputDeviceId deviceId = devicePath.Hash();
-
-			if (IsDeviceConnected(deviceId))
-			{
-				// Device is already connected
-				newDeviceIdList.Add(deviceId);
-				newHandleToDevice.Put(reinterpret_cast<Handle64>(rawInputDevice.hDevice), deviceId);
-				continue;
-			}
-
-			HANDLE hidHandle = CreateFileW(devicePath.Data(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
-
-			StringW deviceName = GetDeviceName(hidHandle);
-			StringW deviceSerialNumber = GetDeviceSerialNumber(hidHandle);
-
-			CloseHandle(hidHandle);
-
-			InputDeviceDesc inputDeviceDesc;
-			inputDeviceDesc.deviceId = deviceId;
-			inputDeviceDesc.deviceName = deviceName.Data();
-			inputDeviceDesc.devicePath = devicePath.Data();
-			inputDeviceDesc.serialNuber = deviceSerialNumber.Data();
-			inputDeviceDesc.pHandle = (void*)rawInputDevice.hDevice;
-
-			// Create device descriptions
-
-			if (ridDeviceInfo.dwType == RIM_TYPEMOUSE)
-			{
-				inputDeviceDesc.deviceType = INPUT_DEVICE_TYPE_MOUSE;
-				inputDeviceDesc.buttonCount = ridDeviceInfo.mouse.dwNumberOfButtons;
-				inputDeviceDesc.analogCount = 0;
-				inputDeviceDesc.usagePage = 1;
-				inputDeviceDesc.usage = 2;
-			}
-
-			else if (ridDeviceInfo.dwType == RIM_TYPEKEYBOARD)
-			{
-				inputDeviceDesc.deviceType = INPUT_DEVICE_TYPE_KEYBOARD;
-				inputDeviceDesc.buttonCount = ridDeviceInfo.keyboard.dwNumberOfKeysTotal;
-				inputDeviceDesc.analogCount = 0;
-				inputDeviceDesc.usagePage = 1;
-				inputDeviceDesc.usage = 6;
-			}
-
-			else if (ridDeviceInfo.dwType == RIM_TYPEHID)
-			{
-				// Get preparsed data
-
-				Array<UInt8> preparsedDataBuffer;
-				UInt32 preparsedDataBufferSize = 0;
-
-				if (GetRawInputDeviceInfo(rawInputDevice.hDevice, RIDI_PREPARSEDDATA, NULL, &preparsedDataBufferSize) == RAW_INPUT_ERROR)
-				{
-					//Log.Error("Failed to get device preparsed data: GetRawInputDeviceInfo failed!");
-					continue;
-				}
-
-				preparsedDataBuffer.Resize(preparsedDataBufferSize);
-
-				if (GetRawInputDeviceInfo(rawInputDevice.hDevice, RIDI_PREPARSEDDATA, preparsedDataBuffer.Data(), &preparsedDataBufferSize) == RAW_INPUT_ERROR)
-				{
-					//Log.Error("Failed to get device preparsed data: GetRawInputDeviceInfo failed!");
-					continue;
-				}
-
-				PHIDP_PREPARSED_DATA pPreparsedData = (PHIDP_PREPARSED_DATA)preparsedDataBuffer.Data();
-
-				if (!pPreparsedData)
-				{
-					// Not a usable input device
-					continue;
-				}
-
-				// Get Device capabilities
-
-				HIDP_CAPS capabilities;
-				NTSTATUS status = HidP_GetCaps(pPreparsedData, &capabilities);
-
-				// Get Button capabilities
-
-				UInt32 numberOfButtons = 0;
-
-				Array<HIDP_BUTTON_CAPS> buttonCapsBuffer(capabilities.NumberInputButtonCaps);
-				UInt16 capsBufferLength = capabilities.NumberInputButtonCaps;
-				PHIDP_BUTTON_CAPS pButtonCaps = nullptr;
-
-				if (capabilities.NumberInputButtonCaps)
-				{
-					if (HidP_GetButtonCaps(HidP_Input, buttonCapsBuffer.Data(), &capsBufferLength, pPreparsedData) != HIDP_STATUS_SUCCESS)
-					{
-						//Log.Error("Failed to get device button capabilites: HidP_GetButtonCaps failed!");
-						//continue;
-					}
-
-					pButtonCaps = (PHIDP_BUTTON_CAPS)buttonCapsBuffer.Data();
-					numberOfButtons = pButtonCaps->Range.UsageMax - pButtonCaps->Range.UsageMin + 1;
-				}
-
-				// Get Analog capabilities
-
-				UInt32 numberOfValues = 0;
-
-				Array<HIDP_VALUE_CAPS> valueCapsBuffer(capabilities.NumberInputValueCaps);
-				UInt16 valueBufferLength = capabilities.NumberInputValueCaps;
-				PHIDP_VALUE_CAPS pValueCaps = nullptr;
-
-				if (capabilities.NumberInputValueCaps)
-				{
-					if (HidP_GetValueCaps(HidP_Input, valueCapsBuffer.Data(), &valueBufferLength, pPreparsedData) != HIDP_STATUS_SUCCESS)
-					{
-						//Log.Error("Failed to get device analog capabilites: HidP_GetValueCaps failed!");
-						//continue;
-					}
-
-					pValueCaps = (PHIDP_VALUE_CAPS)valueCapsBuffer.Data();
-					numberOfValues = pValueCaps->Range.UsageMax - pValueCaps->Range.UsageMin + 1;
-				}
-				
-				inputDeviceDesc.deviceType = INPUT_DEVICE_TYPE_MOUSE;
-				inputDeviceDesc.buttonCount = numberOfButtons;
-				inputDeviceDesc.analogCount = numberOfValues;
-				inputDeviceDesc.usagePage = ridDeviceInfo.hid.usUsagePage;
-				inputDeviceDesc.usage = ridDeviceInfo.hid.usUsage;
-			}
-
-			newDeviceIdList.Add(deviceId);
-			newHandleToDevice.Put(reinterpret_cast<Handle64>(rawInputDevice.hDevice), deviceId);
-
-			if (!mDeviceIdMap.Contains(deviceId))
-			{
-				mDeviceIdMap.Put(deviceId, inputDeviceDesc);
-			}
-
-			if (mDeviceConnectCallbackFunc != nullptr)
-			{
-				mDeviceConnectCallbackFunc(inputDeviceDesc.deviceId, inputDeviceDesc);
-			}
-
-			RAWINPUTDEVICE rawInputDeviceInfo{};
-			rawInputDeviceInfo.usUsagePage  = inputDeviceDesc.usagePage;
-			rawInputDeviceInfo.usUsage		= inputDeviceDesc.usage;
-			rawInputDeviceInfo.dwFlags		= 0;
-			rawInputDeviceInfo.hwndTarget	= 0;
-
-			if (RegisterRawInputDevices(&rawInputDeviceInfo, 1, sizeof(RAWINPUTDEVICE)) == FALSE)
-			{
-				//Log.Critical("Failed to register input device : RegisterRawInputDevices failed!");
-				//return false;
-			}
-		}
-
-		for (InputDeviceId pastId : mConnectedDevices)
-		{
-			if (!newDeviceIdList.Contains(pastId))
-			{
-				mDeviceDisconnectCallbackFunc(pastId);
-			}
-		}
-
-		// Find a better way to do this?
-		mConnectedDevices = newDeviceIdList;
-		mHandleToDevice = newHandleToDevice;
+		return CreateFileW(devicePath.Str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
 	}
 
-	/*
-	Bool8 Win32PlatformInput::CreateDevice(InputDeviceDescription deviceDesc, Flags32 flags, InputDevice* pDevice)
+	Bool8 GenerateDeviceInfo(InputDeviceId deviceId, const StringW& devicePath, const RAWINPUTDEVICELIST& rawInputDevice, InputDeviceInfo* pInfo)
 	{
-		HANDLE deviceHandle = (HANDLE)deviceDesc.pNext;
-
-		RAWINPUTDEVICE rawInputDevice {};
-		rawInputDevice.usUsagePage = deviceDesc.usagePage;
-		rawInputDevice.usUsage = deviceDesc.usage;
-		rawInputDevice.dwFlags = 0;
-		rawInputDevice.hwndTarget = 0;
-
-		if (RegisterRawInputDevices(&rawInputDevice, 1, sizeof(RAWINPUTDEVICE)) == FALSE)
+		RID_DEVICE_INFO ridDeviceInfo;
+		if (!GetDeviceInfo(rawInputDevice, &ridDeviceInfo))
 		{
-			//Log.Critical("Failed to register input device : RegisterRawInputDevices failed!");
+			// Failed to retrieve device info, skip device
 			return false;
 		}
 
-		InputDeviceData data;
-		data.description = deviceDesc;
-		data.buttonStates.Resize(deviceDesc.buttonCount);
-		data.analogStates.Resize(deviceDesc.analogCount);
-		data.isConnected = true;
-		data.isDirty = false;
+		HANDLE hidHandle = GetDeviceHandle(devicePath);
 
-		Handle64 inputDevice = mInputDeviceRegistry.Size();
-		mInputDeviceRegistry.PushBack(data);
+		StringW deviceName = GetDeviceName(hidHandle);
+		StringW deviceSerialNumber = GetDeviceSerialNumber(hidHandle);
 
-		mHandleToDevice[(Handle64)deviceHandle] = inputDevice;
+		CloseHandle(hidHandle);
 
-		*pDevice = inputDevice;
+		pInfo->deviceId = deviceId;
+		pInfo->deviceName = deviceName.Str();
+		pInfo->devicePath = devicePath.Str();
+		pInfo->serialNuber = deviceSerialNumber.Str();
+		pInfo->pHandle = (void*)rawInputDevice.hDevice;
+
+		// Create device descriptions
+
+		if (ridDeviceInfo.dwType == RIM_TYPEMOUSE)
+		{
+			pInfo->deviceType = INPUT_DEVICE_TYPE_MOUSE;
+			pInfo->buttonCount = ridDeviceInfo.mouse.dwNumberOfButtons;
+			pInfo->analogCount = 0;
+			pInfo->usagePage = 1;
+			pInfo->usage = 2;
+		}
+
+		else if (ridDeviceInfo.dwType == RIM_TYPEKEYBOARD)
+		{
+			pInfo->deviceType = INPUT_DEVICE_TYPE_KEYBOARD;
+			pInfo->buttonCount = ridDeviceInfo.keyboard.dwNumberOfKeysTotal;
+			pInfo->analogCount = 0;
+			pInfo->usagePage = 1;
+			pInfo->usage = 6;
+		}
+
+		else if (ridDeviceInfo.dwType == RIM_TYPEHID)
+		{
+			// Get preparsed data
+
+			Array<UInt8> preparsedDataBuffer;
+			UInt32 preparsedDataBufferSize = 0;
+
+			if (GetRawInputDeviceInfo(rawInputDevice.hDevice, RIDI_PREPARSEDDATA, NULL, &preparsedDataBufferSize) == RAW_INPUT_ERROR)
+			{
+				//Log.Error("Failed to get device preparsed data: GetRawInputDeviceInfo failed!");
+				return false;
+			}
+
+			preparsedDataBuffer.Resize(preparsedDataBufferSize);
+
+			if (GetRawInputDeviceInfo(rawInputDevice.hDevice, RIDI_PREPARSEDDATA, preparsedDataBuffer.Data(), &preparsedDataBufferSize) == RAW_INPUT_ERROR)
+			{
+				//Log.Error("Failed to get device preparsed data: GetRawInputDeviceInfo failed!");
+				return false;
+			}
+
+			PHIDP_PREPARSED_DATA pPreparsedData = (PHIDP_PREPARSED_DATA)preparsedDataBuffer.Data();
+
+			if (!pPreparsedData)
+			{
+				// Not a usable input device
+				return false;
+			}
+
+			// Get Device capabilities
+
+			HIDP_CAPS capabilities;
+			NTSTATUS status = HidP_GetCaps(pPreparsedData, &capabilities);
+
+			// Get Button capabilities
+
+			UInt32 numberOfButtons = 0;
+
+			Array<HIDP_BUTTON_CAPS> buttonCapsBuffer(capabilities.NumberInputButtonCaps);
+			UInt16 capsBufferLength = capabilities.NumberInputButtonCaps;
+			PHIDP_BUTTON_CAPS pButtonCaps = nullptr;
+
+			if (capabilities.NumberInputButtonCaps)
+			{
+				if (HidP_GetButtonCaps(HidP_Input, buttonCapsBuffer.Data(), &capsBufferLength, pPreparsedData) != HIDP_STATUS_SUCCESS)
+				{
+					//Log.Error("Failed to get device button capabilites: HidP_GetButtonCaps failed!");
+					//continue;
+				}
+
+				pButtonCaps = (PHIDP_BUTTON_CAPS)buttonCapsBuffer.Data();
+				numberOfButtons = pButtonCaps->Range.UsageMax - pButtonCaps->Range.UsageMin + 1;
+			}
+
+			// Get Analog capabilities
+
+			UInt32 numberOfValues = 0;
+
+			Array<HIDP_VALUE_CAPS> valueCapsBuffer(capabilities.NumberInputValueCaps);
+			UInt16 valueBufferLength = capabilities.NumberInputValueCaps;
+			PHIDP_VALUE_CAPS pValueCaps = nullptr;
+
+			if (capabilities.NumberInputValueCaps)
+			{
+				if (HidP_GetValueCaps(HidP_Input, valueCapsBuffer.Data(), &valueBufferLength, pPreparsedData) != HIDP_STATUS_SUCCESS)
+				{
+					//Log.Error("Failed to get device analog capabilites: HidP_GetValueCaps failed!");
+					//continue;
+				}
+
+				pValueCaps = (PHIDP_VALUE_CAPS)valueCapsBuffer.Data();
+				numberOfValues = pValueCaps->Range.UsageMax - pValueCaps->Range.UsageMin + 1;
+			}
+
+			pInfo->deviceType = INPUT_DEVICE_TYPE_MOUSE;
+			pInfo->buttonCount = numberOfButtons;
+			pInfo->analogCount = numberOfValues;
+			pInfo->usagePage = ridDeviceInfo.hid.usUsagePage;
+			pInfo->usage = ridDeviceInfo.hid.usUsage;
+		}
 
 		return true;
 	}
 
-	void Win32PlatformInput::DestroyDevice(InputDevice device)
+	void Win32PlatformInput::PollConnections()
 	{
+		mPolledRawInputDevices.Clear();
+		mPolledIds.Clear();
 
+		EnumerateDevices(mPolledRawInputDevices);
+
+		for (const RAWINPUTDEVICELIST& rawInputDevice : mPolledRawInputDevices)
+		{
+			StringW devicePath = GetDevicePathName(rawInputDevice);
+			InputDeviceId deviceId = devicePath.Hash();
+
+			// Skip connected devices
+			if (!IsDeviceConnected(deviceId))
+			{
+				InputDeviceInfo newDeviceInfo;
+				if (GenerateDeviceInfo(deviceId, devicePath, rawInputDevice, &newDeviceInfo))
+				{
+					mConnectedDevices.Add(deviceId);
+					mDeviceInfos.Put(deviceId, newDeviceInfo);
+					mHandleToDevice.Put(reinterpret_cast<Handle64>(rawInputDevice.hDevice), deviceId);
+
+					RAWINPUTDEVICE rawInputDeviceInfo{};
+					rawInputDeviceInfo.usUsagePage = newDeviceInfo.usagePage;
+					rawInputDeviceInfo.usUsage = newDeviceInfo.usage;
+					rawInputDeviceInfo.dwFlags = 0;
+					rawInputDeviceInfo.hwndTarget = 0;
+
+					if (RegisterRawInputDevices(&rawInputDeviceInfo, 1, sizeof(RAWINPUTDEVICE)) == FALSE)
+					{
+						//Log.Critical("Failed to register input device : RegisterRawInputDevices failed!");
+						//return false;
+					}
+
+					if (mDeviceConnectCallbackFunc != nullptr)
+					{
+						mDeviceConnectCallbackFunc(deviceId, newDeviceInfo);
+					}
+				}
+			}
+
+			mPolledIds.Add(deviceId);
+		}
+
+		for (InputDeviceId pastId : mConnectedDevices)
+		{
+			if (!mPolledIds.Contains(pastId))
+			{
+				if (mDeviceDisconnectCallbackFunc != nullptr)
+				{
+					mDeviceDisconnectCallbackFunc(pastId);
+				}
+			}
+		}
+
+		// Psudo double buffering swap
+		Swap(mConnectedDevices, mPolledIds);
 	}
-	*/
 
 #define MAX_INPUT_BUFFER_SIZE 64
 
-	void Win32PlatformInput::PollDeviceInput()
+	void Win32PlatformInput::PollInput()
 	{
 		RAWINPUT inputBuffer[MAX_INPUT_BUFFER_SIZE]{};
 		UInt32 bufferSize = sizeof(RAWINPUT) * MAX_INPUT_BUFFER_SIZE;
@@ -376,7 +343,7 @@ namespace Quartz
 			}
 
 			InputDeviceId deviceId = *pInputDeviceId;
-			InputDeviceDesc* pInputDeviceDesc = mDeviceIdMap.Get(deviceId);
+			InputDeviceInfo* pInputDeviceDesc = mDeviceInfos.Get(deviceId);
 
 			RAWINPUT& inputData = inputBuffer[i];
 
@@ -438,7 +405,7 @@ namespace Quartz
 			{
 				if (mKeyboardInputCallbackFunc)
 				{
-					ButtonState state = inputData.data.keyboard.Flags & RI_KEY_BREAK ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
+					InputButtonState state = inputData.data.keyboard.Flags & RI_KEY_BREAK ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
 					mKeyboardInputCallbackFunc(deviceId, inputData.data.keyboard.MakeCode, state);
 				}
 			}
@@ -540,7 +507,7 @@ namespace Quartz
 						mButtonInputCallbackFunc(deviceId, buttonIdx, BUTTON_STATE_DOWN);
 					}
 
-					//Log.Debug("Button: %d", pUsage[j]);
+					printf("Button: %d\n", pUsage[j]);
 				}
 
 				/*
@@ -586,6 +553,39 @@ namespace Quartz
 		}
 
 		// Values
+	}
+
+	Point2i Win32PlatformInput::GetMousePosition() const
+	{
+		POINT cursor;
+		GetCursorPos(&cursor);
+		return Point2i(cursor.x, cursor.y);
+	}
+
+	void Win32PlatformInput::SetMousePosition(Point2i position)
+	{
+		SetCursorPos(position.x, position.y);
+	}
+
+	void Win32PlatformInput::HideCursor()
+	{
+		::ShowCursor(0);
+	}
+
+	void Win32PlatformInput::ShowCursor()
+	{
+		::ShowCursor(1);
+	}
+
+	void Win32PlatformInput::SetCursorBounds(Bounds2i bounds)
+	{
+		RECT clipRect { bounds.start.x, bounds.start.y, bounds.end.x, bounds.end.y };
+		ClipCursor(&clipRect);
+	}
+
+	void Win32PlatformInput::ReleaseCursorBounds()
+	{
+		ClipCursor(NULL);
 	}
 }
 

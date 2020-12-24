@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\vulkan2\VulkanContext2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vulkan2\VulkanUtil2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\VulkanDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,14 +27,17 @@
     <ClInclude Include="src\VulkanQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\SPIRVUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VulkanContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\VulkanUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\vulkan2\VulkanContext2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\VulkanDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,6 +48,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\VulkanQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SPIRVUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VulkanContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,31 +1,26 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(location = 0) in vec3 position;
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) in vec2 inTexCoord;
 
 layout(binding = 0) uniform UBO
 {
-	mat4 mvp;
+	mat4 model;
+	mat4 view;
+	mat4 projection;
 }
 ubo;
 
 layout(location = 0) out struct
 {
-<<<<<<< Updated upstream
-	vec3 worldPosition;
-=======
-	vec2 texCoord;
->>>>>>> Stashed changes
+	vec3 normal;
 }
 vertOut;
 
 void main()
 {
-<<<<<<< Updated upstream
-    gl_Position = ubo.mvp * vec4(position, 1.0);
-	vertOut.worldPosition = position;
-=======
     gl_Position = (ubo.projection * ubo.view * ubo.model) * vec4(inPosition, 1.0);
-	vertOut.texCoord = inTexCoord;
->>>>>>> Stashed changes
+	vertOut.normal = inNormal;
 }

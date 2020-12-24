@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\module\Module.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gfx\GFXPlatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,18 +27,21 @@
     <ClInclude Include="src\PlatformConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PlatformWindow.h">
+    <ClInclude Include="src\application\Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\WindowManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\module\Module.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\PlatformInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PlatformWindow.cpp">
+    <ClCompile Include="src\application\Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\WindowManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

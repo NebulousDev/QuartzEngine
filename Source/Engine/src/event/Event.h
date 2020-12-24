@@ -32,6 +32,6 @@ namespace Quartz
 	template<typename EventType>
 	EventTypeId Event<EventType>::GetStaticEventTypeId()
 	{
-		return GetTypeId<EventType>();
+		return TypeInfo<EventType>::Id();
 	}
 }

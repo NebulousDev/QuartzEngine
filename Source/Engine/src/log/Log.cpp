@@ -4,9 +4,7 @@
 #include <cstdarg>
 #include <time.h>
 
-#include "../Engine.h"
-
-#define USE_MESSAGE_LOOP 1
+#define USE_MESSAGE_LOOP 0
 
 namespace Quartz
 {
@@ -40,135 +38,72 @@ namespace Quartz
 
 	void LogUtil::Print(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_NONE;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatMessage(format, args));
+		StringW message = StringAToStringW(FormatMessage(format, args));
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Debug(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_DEBUG;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatTime() + "[DEBUG] " + FormatMessage(format, args) + "\n");
+		StringW message = StringAToStringW(FormatTime() + "[DEBUG] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Info(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_INFO;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatTime() + "[INFO] " + FormatMessage(format, args) + "\n");
+		StringW message = StringAToStringW(FormatTime() + "[INFO] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::General(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_GENERAL;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatTime() + "[GENERAL] " + FormatMessage(format, args) + "\n");
+		StringW message = StringAToStringW(FormatTime() + "[GENERAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Warning(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_WARNING;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatTime() + "[WARNING] " + FormatMessage(format, args) + "\n");
+		StringW message = StringAToStringW(FormatTime() + "[WARNING] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Error(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_ERROR;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatTime() + "[ERROR] " + FormatMessage(format, args) + "\n");
+		StringW message = StringAToStringW(FormatTime() + "[ERROR] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Critical(const char* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_CRITICAL;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = StringAToStringW(FormatTime() + "[CRITICAL] " + FormatMessage(format, args) + "\n");
+		StringW message = StringAToStringW(FormatTime() + "[CRITICAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	/* WIDE */
@@ -200,135 +135,72 @@ namespace Quartz
 
 	void LogUtil::Print(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_NONE;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatMessageW(format, args);
+		StringW message = FormatMessageW(format, args);
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Debug(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_DEBUG;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatTimeW() + L"[DEBUG] " + FormatMessageW(format, args) + L"\n";
+		StringW message = FormatTimeW() + L"[DEBUG] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Info(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_INFO;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatTimeW() + L"[INFO] " + FormatMessageW(format, args) + L"\n";
+		StringW message = FormatTimeW() + L"[INFO] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::General(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_GENERAL;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatTimeW() + L"[GENERAL] " + FormatMessageW(format, args) + L"\n";
+		StringW message = FormatTimeW() + L"[GENERAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Warning(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_WARNING;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatTimeW() + L"[WARNING] " + FormatMessageW(format, args) + L"\n";
+		StringW message = FormatTimeW() + L"[WARNING] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Error(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_ERROR;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatTimeW() + L"[ERROR] " + FormatMessageW(format, args) + L"\n";
+		StringW message = FormatTimeW() + L"[ERROR] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 
 	void LogUtil::Critical(const wchar_t* format, ...)
 	{
-		Engine& engine = Engine::GetInstanceHandle();
-
-		DebugMessageEvent debugMessageEvent;
-		debugMessageEvent.category = MESSAGE_CRITICAL;
-
 		va_list args;
 		va_start(args, format);
-		debugMessageEvent.message = FormatTimeW() + L"[CRITICAL] " + FormatMessageW(format, args) + L"\n";
+		StringW message = FormatTimeW() + L"[CRITICAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-#if USE_MESSAGE_LOOP
-		engine.GetEventSystem().Publish(EVENT_PRIORITY_IMMEDIATE, debugMessageEvent);
-#else
-		wprintf_s(debugMessageEvent.message.Str());
-#endif
+		wprintf_s(message.Str());
 	}
 }
 

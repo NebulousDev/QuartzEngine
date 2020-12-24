@@ -54,17 +54,6 @@ namespace Quartz
 
 	Bool8 VulkanDevice::InitDevice(VulkanPhysicalDevice* pPhysicalDevice, const Array<String>& deviceExtensions)
 	{
-		// NOTE: According to the vulkan spec, device-specific layers are now deprecated.
-		// Some code only acts as a fallback for users without updated drivers.
-
-		// NOTE: I Also need to keep layer extensions available for RenderDoc
-
-		if (!EnumerateDeviceLayerProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableLayerProperties))
-		{
-			Log.Error("Failed to create vulkan logical device: Unable to enumerate device layer properties!");
-			return false;
-		}
-
 		if (!EnumerateDeviceExtensionProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableExtensionProperties))
 		{
 			Log.Error("Failed to create vulkan logical device: Unable to enumerate device extesnsion properties!");
@@ -91,6 +80,19 @@ namespace Quartz
 		Array<Array<VkExtensionProperties>> availableLayerExtensionPropertiesList;
 		availableLayerExtensionPropertiesList.Resize(mAvailableLayerProperties.Size());
 
+
+		// NOTE: According to the vulkan spec, device-specific layers are now deprecated.
+		// Some code only acts as a fallback for users without updated drivers.
+
+		// NOTE: I Also need to keep layer extensions available for RenderDoc
+
+		/*
+		if (!EnumerateDeviceLayerProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableLayerProperties))
+		{
+			Log.Error("Failed to create vulkan logical device: Unable to enumerate device layer properties!");
+			return false;
+		}
+
 		UInt32 layerPropertiesIndex = 0;
 		for (const VkLayerProperties& layer : mAvailableLayerProperties)
 		{
@@ -114,6 +116,7 @@ namespace Quartz
 
 			++layerPropertiesIndex;
 		}
+		*/
 
 		Array<VkQueueFamilyProperties> queueFamilyProperties;
 
@@ -208,6 +211,7 @@ namespace Quartz
 		deviceFeatures.samplerAnisotropy = VK_TRUE;	//TODO: expose
 
 		VkDeviceCreateInfo deviceInfo		= {};
+		deviceInfo.sType					= VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount		= queueCreateInfos.Size();
 		deviceInfo.pQueueCreateInfos		= queueCreateInfos.Data();
 		deviceInfo.enabledLayerCount		= mEnabledLayerNames.Size();
@@ -239,11 +243,11 @@ namespace Quartz
 		// TODO: allow better present queue selection
 		mpPresentQueue = mpGraphicsQueue;
 
-		vkDebugMarkerSetObjectTag = (PFN_vkDebugMarkerSetObjectTagEXT)vkGetDeviceProcAddr(mDevice, "vkDebugMarkerSetObjectTagEXT");
-		vkDebugMarkerSetObjectName = (PFN_vkDebugMarkerSetObjectNameEXT)vkGetDeviceProcAddr(mDevice, "vkDebugMarkerSetObjectNameEXT");
-		vkCmdDebugMarkerBegin = (PFN_vkCmdDebugMarkerBeginEXT)vkGetDeviceProcAddr(mDevice, "vkCmdDebugMarkerBeginEXT");
-		vkCmdDebugMarkerEnd = (PFN_vkCmdDebugMarkerEndEXT)vkGetDeviceProcAddr(mDevice, "vkCmdDebugMarkerEndEXT");
-		vkCmdDebugMarkerInsert = (PFN_vkCmdDebugMarkerInsertEXT)vkGetDeviceProcAddr(mDevice, "vkCmdDebugMarkerInsertEXT");
+		vkSetDebugUtilsObjectTag = (PFN_vkSetDebugUtilsObjectTagEXT)vkGetDeviceProcAddr(mDevice, "vkSetDebugUtilsObjectTagEXT");
+		vkSetDebugUtilsObjectName = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(mDevice, "vkSetDebugUtilsObjectNameEXT");
+		vkCmdBeginDebugUtilsLabel = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetDeviceProcAddr(mDevice, "vkCmdBeginDebugUtilsLabelEXT");
+		vkCmdInsertDebugUtilsLabel = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetDeviceProcAddr(mDevice, "vkCmdInsertDebugUtilsLabelEXT");
+		vkCmdEndDebugUtilsLabel = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetDeviceProcAddr(mDevice, "vkCmdEndDebugUtilsLabelEXT");
 
 		return true;
 	}
@@ -334,7 +338,7 @@ namespace Quartz
 		// TODO: Compare with hash set
 		for (const char* extName : mEnabledExtensionNames)
 		{
-			if (StringCompare(extName, VK_EXT_DEBUG_MARKER_EXTENSION_NAME) == 0)
+			if (StringCompare(extName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0)
 			{
 				mSupportsDebugNames = true;
 			}
@@ -363,15 +367,15 @@ namespace Quartz
 		vkDestroyDevice(mDevice, nullptr);
 	}
 
-	void VulkanDevice::SetDebugMarkerObjectName(Handle64 object, VkDebugReportObjectTypeEXT type, const String& debugName)
+	void VulkanDevice::SetDebugName(Handle64 object, VkObjectType type, const String& debugName)
 	{
-		VkDebugMarkerObjectNameInfoEXT nameInfo = {};
-		nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT;
+		VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+		nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
 		nameInfo.objectType = type;
-		nameInfo.object = object;
+		nameInfo.objectHandle = static_cast<UInt64>(object);
 		nameInfo.pObjectName = debugName.Str();
 
-		vkDebugMarkerSetObjectName(mDevice, &nameInfo);
+		vkSetDebugUtilsObjectName(mDevice, &nameInfo);
 	}
 }
 

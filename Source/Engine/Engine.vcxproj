@@ -30,46 +30,46 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{67EDB775-3D1B-44EA-BF0B-5DD54FC7D12B}</ProjectGuid>
     <RootNamespace>Engine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -242,57 +242,33 @@
     <ClInclude Include="src\event\Event.h" />
     <ClInclude Include="src\event\EventBuffer.h" />
     <ClInclude Include="src\event\EventDispatcher.h" />
-    <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\event\EventSystem.h" />
-<<<<<<< Updated upstream
-    <ClInclude Include="src\graphics\GFXFormat.h" />
-    <ClInclude Include="src\graphics\GFXRenderPass.h" />
-    <ClInclude Include="src\graphics\GFXCommandBuffer.h" />
-    <ClInclude Include="src\graphics\GFXFramebuffer.h" />
-    <ClInclude Include="src\graphics\GFXImage.h" />
-    <ClInclude Include="src\graphics\GFXPipelines.h" />
-    <ClInclude Include="src\graphics\GFXResource.h" />
-    <ClInclude Include="src\graphics\GFXBuffers.h" />
-    <ClInclude Include="src\graphics\GFXContext.h" />
     <ClInclude Include="src\graphics\GFXDevice.h" />
-    <ClInclude Include="src\graphics\GFXQueue.h" />
-    <ClInclude Include="src\graphics\GFXShaders.h" />
-    <ClInclude Include="src\graphics\GFXSurface.h" />
-    <ClInclude Include="src\graphics\GFXUtil.h" />
     <ClInclude Include="src\graphics\GFXPhysicalDevice.h" />
-    <ClInclude Include="src\input\DeviceConnectionEvent.h" />
-    <ClInclude Include="src\input\DeviceConnectionSystem.h" />
-=======
-    <ClInclude Include="src\graphics2\RenderSequence.h" />
-    <ClInclude Include="src\graphics2\VGFXContext.h" />
+    <ClInclude Include="src\graphics\GFXResource.h" />
     <ClInclude Include="src\graphics\GFXUtil.h" />
+    <ClInclude Include="src\graphics\VGFXContext.h" />
     <ClInclude Include="src\graphics\system\Camera.h" />
     <ClInclude Include="src\graphics\system\CameraManager.h" />
-    <ClInclude Include="src\graphics\system\CameraSystem.h" />
-    <ClInclude Include="src\graphics2\RenderSystem2.h" />
     <ClInclude Include="src\graphics\system\Transform.h" />
     <ClInclude Include="src\input\ConnectionEvent.h" />
     <ClInclude Include="src\input\ConnectionHandler.h" />
     <ClInclude Include="src\input\InputContext.h" />
     <ClInclude Include="src\input\InputState.h" />
->>>>>>> Stashed changes
     <ClInclude Include="src\log\Log.h" />
-    <ClInclude Include="src\log\DebugMessageEvent.h" />
-    <ClInclude Include="src\log\DebugMessageSystem.h" />
-    <ClInclude Include="src\graphics\RenderSystem.h" />
-    <ClInclude Include="src\input\InputSystem.h" />
+    <ClInclude Include="src\object\Image.h" />
+    <ClInclude Include="src\object\ImageLoader.h" />
+    <ClInclude Include="src\object\Model.h" />
+    <ClInclude Include="src\object\OBJLoader.h" />
+    <ClInclude Include="src\object\UniformData.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
-    <ClCompile Include="src\graphics2\RenderSystem2.cpp" />
     <ClCompile Include="src\graphics\GFXUtil.cpp" />
-    <ClCompile Include="src\input\DeviceConnectionSystem.cpp" />
-    <ClCompile Include="src\input\InputSystem.cpp" />
-    <ClCompile Include="src\log\DebugMessageSystem.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
-    <ClCompile Include="src\graphics\RenderSystem.cpp" />
+    <ClCompile Include="src\object\OBJLoader.cpp" />
+    <ClCompile Include="src\object\UniformData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

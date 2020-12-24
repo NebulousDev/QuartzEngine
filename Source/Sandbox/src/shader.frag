@@ -3,22 +3,13 @@
 
 layout(location = 0) in struct
 {
-<<<<<<< Updated upstream
-	vec3 worldPosition;
-=======
-	vec2 texCoord;
->>>>>>> Stashed changes
+	vec3 normal;
 }
 fragIn;
 
 layout(location = 0) out vec4 fragOut;
-layout(binding = 1) uniform sampler2D sampler;
 
 void main()
 {
-<<<<<<< Updated upstream
-    fragOut = vec4(fragIn.worldPosition, 1.0);
-=======
-    fragOut = texture(sampler, texCoord);
->>>>>>> Stashed changes
+    fragOut = vec4(fragIn.normal, 1.0);
 }

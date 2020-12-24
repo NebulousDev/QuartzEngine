@@ -12,6 +12,7 @@ namespace Quartz
 		return new Win32Console();
 	}
 
+	/*
 	Window* Win32Platform::CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags)
 	{
 		return new Win32Window(width, height, title);
@@ -21,6 +22,7 @@ namespace Quartz
 	{
 		return new Win32Window(xPos, yPos, width, height, title);
 	}
+	*/
 
 	PlatformInput& Win32Platform::GetPlatformInput()
 	{

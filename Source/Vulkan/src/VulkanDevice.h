@@ -34,11 +34,11 @@ namespace Quartz
 		VulkanQueue* mpTransferQueue;
 		VulkanQueue* mpPresentQueue;
 
-		PFN_vkDebugMarkerSetObjectTagEXT	vkDebugMarkerSetObjectTag;
-		PFN_vkDebugMarkerSetObjectNameEXT	vkDebugMarkerSetObjectName;
-		PFN_vkCmdDebugMarkerBeginEXT		vkCmdDebugMarkerBegin;
-		PFN_vkCmdDebugMarkerEndEXT			vkCmdDebugMarkerEnd;
-		PFN_vkCmdDebugMarkerInsertEXT		vkCmdDebugMarkerInsert;
+		PFN_vkSetDebugUtilsObjectTagEXT		vkSetDebugUtilsObjectTag;
+		PFN_vkSetDebugUtilsObjectNameEXT	vkSetDebugUtilsObjectName;
+		PFN_vkCmdBeginDebugUtilsLabelEXT	vkCmdBeginDebugUtilsLabel;
+		PFN_vkCmdInsertDebugUtilsLabelEXT	vkCmdInsertDebugUtilsLabel;
+		PFN_vkCmdEndDebugUtilsLabelEXT		vkCmdEndDebugUtilsLabel;
 
 		struct
 		{
@@ -57,7 +57,7 @@ namespace Quartz
 
 		void DestroyDevice();
 
-		void SetDebugMarkerObjectName(Handle64 object, VkDebugReportObjectTypeEXT type, const String& debugName);
+		void SetDebugName(Handle64 object, VkObjectType type, const String& debugName);
 
 		const VkDevice& GetDeviceHandle() const { return mDevice; }
 		const VulkanPhysicalDevice& GetPhysicalDevice() { return *mpPhysicalDevice; }
