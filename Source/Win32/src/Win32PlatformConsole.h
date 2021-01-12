@@ -7,7 +7,7 @@
 
 namespace Quartz
 {
-	class QUARTZ_API Win32Console : public VPDebugConsole
+	class QUARTZ_API Win32Console : public PlatformConsole
 	{
 	private:
 		HANDLE mConsoleHandle;

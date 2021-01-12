@@ -4,15 +4,10 @@
 #include <cstdarg>
 #include <time.h>
 
-#include "util/String.h"
-#include "../platform/Console.h"
-
 #define USE_MESSAGE_LOOP 0
 
 namespace Quartz
 {
-	VPDebugConsole* DebugLogger::pDebugConsole = nullptr;
-
 	String FormatMessage(const char* format, va_list args)
 	{
 		va_list largs;
@@ -41,106 +36,74 @@ namespace Quartz
 		return "[" + String(currentTime) + "]";
 	}
 
-	void DebugLogger::SetDebugConsole(VPDebugConsole& console)
-	{
-		DebugLogger::pDebugConsole = &console;
-	}
-
-	void DebugLogger::Print(const char* format, ...)
+	void LogUtil::Print(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatMessage(format, args));
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Debug(const char* format, ...)
+	void LogUtil::Debug(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatTime() + "[DEBUG] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Info(const char* format, ...)
+	void LogUtil::Info(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatTime() + "[INFO] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_BLUE, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::General(const char* format, ...)
+	void LogUtil::General(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatTime() + "[GENERAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Warning(const char* format, ...)
+	void LogUtil::Warning(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatTime() + "[WARNING] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_YELLOW, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Error(const char* format, ...)
+	void LogUtil::Error(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatTime() + "[ERROR] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_RED, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Critical(const char* format, ...)
+	void LogUtil::Critical(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = StringAToStringW(FormatTime() + "[CRITICAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_RED);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
 	/* WIDE */
@@ -170,101 +133,74 @@ namespace Quartz
 		return L"[" + StringW(currentTime) + L"]";
 	}
 
-	void DebugLogger::Print(const wchar_t* format, ...)
+	void LogUtil::Print(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatMessageW(format, args);
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Debug(const wchar_t* format, ...)
+	void LogUtil::Debug(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatTimeW() + L"[DEBUG] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Info(const wchar_t* format, ...)
+	void LogUtil::Info(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatTimeW() + L"[INFO] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_BLUE, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::General(const wchar_t* format, ...)
+	void LogUtil::General(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatTimeW() + L"[GENERAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Warning(const wchar_t* format, ...)
+	void LogUtil::Warning(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatTimeW() + L"[WARNING] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_YELLOW, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Error(const wchar_t* format, ...)
+	void LogUtil::Error(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatTimeW() + L"[ERROR] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_RED, CONSOLE_COLOR_DEFAULT);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 
-	void DebugLogger::Critical(const wchar_t* format, ...)
+	void LogUtil::Critical(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		StringW message = FormatTimeW() + L"[CRITICAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_RED);
-		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
-
-		//wprintf_s(message.Str());
+		wprintf_s(message.Str());
 	}
 }
 

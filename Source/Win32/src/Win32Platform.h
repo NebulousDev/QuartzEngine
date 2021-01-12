@@ -1,45 +1,28 @@
 #pragma once
 
-#include "platform/VPPlatform.h"
-//#include "Win32PlatformInput.h"
-//#include "Win32PlatformTime.h"
+#include "platform/Platform.h"
+#include "Win32PlatformInput.h"
+#include "Win32PlatformTime.h"
 #include "Win32PlatformConsole.h"
-#include "Win32Window.h"
-
-#include "util/Map.h"
+//#include "Win32PlatformWindow.h"
 
 namespace Quartz
 {
-	class QUARTZ_API Win32Platform : public VPPlatform
+	class QUARTZ_API Win32Platform : public Platform
 	{
 	private:
-		HINSTANCE			mInstance;
-		//Win32PlatformInput	mWin32PlatformInput;
-		//Win32PlatformTime	mWin32PlatformTime;
-
-		// @Note: I cannot use HWND here as I would like
-		//	because void* cannot be used in a hash function
-		//	for whatever reason...
-		Map<Handle64, Win32Window*> mHWNDMap;
-
-	private:
-		friend LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		Win32PlatformInput	mWin32PlatformInput;
+		Win32PlatformTime	mWin32PlatformTime;
 
 	public:
-		void PreInitialize() override;
 		void Initialize() override;
 
-		VPDebugConsole* CreateDebugConsole() override;
-		void DestroyDebugConsole(VPDebugConsole* pDebugConsole) override;
+		PlatformConsole* CreateConsole() override;
 
-		HVPWindow CreateWindow(UInt32 posX, UInt32 posY,
-			UInt32 clientWidth, UInt32 clientHeight, const StringW& title) override;
+		//Window* CreateWindow(UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;
+		//Window* CreateWindow(UInt32 xPos, UInt32 yPos, UInt32 width, UInt32 height, const char* title, Flags16 flags = NULL) override;
 
-		void DestroyWindow(HVPWindow window) override;
-
-		void PollEvents() override;
-
-		//PlatformInput& GetPlatformInput() override;
-		//PlatformTime& GetPlatformTime() override;
+		PlatformInput& GetPlatformInput() override;
+		PlatformTime& GetPlatformTime() override;
 	};
 }

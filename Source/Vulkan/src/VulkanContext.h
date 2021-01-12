@@ -27,14 +27,11 @@ namespace Quartz
 		Array<VulkanImage>		images;
 		Array<VulkanImageView>	imageViews;
 		UInt32					imageCount;
-
 		Int32					imageIndex;
-		Int32					frameIndex;
 
 		Array<VkSemaphore>		imageAcquiredSemaphores;
 		Array<VkSemaphore>		imageCompleteSemaphores;
-		Array<VkFence>			allFences;
-		Array<VkFence>			imageFenceMap;
+		Array<VkFence>			imageFences;
 
 		UInt32 width;
 		UInt32 height;
@@ -183,7 +180,6 @@ namespace Quartz
 		VkImageUsageFlags	vkUsage;
 		VkImageType			vkImageType;
 
-		//@TODO: Get rid of this
 		VulkanDeviceMemoryAllocation*	pMemory;
 
 		UInt32 width;
@@ -222,7 +218,7 @@ namespace Quartz
 		UInt32							mBackbufferCount;
 
 	protected:
-		Bool8 InitInstance(const StringW& appName, const Array<String>& extensions,
+		Bool8 InitInstance(const String& appName, const Array<String>& extensions,
 			const Array<String>& validationLayers);
 		Bool8 InitDevices();
 
@@ -247,17 +243,14 @@ namespace Quartz
 	public:
 		VPLVulkanContext();
 
-		void PreInitialize() override;
-
-		void Initialize() override;
+		void InitInstanceAndDevices(const String& appName, const Array<String>& extensions, 
+			const Array<String>& validationLayers);
 
 		HGFXImage CreateImage(GFXImageType type, GFXImageUsages usages, GFXImageFormat imageFormat,
 			UInt32 width, UInt32 height, UInt32 depth, UInt32 mipLevels, UInt32 layers) override;
-		void DestroyImage(HGFXImage image) override;
 
 		HGFXImageView CreateImageView(HGFXImage image, GFXImageViewType viewType, GFXImageUsage usage,
 			UInt32 mipStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers) override;
-		void DestroyImageView(HGFXImageView imageView) override;
 
 		HGFXRenderPass CreateRenderPass(const GFXRenderPassInfo& renderPassInfo) override;
 

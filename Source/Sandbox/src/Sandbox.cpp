@@ -6,13 +6,8 @@
 
 #include "math/Math.h"
 
+#include "Win32WindowManager.h"
 #include "Win32Vulkan.h"
-#include "Win32PlatformConsole.h"
-#include "Win32Platform.h"
-#include "Win32PlatformTime.h"
-
-#include "Engine.h"
-#include "application/WindowManager.h"
 
 #include "object/OBJLoader.h"
 
@@ -23,12 +18,7 @@
 
 _declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
-#define SWAPCHAIN_IMAGE_COUNT 3
-#define FRAME_RESOURCE_COUNT 2
-
-#define MODEL_PATH "models/testScene.obj"
+#define MODEL_PATH "models/dragon.obj"
 #define DIFFUSE_PATH "textures/default.png"
 
 namespace Quartz
@@ -39,7 +29,7 @@ namespace Quartz
 
 		if (!file.is_open())
 		{
-			Log::Error("Cannot open file %s", filename.Str());
+			Log.Error("Cannot open file %s", filename.Str());
 			throw std::runtime_error("failed to open file!");
 		}
 
@@ -55,28 +45,30 @@ namespace Quartz
 	}
 }
 
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
+
 int main()
 {
 	using namespace Quartz;
 
-	Win32Platform win32Platform;
-	Win32VulkanContext win32VulkanContext;
+	Array<String> extensions;
+	extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	extensions.PushBack(VK_KHR_SURFACE_EXTENSION_NAME);
+	extensions.PushBack("VK_KHR_win32_surface");
 
-	EngineInfo engineInfo;
-	engineInfo.gameInfo.name = L"Sandbox";
-	engineInfo.gameInfo.version = L"0.0.0";
-	engineInfo.pPlatform = &win32Platform;
-	engineInfo.pGraphics = &win32VulkanContext;
-	engineInfo.showDebugConsole = true;
+	Array<String> validationLayers;
+	validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
 
-	Engine::Setup(engineInfo);
-	Engine::Start();
+	Win32VulkanContext* pVulkanContext = new Win32VulkanContext();
+	pVulkanContext->InitInstanceAndDevices("Sandbox", extensions, validationLayers);
 
-	GraphicsWindow* pWindow = WindowManager::CreateGraphicsWindow(100, 100, DEFAULT_WIDTH, DEFAULT_HEIGHT, L"Sandbox", SWAPCHAIN_IMAGE_COUNT);
-	pWindow->Show();
-	pWindow->Focus();
+	Win32WindowManager manager2;
+	Window& window = manager2.CreateWindow(StringW(L"Quartz Engine"), 100, 100, DEFAULT_WIDTH, DEFAULT_HEIGHT, false, true);
+	window.Show();
 
-	Win32VulkanContext* pVulkanContext = &win32VulkanContext;
+	HGFXSurface surface = pVulkanContext->CreateSurface(window, window.ClientWidth(), window.ClientWidth(), false, false);
+	HGFXSwapchain swapchain = pVulkanContext->CreateSwapchain(surface, window, 3, window.ClientWidth(), window.ClientWidth(), false, false);
 
 	GFXRenderAttachment colorAttachment;
 	colorAttachment.format = GFX_IMAGE_FORMAT_BGRA8_UNORM;
@@ -127,9 +119,9 @@ int main()
 
 	HGFXRenderPass renderPass = pVulkanContext->CreateRenderPass(renderPassInfo);
 
-	GFXGraphicsPipelineInfo pipelineInfo = {};
+	GFXGraphicsPipelineInfo pipelineInfo;
 	{
-		Bounds2f renderBounds(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+		Bounds2f renderBounds(0, 0, window.ClientWidth(), window.ClientHeight());
 
 		pipelineInfo.vertexShader = pVulkanContext->CreateShader(GFX_SHADER_STAGE_VERTEX, ReadFile("shaders/vert.spv"), "main");
 		pipelineInfo.pixelShader = pVulkanContext->CreateShader(GFX_SHADER_STAGE_PIXEL, ReadFile("shaders/frag.spv"), "main");
@@ -177,8 +169,6 @@ int main()
 		GFXBlendAttachment colorOutputBlendAttachment;
 		colorOutputBlendAttachment.blend = GFXColorBlend();
 		pipelineInfo.blendAttachments.PushBack(colorOutputBlendAttachment);
-
-		pipelineInfo.backbufferCount = SWAPCHAIN_IMAGE_COUNT;
 	}
 
 	HGFXGraphicsPipeline pipeline = pVulkanContext->CreateGraphicsPipeline(pipelineInfo, renderPass, 0);
@@ -205,7 +195,7 @@ int main()
 
 	ubo.model.SetTranslation({ 0.0f, 0.0f, 0.0f });
 	ubo.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
-	ubo.proj.SetPerspective(90.0f, (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
+	ubo.proj.SetPerspective(90.0f, DEFAULT_WIDTH / DEFAULT_HEIGHT, 0.0001f, 1000.0f);
 
 	HGFXBuffer vertexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.vertexData.buffer.Size());
@@ -219,11 +209,13 @@ int main()
 	memcpy(pIndexData, mModel.indexData.buffer.Data(), mModel.indexData.buffer.Size());
 	pVulkanContext->UnmapBuffer(indexBuffer);
 
-	HGFXCommandBuffer commandBuffers[SWAPCHAIN_IMAGE_COUNT];
-	HGFXFramebuffer frameBuffers[SWAPCHAIN_IMAGE_COUNT];
-	HGFXBuffer uniformBuffers[SWAPCHAIN_IMAGE_COUNT];
+	constexpr UInt32 BUFFER_COUNT = 3;
 
-	for (UInt32 i = 0; i < SWAPCHAIN_IMAGE_COUNT; i++)
+	HGFXCommandBuffer commandBuffers[BUFFER_COUNT];
+	HGFXFramebuffer frameBuffers[BUFFER_COUNT];
+	HGFXBuffer uniformBuffers[BUFFER_COUNT];
+
+	for (UInt32 i = 0; i < BUFFER_COUNT; i++)
 	{
 		uniformBuffers[i] = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, sizeof(UBO));
@@ -233,7 +225,7 @@ int main()
 
 		commandBuffers[i] = pVulkanContext->CreateCommandBuffer(GFX_COMMAND_BUFFER_USAGE_GRAPHICS_BIT);
 		
-		HGFXImageView swapChainImageView = pVulkanContext->GetSwapchainImageView(pWindow->swapchain, i);
+		HGFXImageView swapChainImageView = pVulkanContext->GetSwapchainImageView(swapchain, i);
 
 		Array<HGFXImageView> frameBufferImages =
 		{
@@ -259,49 +251,19 @@ int main()
 		pVulkanContext->EndCommandBuffer(commandBuffers[i]);
 	}
 
-	Double64 currentTime = 0;
-	Double64 lastTime = 0;
-	Double64 deltaTime = 0;
-	Double64 accumulatedTime = 0;
-	UInt32 frames = 0;
-	
-	Win32PlatformTime time;
-	currentTime = time.GetTimeNanoseconds();
-	lastTime = currentTime;
-
-	UInt32 frameIndex = 0;
-	UInt32 lastFrameIndex = 0;
-
 	while (true)
 	{
-		currentTime = time.GetTimeNanoseconds();
-		deltaTime = currentTime - lastTime;
-		accumulatedTime += deltaTime;
-		lastTime = currentTime;
-
-		if (accumulatedTime >= 1.0)
-		{
-			Log::Debug("FPS: %d", frames);
-			accumulatedTime = 0;
-			frames = 0;
-		}
-
-		lastFrameIndex = frameIndex;
-		frameIndex = pVulkanContext->AcquireSwapchainImageIndex(pWindow->swapchain);
+		UInt32 frameIndex = pVulkanContext->AcquireSwapchainImageIndex(swapchain);
 
 		void* pUniformData = pVulkanContext->MapBuffer(uniformBuffers[frameIndex]);
 		memcpy(pUniformData, &ubo, sizeof(UBO));
 		pVulkanContext->UnmapBuffer(uniformBuffers[frameIndex]);
 
-		pVulkanContext->Submit(commandBuffers[frameIndex], pWindow->swapchain);
-		pVulkanContext->Present(pWindow->swapchain);
+		pVulkanContext->Submit(commandBuffers[frameIndex], swapchain);
+		pVulkanContext->Present(swapchain);
 
-		win32Platform.PollEvents();
-
-		frames++;
+		manager2.Update();
 	}
-
-	WindowManager::DestroyGraphicsWindow(pWindow);
 
 	return 0;
 }

@@ -56,7 +56,7 @@ namespace Quartz
 	{
 		if (!EnumerateDeviceExtensionProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableExtensionProperties))
 		{
-			Log::Error("Failed to create vulkan logical device: Unable to enumerate device extesnsion properties!");
+			Log.Error("Failed to create vulkan logical device: Unable to enumerate device extesnsion properties!");
 			return false;
 		}
 
@@ -72,7 +72,7 @@ namespace Quartz
 
 			}
 
-			Log::Warning("Attempted to enable unsupported device extension [\'%s\']!", extName.Str());
+			Log.Warning("Attempted to enable unsupported device extension [\'%s\']!", extName.Str());
 			
 			extFound:;
 		}
@@ -89,7 +89,7 @@ namespace Quartz
 		/*
 		if (!EnumerateDeviceLayerProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableLayerProperties))
 		{
-			Log::Error("Failed to create vulkan logical device: Unable to enumerate device layer properties!");
+			Log.Error("Failed to create vulkan logical device: Unable to enumerate device layer properties!");
 			return false;
 		}
 
@@ -100,7 +100,7 @@ namespace Quartz
 
 			if (!EnumerateDeviceLayerExtentionProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), layer, availableLayerExtensionProperties))
 			{
-				Log::Warning("Failed to create vulkan logical device: Unable to enumerate device layer extensions for layer \'%s\'!", layer.layerName);
+				Log.Warning("Failed to create vulkan logical device: Unable to enumerate device layer extensions for layer \'%s\'!", layer.layerName);
 				//return false;
 			}
 
@@ -122,7 +122,7 @@ namespace Quartz
 
 		if (!EnumerateDeviceQueueFamilyProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), queueFamilyProperties))
 		{
-			Log::Error("Failed to create vulkan logical device: Unable to enumerate device queue family properties!");
+			Log.Error("Failed to create vulkan logical device: Unable to enumerate device queue family properties!");
 			return false;
 		}
 
@@ -180,7 +180,7 @@ namespace Quartz
 		}
 		else
 		{
-			Log::Critical("Failed to create logical device: No suitable graphics queue family found!");
+			Log.Critical("Failed to create logical device: No suitable graphics queue family found!");
 			return false;
 		}
 
@@ -222,7 +222,7 @@ namespace Quartz
 
 		if (vkCreateDevice(pPhysicalDevice->GetPhysicalDeviceHandle(), &deviceInfo, nullptr, &mDevice) != VK_SUCCESS)
 		{
-			Log::Critical("Failed to create logical device: vkCreateDevice failed!");
+			Log.Critical("Failed to create logical device: vkCreateDevice failed!");
 			return false;
 		}
 
@@ -271,7 +271,7 @@ namespace Quartz
 
 		if (vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPool) != VK_SUCCESS)
 		{
-			Log::Error("Failed to create descriptor pool: vkCreateDescriptorPool failed!");
+			Log.Error("Failed to create descriptor pool: vkCreateDescriptorPool failed!");
 			return false;
 		}
 
@@ -281,7 +281,7 @@ namespace Quartz
 
 		if (vkCreateCommandPool(mDevice, &graphicsCommandPoolInfo, nullptr, &mGraphicsCommandPool) != VK_SUCCESS)
 		{
-			Log::Error("Failed to create vulkan graphics command pool: vkCreateCommandPool failed!");
+			Log.Error("Failed to create vulkan graphics command pool: vkCreateCommandPool failed!");
 			return false;
 		}
 
@@ -293,7 +293,7 @@ namespace Quartz
 
 			if (vkCreateCommandPool(mDevice, &computeCommandPoolInfo, nullptr, &mComputeCommandPool) != VK_SUCCESS)
 			{
-				Log::Error("Failed to create vulkan compute command pool: vkCreateCommandPool failed!");
+				Log.Error("Failed to create vulkan compute command pool: vkCreateCommandPool failed!");
 				return false;
 			}
 		}
@@ -310,7 +310,7 @@ namespace Quartz
 
 			if (vkCreateCommandPool(mDevice, &transferCommandPoolInfo, nullptr, &mTransferCommandPool) != VK_SUCCESS)
 			{
-				Log::Error("Failed to create vulkan transfer command pool: vkCreateCommandPool failed!");
+				Log.Error("Failed to create vulkan transfer command pool: vkCreateCommandPool failed!");
 				return false;
 			}
 		}

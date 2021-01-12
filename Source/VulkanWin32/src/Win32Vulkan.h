@@ -14,11 +14,8 @@ namespace Quartz
 	class QUARTZ_API Win32VulkanContext : public VPLVulkanContext
 	{
 	public:
-		HGFXSurface CreateSurface(HVPWindow window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) override;
-		void DestroySurface(HGFXSurface surface) override;
-
-		HGFXSwapchain CreateSwapchain(HGFXSurface surface, UInt32 bufferCount,
+		HGFXSurface CreateSurface(Window& window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) override;
+		HGFXSwapchain CreateSwapchain(HGFXSurface surface, Window& window, UInt32 bufferCount,
 			UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) override;
-		void DestroySwapchain(HGFXSwapchain swapchain) override;
 	};
 }

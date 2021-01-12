@@ -474,13 +474,12 @@ namespace Quartz
 		return static_cast<UInt32>(value.Hash());
 	}
 
-	// @Todo: Speed up
 	FORCE_INLINE StringW StringAToStringW(const StringA& stringA)
 	{
 		StringW wide;
 		wide.Resize(stringA.Length());
 
-		char* pStr = const_cast<StringA&>(stringA).Data();
+		const char* pStr = stringA.Str();
 		wchar_t* pWide = wide.Data();
 
 		while (*pStr)
@@ -491,25 +490,6 @@ namespace Quartz
 		}
 
 		return wide;
-	}
-
-	// @Todo: Speed up
-	FORCE_INLINE StringA StringWToStringA(const StringW& stringW)
-	{
-		StringA ascii;
-		ascii.Resize(stringW.Length());
-
-		wchar_t* pStr = const_cast<StringW&>(stringW).Data();
-		char* pAscii = ascii.Data();
-
-		while (*pStr)
-		{
-			*pAscii = *reinterpret_cast<char*>(pStr);
-			++pAscii;
-			++pStr;
-		}
-
-		return ascii;
 	}
 
 	FORCE_INLINE String operator"" _STRING(const char* str, USize size)
