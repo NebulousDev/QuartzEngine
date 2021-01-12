@@ -1,19 +1,19 @@
 #pragma once
 
-#include "util\Singleton.h"
 #include "util\String.h"
 
 namespace Quartz
 {
-	class QUARTZ_API LogUtil : public Singleton<LogUtil>
+	class VPDebugConsole;
+
+	class QUARTZ_API DebugLogger
 	{
-	public:
-		friend class Singleton<LogUtil>;
-
 	private:
-		LogUtil() = default;
+		static VPDebugConsole* pDebugConsole;
 
 	public:
+		static void SetDebugConsole(VPDebugConsole& console);
+
 		static void Print(const char* format, ...);
 		static void Debug(const char* format, ...);
 		static void Info(const char* format, ...);
@@ -31,5 +31,5 @@ namespace Quartz
 		static void Critical(const wchar_t* format, ...);
 	};
 
-	#define Log LogUtil::GetInstanceHandle()
+	#define Log DebugLogger
 }

@@ -5,22 +5,22 @@
 
 namespace Quartz
 {
-    HGFXSurface Win32VulkanContext::CreateSurface(Window& window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
+    HGFXSurface Win32VulkanContext::CreateSurface(HVPWindow window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
     {
         VkSurfaceKHR surface;
 
-		Win32Window* pWindow = static_cast<Win32Window*>(&window);
+		Win32Window* pWindow = static_cast<Win32Window*>(window);
 
         VkWin32SurfaceCreateInfoKHR win32SurfaceInfo = {};
         win32SurfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         win32SurfaceInfo.hinstance = GetModuleHandle(nullptr);
-        win32SurfaceInfo.hwnd = (HWND)window.GetNativeHandle();
+        win32SurfaceInfo.hwnd = pWindow->GetHWND();
 
         VkResult result = vkCreateWin32SurfaceKHR(mVkInstance, &win32SurfaceInfo, nullptr, &surface);
 
         if (result != VK_SUCCESS)
         {
-            Log.Critical("vkCreateWin32SurfaceKHR failed to create surface!!!");
+            Log::Critical("vkCreateWin32SurfaceKHR failed to create surface!!!");
         }
 
 		Win32VulkanSurface* pSurface = new Win32VulkanSurface;
@@ -30,6 +30,13 @@ namespace Quartz
 
         return HGFXSurface(pSurface);
     }
+
+	void Win32VulkanContext::DestroySurface(HGFXSurface surface)
+	{
+		VulkanSurface* pSurface = static_cast<VulkanSurface*>(surface);
+		vkDestroySurfaceKHR(mVkInstance, pSurface->surface, VK_NULL_HANDLE);
+		delete pSurface;
+	}
 
 	Bool8 EnumerateSurfaceFormats(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, Array<VkSurfaceFormatKHR>& surfaceFormats)
 	{
@@ -61,7 +68,7 @@ namespace Quartz
 
 		if (!EnumerateSurfaceFormats(physicalDevice, surface, availableFormats))
 		{
-			Log.Error("Failed to pick surface format: Unable to enumerate surface formats!");
+			Log::Error("Failed to pick surface format: Unable to enumerate surface formats!");
 			return false;
 		}
 
@@ -84,7 +91,7 @@ namespace Quartz
 
 		if (!EnumeratePresentModes(physicalDevice, surface, availablePresentModes))
 		{
-			Log.Error("Failed to pick surface format: Unable to enumerate present modes!");
+			Log::Error("Failed to pick surface format: Unable to enumerate present modes!");
 			return false;
 		}
 
@@ -105,7 +112,7 @@ namespace Quartz
 		return true;
 	}
 
-    HGFXSwapchain Win32VulkanContext::CreateSwapchain(HGFXSurface surface, Window& window, UInt32 bufferCount, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
+    HGFXSwapchain Win32VulkanContext::CreateSwapchain(HGFXSurface surface, UInt32 bufferCount, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
     {
 		VkSurfaceFormatKHR selectedFormat;
 		VkPresentModeKHR selectedPresentMode;
@@ -118,20 +125,20 @@ namespace Quartz
 
 		if (!PickSurfaceFormat(physicalDevice, vkSurface, &selectedFormat))
 		{
-			Log.Error("Failed to create vulkan swapchain: No suitable surface format was detected!");
+			Log::Error("Failed to create vulkan swapchain: No suitable surface format was detected!");
 			return HGFX_NULL_HANDLE;
 		}
 
 		if (!PickPresentationMode(physicalDevice, vkSurface, vSync, &selectedPresentMode))
 		{
-			Log.Error("Failed to create vulkan swapchain: No suitable present mode was detected!");
+			Log::Error("Failed to create vulkan swapchain: No suitable present mode was detected!");
 			return HGFX_NULL_HANDLE;
 		}
 
 		VkSurfaceCapabilitiesKHR surfaceCapabilites;
 		if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, vkSurface, &surfaceCapabilites) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan swapchain: Failed to query surface capabilites!");
+			Log::Error("Failed to create vulkan swapchain: Failed to query surface capabilites!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -150,7 +157,7 @@ namespace Quartz
 		VkBool32 supportsPresent = false;
 		if (vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mpDevice->GetPresentQueue().GetFamilyIndex(), vkSurface, &supportsPresent) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan swapchain: Specified device and queue do not support presentation!");
+			Log::Error("Failed to create vulkan swapchain: Specified device and queue do not support presentation!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -158,6 +165,7 @@ namespace Quartz
 		if (bufferCount < surfaceCapabilites.minImageCount)
 		{
 			imageCount = surfaceCapabilites.minImageCount;
+			Log::Warning("Swapchain only supports %d backbuffers. %d requested.", imageCount, bufferCount);
 		}
 
 		VkSwapchainCreateInfoKHR swapChainInfo = {};
@@ -179,7 +187,7 @@ namespace Quartz
 
 		if (vkCreateSwapchainKHR(mpDevice->GetDeviceHandle(), &swapChainInfo, nullptr, &vkSwapchain) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan swapchain: vkCreateSwapchainKHR failed!");
+			Log::Error("Failed to create vulkan swapchain: vkCreateSwapchainKHR failed!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -196,7 +204,8 @@ namespace Quartz
 		pSwapchain->imageViews.Resize(swapChainImageCount);
 		pSwapchain->imageAcquiredSemaphores.Resize(swapChainImageCount);
 		pSwapchain->imageCompleteSemaphores.Resize(swapChainImageCount);
-		pSwapchain->imageFences.Resize(swapChainImageCount);
+		pSwapchain->allFences.Resize(swapChainImageCount);
+		pSwapchain->imageFenceMap.Resize(swapChainImageCount, VK_NULL_HANDLE);
 
 		for (UInt32 i = 0; i < swapChainImageCount; i++)
 		{
@@ -223,9 +232,14 @@ namespace Quartz
 			pSwapchain->imageViews[i].layerStart = 0;
 			pSwapchain->imageViews[i].layers = 1;
 
+			VkSemaphoreTypeCreateInfo vkSemaphoreType = {};
+			vkSemaphoreType.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+			vkSemaphoreType.semaphoreType = VK_SEMAPHORE_TYPE_BINARY;
+			vkSemaphoreType.initialValue = 0;
+
 			VkSemaphoreCreateInfo semaphoreInfo = {};
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-			semaphoreInfo.pNext = nullptr;
+			semaphoreInfo.pNext = &vkSemaphoreType;
 			semaphoreInfo.flags = 0;
 
 			VkFenceCreateInfo fenceInfo = {};
@@ -235,7 +249,7 @@ namespace Quartz
 
 			vkCreateSemaphore(mpDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &pSwapchain->imageAcquiredSemaphores[i]);
 			vkCreateSemaphore(mpDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &pSwapchain->imageCompleteSemaphores[i]);
-			vkCreateFence(mpDevice->GetDeviceHandle(), &fenceInfo, nullptr, &pSwapchain->imageFences[i]);
+			vkCreateFence(mpDevice->GetDeviceHandle(), &fenceInfo, nullptr, &pSwapchain->allFences[i]);
 		}
 
 		pSwapchain->vkSwapchain = vkSwapchain;
@@ -244,8 +258,33 @@ namespace Quartz
 		pSwapchain->width = swapChainInfo.imageExtent.width;
 		pSwapchain->height = swapChainInfo.imageExtent.height;
 		pSwapchain->imageIndex = 0;
+		pSwapchain->frameIndex = 0;
 
         return HGFXSwapchain(pSwapchain);
     }
+
+	void Win32VulkanContext::DestroySwapchain(HGFXSwapchain swapchain)
+	{
+		// @TODO: Implement some check if any images are in use?
+		// Note: I do not need to free image memory or destroy images because vkDestroySwapchain will do so.
+
+		VulkanSwapchain* pSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+
+		for (UInt32 i = 0; i < pSwapchain->imageViews.Size(); i++)
+		{
+			vkDestroyImageView(mpDevice->GetDeviceHandle(), pSwapchain->imageViews[i].vkImageView, VK_NULL_HANDLE);
+		}
+
+		for (UInt32 i = 0; i < pSwapchain->imageAcquiredSemaphores.Size(); i++)
+		{
+			vkDestroySemaphore(mpDevice->GetDeviceHandle(), pSwapchain->imageAcquiredSemaphores[i], VK_NULL_HANDLE);
+			vkDestroySemaphore(mpDevice->GetDeviceHandle(), pSwapchain->imageCompleteSemaphores[i], VK_NULL_HANDLE);
+			vkDestroyFence(mpDevice->GetDeviceHandle(), pSwapchain->allFences[i], VK_NULL_HANDLE);
+		}
+
+		vkDestroySwapchainKHR(mpDevice->GetDeviceHandle(), pSwapchain->vkSwapchain, VK_NULL_HANDLE);
+
+		delete pSwapchain;
+	}
 }
 

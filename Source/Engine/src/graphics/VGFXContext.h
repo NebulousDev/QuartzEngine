@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "util/Array.h"
 
-#include "platform/Window.h"
+#include "../platform/VPWindow.h"
 
 namespace Quartz
 {
@@ -347,6 +347,9 @@ namespace Quartz
 
 		Bool8 depthTesting;
 		GFXCompareOperation depthOperation;
+
+		// @Todo this should be moved
+		UInt32 backbufferCount;
 	};
 
 	enum GFXImageType
@@ -431,16 +434,24 @@ namespace Quartz
 	class QUARTZ_API VGFXContext
 	{
 	public:
-		virtual HGFXSurface CreateSurface(Window& window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) = 0;
-		
-		virtual HGFXSwapchain CreateSwapchain(HGFXSurface surface, Window& window, UInt32 bufferCount,
+		virtual void PreInitialize() = 0;
+
+		virtual void Initialize() = 0;
+
+		virtual HGFXSurface CreateSurface(HVPWindow window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) = 0;
+		virtual void DestroySurface(HGFXSurface surface) = 0;
+
+		virtual HGFXSwapchain CreateSwapchain(HGFXSurface surface, UInt32 bufferCount,
 			UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen) = 0;
+		virtual void DestroySwapchain(HGFXSwapchain swapchain) = 0;
 
 		virtual HGFXImage CreateImage(GFXImageType type, GFXImageUsages usages, GFXImageFormat imageFormat,
 			UInt32 width, UInt32 height, UInt32 depth, UInt32 mipLevels, UInt32 layers) = 0;
+		virtual void DestroyImage(HGFXImage image) = 0;
 
 		virtual HGFXImageView CreateImageView(HGFXImage image, GFXImageViewType viewType, GFXImageUsage usage,
 			UInt32 mipStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers) = 0;
+		virtual void DestroyImageView(HGFXImageView imageView) = 0;
 
 		virtual HGFXRenderPass CreateRenderPass(const GFXRenderPassInfo& renderPassInfo) = 0;
 

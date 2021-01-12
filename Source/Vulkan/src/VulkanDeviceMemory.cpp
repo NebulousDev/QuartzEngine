@@ -18,13 +18,13 @@ namespace Quartz
 		{
 			if (sizeBytes - offsetBytes > mSizeBytes)
 			{
-				Log.Error("Unable to map device memory: offset + size is out of bounds!");
+				Log::Error("Unable to map device memory: offset + size is out of bounds!");
 				return nullptr;
 			}
 
 			if (vkMapMemory(mDevice, mDeviceMemory, offsetBytes, sizeBytes, 0, &mpBuffer) != VK_SUCCESS)
 			{
-				Log.Error("Unable to map device memory: vkMapMemory failed!");
+				Log::Error("Unable to map device memory: vkMapMemory failed!");
 				return nullptr;
 			}
 
@@ -75,7 +75,7 @@ namespace Quartz
 
 		if (compatableMemoryTypeIndex == (UInt32)-1)
 		{
-			Log.Critical("Failed to allocate device memory: Unable to find a compatable memory type index!");
+			Log::Critical("Failed to allocate device memory: Unable to find a compatable memory type index!");
 			return nullptr;
 		}
 
@@ -84,7 +84,7 @@ namespace Quartz
 		VkDeviceMemory deviceMemory;
 		if (vkAllocateMemory(mpParentDevice->GetDeviceHandle(), &allocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to allocate device memory: vkAllocateMemory failed!");
+			Log::Critical("Failed to allocate device memory: vkAllocateMemory failed!");
 			return nullptr;
 		}
 
@@ -99,7 +99,7 @@ namespace Quartz
 
 	void VulkanDeviceMemoryAllocator::Free(VulkanDeviceMemoryAllocation* deviceAllocation)
 	{
-		//TODO
+		vkFreeMemory(mpParentDevice->GetDeviceHandle(), deviceAllocation->GetDeviceMemoryHandle(), VK_NULL_HANDLE);
 	}
 	
 }

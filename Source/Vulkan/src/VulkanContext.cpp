@@ -1,8 +1,10 @@
 #include "VulkanContext.h"
 
-#include "log/log.h"
+#include "log/Log.h"
 #include "VulkanUtil.h"
 #include "SPIRVUtil.h"
+
+#include "Engine.h"
 
 #include <cstdio>
 
@@ -16,15 +18,15 @@ namespace Quartz
 	{
 		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		{
-			Log.Error("%s\n", pCallbackData->pMessage);
+			Log::Error("%s\n", pCallbackData->pMessage);
 		}
 		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
 		{
-			Log.Warning("%s\n", pCallbackData->pMessage);
+			Log::Warning("%s\n", pCallbackData->pMessage);
 		}
 		else
 		{
-			//Log.Debug("%s\n", pCallbackData->pMessage);
+			//Log::Debug("%s\n", pCallbackData->pMessage);
 		}
 
 		return VK_FALSE;
@@ -66,12 +68,14 @@ namespace Quartz
 		return result == VK_SUCCESS;
 	}
 
-	Bool8 VPLVulkanContext::InitInstance(const String& appName, const Array<String>& extensions,
+	Bool8 VPLVulkanContext::InitInstance(const StringW& appName, const Array<String>& extensions,
 		const Array<String>& validationLayers)
 	{
+		String appNameA = StringWToStringA(appName).Str();
+
 		if (!EnumerateVkLayerProperties(mAvailableLayers))
 		{
-			Log.Warning("Failed to create a vulkan instance: Unable to enumerate validation layers!");
+			Log::Warning("Failed to create a vulkan instance: Unable to enumerate validation layers!");
 		}
 
 		for (const String& layerName : validationLayers)
@@ -85,14 +89,14 @@ namespace Quartz
 				}
 			}
 
-			Log.Warning("Attempted to enable unsupported vulkan instance layer [\'%s\']!", layerName.Str());
+			Log::Warning("Attempted to enable unsupported vulkan instance layer [\'%s\']!", layerName.Str());
 
 			layerFound:;
 		}
 
 		if (!EnumerateVkExtensionProperties(mAvailableExtensions))
 		{
-			Log.Warning("Failed to create a vulkan instance: Unable to enumerate extensions!");
+			Log::Warning("Failed to create a vulkan instance: Unable to enumerate extensions!");
 		}
 
 		for (const String& extName : extensions)
@@ -106,7 +110,7 @@ namespace Quartz
 				}
 			}
 
-			Log.Warning("Attempted to enable unsupported vulkan instance extension [\'%s\']!", extName.Str());
+			Log::Warning("Attempted to enable unsupported vulkan instance extension [\'%s\']!", extName.Str());
 
 			extFound:;
 		}
@@ -124,7 +128,7 @@ namespace Quartz
 
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = appName.Str();
+		appInfo.pApplicationName = appNameA.Str();
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Quartz Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -141,7 +145,7 @@ namespace Quartz
 
 		if (vkCreateInstance(&createInfo, NULL, &mVkInstance) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to create a vulkan instance: vkCreateInstance failed!");
+			Log::Critical("Failed to create a vulkan instance: vkCreateInstance failed!");
 			return false;
 		}
 
@@ -151,11 +155,11 @@ namespace Quartz
 
 		if (!vkCreateDebugUtilsMessengerEXT)
 		{
-			Log.Warning("Failed to address for \"PFN_vkCreateDebugUtilsMessengerEXT\"! No validation messages will be displayed!");
+			Log::Warning("Failed to address for \"PFN_vkCreateDebugUtilsMessengerEXT\"! No validation messages will be displayed!");
 		}
 		else if (vkCreateDebugUtilsMessengerEXT(mVkInstance, &debugMessengerInfo, NULL, &mDebugMessenger) != VK_SUCCESS)
 		{
-			Log.Warning("Failed to create validation debug messenger! No validation messages will be displayed!");
+			Log::Warning("Failed to create validation debug messenger! No validation messages will be displayed!");
 		}
 
 		return true;
@@ -165,7 +169,7 @@ namespace Quartz
 	{
 		if (!EnumerateVkPhysicalDevices(mVkInstance, mAvailablePhysicalDevices))
 		{
-			Log.Error("Failed to initialize graphics device: vkEnumeratePhysicalDevices failed!");
+			Log::Error("Failed to initialize graphics device: vkEnumeratePhysicalDevices failed!");
 			return false;
 		}
 
@@ -192,7 +196,7 @@ namespace Quartz
 
 		if (pPhyiscalDeviceCandidate == nullptr)
 		{
-			Log.Critical("Failed to initialize graphics device: No suitable graphics adapter was detected!");
+			Log::Critical("Failed to initialize graphics device: No suitable graphics adapter was detected!");
 			return false;
 		}
 
@@ -203,7 +207,7 @@ namespace Quartz
 
 		if (!mpDevice->IsValidDevice())
 		{
-			Log.Critical("Failed to initialize graphics device: No valid device was created!");
+			Log::Critical("Failed to initialize graphics device: No valid device was created!");
 			return false;
 		}
 
@@ -222,13 +226,6 @@ namespace Quartz
 	{
 		// Nothing
 	}
-
-	void VPLVulkanContext::InitInstanceAndDevices(const String& appName, const Array<String>& extensions,
-		const Array<String>& validationLayers)
-    {
-		InitInstance(appName, extensions, validationLayers);
-		InitDevices();
-    }
 
 	void VPLVulkanContext::CreateImageImpl(VkImage* pVkImage, VulkanDeviceMemoryAllocation* pMemory, VkImageType vkImageType,
 		VkImageUsageFlags vkUsageFlags, VkFormat vkFormat, UInt32 width, UInt32 height, UInt32 depth, UInt32 mipLevels, UInt32 layers)
@@ -253,7 +250,7 @@ namespace Quartz
 
 		if (vkCreateImage(mpDevice->GetDeviceHandle(), &vkImageInfo, nullptr, &vkImage) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan image: vkCreateImage failed!");
+			Log::Error("Failed to create vulkan image: vkCreateImage failed!");
 			return;
 		}
 
@@ -265,13 +262,13 @@ namespace Quartz
 
 		if (pMemoryImpl == nullptr)
 		{
-			Log.Error("Failed to create vulkan image: Failed to allocate device memory!");
+			Log::Error("Failed to create vulkan image: Failed to allocate device memory!");
 			return;
 		}
 
 		if (vkBindImageMemory(mpDevice->GetDeviceHandle(), vkImage, pMemoryImpl->GetDeviceMemoryHandle(), 0) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan buffer object: vkBindBufferMemory failed!");
+			Log::Error("Failed to create vulkan buffer object: vkBindBufferMemory failed!");
 
 			allocator.Free(pMemoryImpl);
 			vkDestroyImage(mpDevice->GetDeviceHandle(), vkImage, nullptr);
@@ -308,7 +305,7 @@ namespace Quartz
 
 		if (vkCreateImageView(mpDevice->GetDeviceHandle(), &vkImageViewInfo, nullptr, &vkImageView) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan image view: vkCreateImageView failed!");
+			Log::Error("Failed to create vulkan image view: vkCreateImageView failed!");
 			return;
 		}
 
@@ -327,7 +324,7 @@ namespace Quartz
 
 		if (vkCreateDescriptorSetLayout(mpDevice->GetDeviceHandle(), &vkDescriptorSetLayoutInfo, nullptr, &vkDescriptorSetLayout) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan descriptor set layout: vkCreateDescriptorSetLayout failed!");
+			Log::Error("Failed to create vulkan descriptor set layout: vkCreateDescriptorSetLayout failed!");
 			return;
 		}
 
@@ -350,7 +347,7 @@ namespace Quartz
 
 		if (vkCreatePipelineLayout(mpDevice->GetDeviceHandle(), &vkLayoutInfo, nullptr, &vkPipelineLayout) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan pipeline layout: vkCreatePipelineLayout failed!");
+			Log::Error("Failed to create vulkan pipeline layout: vkCreatePipelineLayout failed!");
 			return;
 		}
 
@@ -390,7 +387,7 @@ namespace Quartz
 		}
 		else
 		{
-			Log.Error("Failed to create vulkan graphics pipeline: No required vertex shader attached!");
+			Log::Error("Failed to create vulkan graphics pipeline: No required vertex shader attached!");
 			return;
 		}
 
@@ -404,7 +401,7 @@ namespace Quartz
 		}
 		else
 		{
-			Log.Error("Failed to create vulkan graphics pipeline: No required pixel shader attached!");
+			Log::Error("Failed to create vulkan graphics pipeline: No required pixel shader attached!");
 			return;
 		}
 
@@ -513,13 +510,13 @@ namespace Quartz
 		if (multisamples == 0)
 		{
 			multisamples = 1;
-			Log.Warning("Invalid zero multisample value in pipeline creation, setting multisamples to 1");
+			Log::Warning("Invalid zero multisample value in pipeline creation, setting multisamples to 1");
 		}
 
 		if (info.multisamples > maxMultisamples)
 		{
 			multisamples = maxMultisamples;
-			Log.Warning("Invalid maximum multisample value in pipeline creation, setting multisamples to maxMultisamples");
+			Log::Warning("Invalid maximum multisample value in pipeline creation, setting multisamples to maxMultisamples");
 		}
 
 		VkPipelineMultisampleStateCreateInfo vkMultisampleInfo = {};
@@ -614,7 +611,7 @@ namespace Quartz
 
 		if (vkCreateGraphicsPipelines(mpDevice->GetDeviceHandle(), VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &vkPipeline) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan graphics pipeline: vkCreateGraphicsPipelines failed!");
+			Log::Error("Failed to create vulkan graphics pipeline: vkCreateGraphicsPipelines failed!");
 			return;
 		}
 
@@ -680,6 +677,16 @@ namespace Quartz
 		return HGFXImage(pImage);
 	}
 
+	void VPLVulkanContext::DestroyImage(HGFXImage image)
+	{
+		VulkanImage* pImage = static_cast<VulkanImage*>(image);
+
+		vkFreeMemory(mpDevice->GetDeviceHandle(), pImage->pMemory->GetDeviceMemoryHandle(), VK_NULL_HANDLE);
+		mpDevice->GetDeviceMemoryAllocator().Free(pImage->pMemory);
+
+		delete pImage;
+	}
+
 	HGFXImageView VPLVulkanContext::CreateImageView(HGFXImage image, GFXImageViewType viewType, GFXImageUsage usage, 
 		UInt32 mipStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers)
 	{
@@ -708,6 +715,15 @@ namespace Quartz
 		pImageView->layers = layers;
 
 		return HGFXImageView(pImageView);
+	}
+
+	void VPLVulkanContext::DestroyImageView(HGFXImageView imageView)
+	{
+		VulkanImageView* pImageView = static_cast<VulkanImageView*>(imageView);
+
+		vkDestroyImageView(mpDevice->GetDeviceHandle(), pImageView->vkImageView, VK_NULL_HANDLE);
+
+		delete pImageView;
 	}
 
 	HGFXRenderPass VPLVulkanContext::CreateRenderPass(const GFXRenderPassInfo& info)
@@ -821,7 +837,7 @@ namespace Quartz
 
 		if (vkCreateRenderPass(mpDevice->GetDeviceHandle(), &vkRenderPassCreateInfo, nullptr, &vkRenderPass) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan render pass: vkCreateRenderPass failed!");
+			Log::Error("Failed to create vulkan render pass: vkCreateRenderPass failed!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -852,7 +868,7 @@ namespace Quartz
 
 		if (vkCreateFramebuffer(mpDevice->GetDeviceHandle(), &framebufferInfo, nullptr, &vkFramebuffer) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan frame buffer: vkCreateFramebuffer failed!");
+			Log::Error("Failed to create vulkan frame buffer: vkCreateFramebuffer failed!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -927,6 +943,28 @@ namespace Quartz
 
 			setIndex++;
 		}
+	}
+
+	void VPLVulkanContext::PreInitialize()
+	{
+		Log::Debug("Pre-initializing Vulkan Graphics...");
+		// Nothing
+	}
+
+	void VPLVulkanContext::Initialize()
+	{
+		Log::Debug("Initializing Vulkan Graphics...");
+
+		Array<String> extensions;
+		extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		extensions.PushBack(VK_KHR_SURFACE_EXTENSION_NAME);
+		extensions.PushBack("VK_KHR_win32_surface");
+
+		Array<String> validationLayers;
+		validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
+
+		InitInstance(Engine::GetGameInfo().name, extensions, validationLayers);
+		InitDevices();
 	}
 
     HGFXGraphicsPipeline VPLVulkanContext::CreateGraphicsPipeline(const GFXGraphicsPipelineInfo& info, HGFXRenderPass renderPass, UInt32 renderPassIndex)
@@ -1064,7 +1102,7 @@ namespace Quartz
 		}
 
 		// @Todo: Properly implement SetBackbufferCount()
-		mBackbufferCount = 3;
+		mBackbufferCount = info.backbufferCount;
 		Array<VkDescriptorSet> descriptorSets(mBackbufferCount);
 
 		for (UInt32 i = 0; i < mBackbufferCount; i++)
@@ -1120,7 +1158,7 @@ namespace Quartz
 
 		if (vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, &vkCommandBuffer) != VK_SUCCESS)
 		{
-			Log.Error("Failed to allocate command buffer: vkAllocateCommandBuffers failed!");
+			Log::Error("Failed to allocate command buffer: vkAllocateCommandBuffers failed!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -1140,7 +1178,7 @@ namespace Quartz
 		//TODO: remove entrypoint specification
 		if (entryPoint == nullptr)
 		{
-			Log.Error("Failed to create shader: no shader entry name specified!");
+			Log::Error("Failed to create shader: no shader entry name specified!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -1151,13 +1189,13 @@ namespace Quartz
 
 		if (vkCreateShaderModule(mpDevice->GetDeviceHandle(), &shaderInfo, nullptr, &vkShader) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create shader: vkCreateShaderModule failed!");
+			Log::Error("Failed to create shader: vkCreateShaderModule failed!");
 			return HGFX_NULL_HANDLE;
 		}
 
 		if (!SpirvParseReflection(&reflection, shaderData))
 		{
-			Log.Error("Failed to create shader: Failed to parse SPIR-V reflection data!");
+			Log::Error("Failed to create shader: Failed to parse SPIR-V reflection data!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -1185,7 +1223,7 @@ namespace Quartz
 
 		if (vkCreateBuffer(mpDevice->GetDeviceHandle(), &bufferInfo, nullptr, &vkBuffer) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan buffer object: vkCreateBuffer failed!");
+			Log::Error("Failed to create vulkan buffer object: vkCreateBuffer failed!");
 			return HGFX_NULL_HANDLE;
 		}
 
@@ -1198,13 +1236,13 @@ namespace Quartz
 
 		if (pMemory == nullptr)
 		{
-			Log.Error("Failed to create vulkan buffer object: Failed to allocate device memory!");
+			Log::Error("Failed to create vulkan buffer object: Failed to allocate device memory!");
 			return HGFX_NULL_HANDLE;
 		}
 
 		if (vkBindBufferMemory(mpDevice->GetDeviceHandle(), vkBuffer, pMemory->GetDeviceMemoryHandle(), 0) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan buffer object: vkBindBufferMemory failed!");
+			Log::Error("Failed to create vulkan buffer object: vkBindBufferMemory failed!");
 
 			allocator.Free(pMemory);
 			vkDestroyBuffer(mpDevice->GetDeviceHandle(), vkBuffer, nullptr);
@@ -1253,7 +1291,7 @@ namespace Quartz
 
 		if (vkBeginCommandBuffer(pCommandBuffer->vkCommandBuffer, &beginInfo) != VK_SUCCESS)
 		{
-			Log.Error("Failed to begin command buffer recording: vkBeginCommandBuffer failed!");
+			Log::Error("Failed to begin command buffer recording: vkBeginCommandBuffer failed!");
 		}
 	}
 
@@ -1263,7 +1301,7 @@ namespace Quartz
 
 		if (vkEndCommandBuffer(pCommandBuffer->vkCommandBuffer) != VK_SUCCESS)
 		{
-			Log.Error("Failed to end command buffer recording: vkBeginCommandBuffer failed!");
+			Log::Error("Failed to end command buffer recording: vkBeginCommandBuffer failed!");
 		}
 	}
 
@@ -1347,8 +1385,11 @@ namespace Quartz
 
 		VkCommandBuffer commandBuffers[] = { pCommandBuffer->vkCommandBuffer };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		VkSemaphore waitSemaphores[] = { pVulkanSwapchain->imageAcquiredSemaphores[pVulkanSwapchain->imageIndex] };
-		VkSemaphore signalSemaphores[] = { pVulkanSwapchain->imageCompleteSemaphores[pVulkanSwapchain->imageIndex] };
+		VkSemaphore waitSemaphores[] = { pVulkanSwapchain->imageAcquiredSemaphores[pVulkanSwapchain->frameIndex] };
+		VkSemaphore signalSemaphores[] = { pVulkanSwapchain->imageCompleteSemaphores[pVulkanSwapchain->frameIndex] };
+
+		//vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex], VK_TRUE, UINT64_MAX);
+		vkResetFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex]);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1362,13 +1403,9 @@ namespace Quartz
 
 		VulkanQueue& graphicsQueue = mpDevice->GetGrahpicsQueue();
 
-		//vkWaitForFences(vulkanDevice.GetDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
-
-		vkResetFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->imageFences[pVulkanSwapchain->imageIndex]);
-
-		if (vkQueueSubmit(graphicsQueue.GetQueueHandle(), 1, &submitInfo, pVulkanSwapchain->imageFences[pVulkanSwapchain->imageIndex]) != VK_SUCCESS)
+		if (vkQueueSubmit(graphicsQueue.GetQueueHandle(), 1, &submitInfo, pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex]) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to submit queue: vkQueueSubmit failed!");
+			Log::Critical("Failed to submit queue: vkQueueSubmit failed!");
 		}
 	}
 
@@ -1377,7 +1414,7 @@ namespace Quartz
 	{
 		VulkanSwapchain* pVulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
 
-		VkSemaphore signalSemaphores[] = { pVulkanSwapchain->imageCompleteSemaphores[pVulkanSwapchain->imageIndex] };
+		VkSemaphore signalSemaphores[] = { pVulkanSwapchain->imageCompleteSemaphores[pVulkanSwapchain->frameIndex] };
 		VkSwapchainKHR swapChains[] = { pVulkanSwapchain->vkSwapchain };
 		UInt32 imageIndices[] = { pVulkanSwapchain->imageIndex };
 
@@ -1393,6 +1430,9 @@ namespace Quartz
 		VulkanQueue& presentQueue = mpDevice->GetPresentQueue();
 
 		vkQueuePresentKHR(presentQueue.GetQueueHandle(), &presentInfo);
+
+		// @TODO: Might not be % imageCount
+		pVulkanSwapchain->frameIndex = (pVulkanSwapchain->frameIndex + 1) % pVulkanSwapchain->imageCount;
 	}
 
 	void VPLVulkanContext::SetUniformBuffer(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXBuffer buffer, UInt32 backbufferIndex)
@@ -1422,18 +1462,22 @@ namespace Quartz
 	{
 		VulkanSwapchain* pVulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
 
-		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->imageFences[pVulkanSwapchain->imageIndex], VK_TRUE, UINT64_MAX);
+		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex], VK_TRUE, UINT64_MAX);
 
 		UInt32 imageIndex;
 		if (vkAcquireNextImageKHR(mpDevice->GetDeviceHandle(), pVulkanSwapchain->vkSwapchain, UINT64_MAX,
-			pVulkanSwapchain->imageAcquiredSemaphores[pVulkanSwapchain->imageIndex], VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+			pVulkanSwapchain->imageAcquiredSemaphores[pVulkanSwapchain->frameIndex], VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
-			Log.Error("Error acquiring next image index: vkAcquireNextImageKHR failed!");
+			Log::Error("Error acquiring next image index: vkAcquireNextImageKHR failed!");
 			return (UInt32)-1;
 		}
 
-		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->imageFences[imageIndex], VK_TRUE, UINT64_MAX);
+		if (pVulkanSwapchain->imageFenceMap[imageIndex] != VK_NULL_HANDLE)
+		{
+			vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->imageFenceMap[imageIndex], VK_TRUE, UINT64_MAX);
+		}
 
+		pVulkanSwapchain->imageFenceMap[imageIndex] = pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex];
 		pVulkanSwapchain->imageIndex = imageIndex;
 
 		return imageIndex;

@@ -25,7 +25,7 @@ namespace Quartz
 		Array<RAWINPUTDEVICELIST>	mPolledRawInputDevices;
 		Set<InputDeviceId>			mPolledIds;
 
-		Window* mpCapturedWindow;
+		VPWindow* mpCapturedWindow;
 
 	public:
 		void PollConnections() override;

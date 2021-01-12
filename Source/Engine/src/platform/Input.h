@@ -5,7 +5,7 @@
 #include "util\Map.h"
 #include "util\Set.h"
 #include "util\String.h"
-#include "Window.h"
+#include "VPWindow.h"
 
 namespace Quartz
 {
