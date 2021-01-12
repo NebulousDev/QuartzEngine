@@ -1,6 +1,6 @@
 # Quartz Engine
 Quartz Engine is a fully 3D game engine built in C++ using Vulkan.
-This is primarily a personal project, **builds are not gurenteed to work**.
+This is primarily a personal project.
 
 ## Features (WIP)
 - [ ] Core
@@ -28,6 +28,7 @@ This is primarily a personal project, **builds are not gurenteed to work**.
   - [x] Vert/Frag Shaders
   - [ ] Geom/Tess Shaders
   - [ ] Mesh Shaders
+  - [ ] Ray Tracing Shaders
   - [ ] Compute shaders
   - [ ] Physically Based Rendering
   - [ ] Shader reflection
@@ -72,6 +73,6 @@ This is primarily a personal project, **builds are not gurenteed to work**.
 ## Dependencies
 * C++17 or higher
 * Vulkan SDK
-  * Any vulkan 1.2+ SDK with VULKAN_SDK path set
+  * Any Vulkan 1.2+ SDK with VULKAN_SDK path set
 * Windows SDK
   * Any Windows 10 SDK (you may need to retarget solution)
