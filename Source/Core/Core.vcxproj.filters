@@ -123,34 +123,37 @@
     <ClInclude Include="src\math2\MathUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Buffer.h">
+    <ClInclude Include="src\math\Bounds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\StringParser.h">
+    <ClInclude Include="src\math\Point.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\BitSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Heap.h">
+    <ClInclude Include="src\util\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Tuple.h">
+    <ClInclude Include="src\util\Heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\SparseSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Set.h">
+    <ClInclude Include="src\util\Storage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\StringParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\Tuple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\Utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\Storage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math\Point.h">
+    <ClInclude Include="src\util\Set.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -159,9 +162,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\memory\Memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\math\Bounds.h">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

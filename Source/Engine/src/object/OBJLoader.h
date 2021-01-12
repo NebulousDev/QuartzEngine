@@ -10,5 +10,5 @@
 namespace Quartz
 {
 	// Load a Model from OBJ
-	Model LoadOBJ(const String& data);
+	QUARTZ_API Model LoadOBJ(const String& data);
 }

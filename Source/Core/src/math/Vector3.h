@@ -6,6 +6,8 @@
 
 #include "Defines.h"
 
+struct Vector2;
+
 /**
 	3 floating-point vector
 */

@@ -118,6 +118,7 @@ namespace Quartz
 				{
 					if (pItr->IsLast())
 					{
+						++pItr;
 						return *this;
 					}
 
@@ -471,22 +472,8 @@ namespace Quartz
 				return nullptr;
 			}
 
-			return Iterator(&mTable[mCapacity - 1]);
+			return Iterator(mTable.Data() + mCapacity);
 		}
-
-		/*
-		const Iterator begin() const noexcept
-		{
-			Iterator itr(&mTable[0]);
-			if (mTable[0].IsEmpty()) { ++itr; }
-			return itr;
-		}
-
-		const Iterator end() const noexcept
-		{
-			return Iterator(&mTable[mCapacity - 1]);
-		}
-		*/
 
 		TableEntryType* Data()
 		{

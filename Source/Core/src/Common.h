@@ -30,11 +30,11 @@ namespace Quartz
 	typedef unsigned __int16 UInt16;
 	typedef unsigned __int8  UInt8;
 
-	#ifdef QUARTZ_64
+#ifdef QUARTZ_64
 	typedef unsigned __int64 USize;
-	#else
+#else
 	typedef unsigned __int32 USize;
-	#endif // QUARTZ_64
+#endif // QUARTZ_64
 
 	typedef bool   Bool8;	// <- Would really like this to be Bool (but Win32API is dumb)
 	typedef float  Float32;
@@ -43,7 +43,7 @@ namespace Quartz
 	typedef UInt8 Byte;
 
 	typedef char Char;
-	typedef wchar_t WChar;
+	typedef UInt16 WChar;
 
 	typedef UInt8 Flags8;
 	typedef UInt16 Flags16;

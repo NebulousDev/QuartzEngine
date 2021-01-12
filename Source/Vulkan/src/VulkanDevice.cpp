@@ -54,20 +54,9 @@ namespace Quartz
 
 	Bool8 VulkanDevice::InitDevice(VulkanPhysicalDevice* pPhysicalDevice, const Array<String>& deviceExtensions)
 	{
-		// NOTE: According to the vulkan spec, device-specific layers are now deprecated.
-		// Some code only acts as a fallback for users without updated drivers.
-
-		// NOTE: I Also need to keep layer extensions available for RenderDoc
-
-		if (!EnumerateDeviceLayerProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableLayerProperties))
-		{
-			Log.Error("Failed to create vulkan logical device: Unable to enumerate device layer properties!");
-			return false;
-		}
-
 		if (!EnumerateDeviceExtensionProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableExtensionProperties))
 		{
-			Log.Error("Failed to create vulkan logical device: Unable to enumerate device extesnsion properties!");
+			Log::Error("Failed to create vulkan logical device: Unable to enumerate device extesnsion properties!");
 			return false;
 		}
 
@@ -83,13 +72,26 @@ namespace Quartz
 
 			}
 
-			Log.Warning("Attempted to enable unsupported device extension [\'%s\']!", extName.Str());
+			Log::Warning("Attempted to enable unsupported device extension [\'%s\']!", extName.Str());
 			
 			extFound:;
 		}
 
 		Array<Array<VkExtensionProperties>> availableLayerExtensionPropertiesList;
 		availableLayerExtensionPropertiesList.Resize(mAvailableLayerProperties.Size());
+
+
+		// NOTE: According to the vulkan spec, device-specific layers are now deprecated.
+		// Some code only acts as a fallback for users without updated drivers.
+
+		// NOTE: I Also need to keep layer extensions available for RenderDoc
+
+		/*
+		if (!EnumerateDeviceLayerProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), mAvailableLayerProperties))
+		{
+			Log::Error("Failed to create vulkan logical device: Unable to enumerate device layer properties!");
+			return false;
+		}
 
 		UInt32 layerPropertiesIndex = 0;
 		for (const VkLayerProperties& layer : mAvailableLayerProperties)
@@ -98,13 +100,11 @@ namespace Quartz
 
 			if (!EnumerateDeviceLayerExtentionProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), layer, availableLayerExtensionProperties))
 			{
-				Log.Warning("Failed to create vulkan logical device: Unable to enumerate device layer extensions for layer \'%s\'!", layer.layerName);
+				Log::Warning("Failed to create vulkan logical device: Unable to enumerate device layer extensions for layer \'%s\'!", layer.layerName);
 				//return false;
 			}
 
 			mEnabledLayerNames.PushBack(layer.layerName);
-
-#if 0 // Append layer extensions
 
 			for (const VkExtensionProperties& extension : availableLayerExtensionProperties)
 			{
@@ -113,16 +113,16 @@ namespace Quartz
 					mEnabledExtensionNames.PushBack(extension.extensionName);
 				}
 			}
-#endif
 
 			++layerPropertiesIndex;
 		}
+		*/
 
 		Array<VkQueueFamilyProperties> queueFamilyProperties;
 
 		if (!EnumerateDeviceQueueFamilyProperties(pPhysicalDevice->GetPhysicalDeviceHandle(), queueFamilyProperties))
 		{
-			Log.Error("Failed to create vulkan logical device: Unable to enumerate device queue family properties!");
+			Log::Error("Failed to create vulkan logical device: Unable to enumerate device queue family properties!");
 			return false;
 		}
 
@@ -180,7 +180,7 @@ namespace Quartz
 		}
 		else
 		{
-			Log.Critical("Failed to create logical device: No suitable graphics queue family found!");
+			Log::Critical("Failed to create logical device: No suitable graphics queue family found!");
 			return false;
 		}
 
@@ -208,6 +208,7 @@ namespace Quartz
 		}
 
 		VkPhysicalDeviceFeatures deviceFeatures {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;	//TODO: expose
 
 		VkDeviceCreateInfo deviceInfo		= {};
 		deviceInfo.sType					= VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -221,7 +222,7 @@ namespace Quartz
 
 		if (vkCreateDevice(pPhysicalDevice->GetPhysicalDeviceHandle(), &deviceInfo, nullptr, &mDevice) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to create logical device: vkCreateDevice failed!");
+			Log::Critical("Failed to create logical device: vkCreateDevice failed!");
 			return false;
 		}
 
@@ -242,11 +243,11 @@ namespace Quartz
 		// TODO: allow better present queue selection
 		mpPresentQueue = mpGraphicsQueue;
 
-		vkDebugMarkerSetObjectTag = (PFN_vkDebugMarkerSetObjectTagEXT)vkGetDeviceProcAddr(mDevice, "vkDebugMarkerSetObjectTagEXT");
-		vkDebugMarkerSetObjectName = (PFN_vkDebugMarkerSetObjectNameEXT)vkGetDeviceProcAddr(mDevice, "vkDebugMarkerSetObjectNameEXT");
-		vkCmdDebugMarkerBegin = (PFN_vkCmdDebugMarkerBeginEXT)vkGetDeviceProcAddr(mDevice, "vkCmdDebugMarkerBeginEXT");
-		vkCmdDebugMarkerEnd = (PFN_vkCmdDebugMarkerEndEXT)vkGetDeviceProcAddr(mDevice, "vkCmdDebugMarkerEndEXT");
-		vkCmdDebugMarkerInsert = (PFN_vkCmdDebugMarkerInsertEXT)vkGetDeviceProcAddr(mDevice, "vkCmdDebugMarkerInsertEXT");
+		vkSetDebugUtilsObjectTag = (PFN_vkSetDebugUtilsObjectTagEXT)vkGetDeviceProcAddr(mDevice, "vkSetDebugUtilsObjectTagEXT");
+		vkSetDebugUtilsObjectName = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(mDevice, "vkSetDebugUtilsObjectNameEXT");
+		vkCmdBeginDebugUtilsLabel = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetDeviceProcAddr(mDevice, "vkCmdBeginDebugUtilsLabelEXT");
+		vkCmdInsertDebugUtilsLabel = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetDeviceProcAddr(mDevice, "vkCmdInsertDebugUtilsLabelEXT");
+		vkCmdEndDebugUtilsLabel = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetDeviceProcAddr(mDevice, "vkCmdEndDebugUtilsLabelEXT");
 
 		return true;
 	}
@@ -270,7 +271,7 @@ namespace Quartz
 
 		if (vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPool) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create descriptor pool: vkCreateDescriptorPool failed!");
+			Log::Error("Failed to create descriptor pool: vkCreateDescriptorPool failed!");
 			return false;
 		}
 
@@ -280,7 +281,7 @@ namespace Quartz
 
 		if (vkCreateCommandPool(mDevice, &graphicsCommandPoolInfo, nullptr, &mGraphicsCommandPool) != VK_SUCCESS)
 		{
-			Log.Error("Failed to create vulkan graphics command pool: vkCreateCommandPool failed!");
+			Log::Error("Failed to create vulkan graphics command pool: vkCreateCommandPool failed!");
 			return false;
 		}
 
@@ -292,7 +293,7 @@ namespace Quartz
 
 			if (vkCreateCommandPool(mDevice, &computeCommandPoolInfo, nullptr, &mComputeCommandPool) != VK_SUCCESS)
 			{
-				Log.Error("Failed to create vulkan compute command pool: vkCreateCommandPool failed!");
+				Log::Error("Failed to create vulkan compute command pool: vkCreateCommandPool failed!");
 				return false;
 			}
 		}
@@ -309,7 +310,7 @@ namespace Quartz
 
 			if (vkCreateCommandPool(mDevice, &transferCommandPoolInfo, nullptr, &mTransferCommandPool) != VK_SUCCESS)
 			{
-				Log.Error("Failed to create vulkan transfer command pool: vkCreateCommandPool failed!");
+				Log::Error("Failed to create vulkan transfer command pool: vkCreateCommandPool failed!");
 				return false;
 			}
 		}
@@ -337,7 +338,7 @@ namespace Quartz
 		// TODO: Compare with hash set
 		for (const char* extName : mEnabledExtensionNames)
 		{
-			if (StringCompare(extName, VK_EXT_DEBUG_MARKER_EXTENSION_NAME) == 0)
+			if (StringCompare(extName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0)
 			{
 				mSupportsDebugNames = true;
 			}
@@ -366,15 +367,15 @@ namespace Quartz
 		vkDestroyDevice(mDevice, nullptr);
 	}
 
-	void VulkanDevice::SetDebugMarkerObjectName(Handle64 object, VkDebugReportObjectTypeEXT type, const String& debugName)
+	void VulkanDevice::SetDebugName(Handle64 object, VkObjectType type, const String& debugName)
 	{
-		VkDebugMarkerObjectNameInfoEXT nameInfo = {};
-		nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT;
+		VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+		nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
 		nameInfo.objectType = type;
-		nameInfo.object = object;
+		nameInfo.objectHandle = static_cast<UInt64>(object);
 		nameInfo.pObjectName = debugName.Str();
 
-		vkDebugMarkerSetObjectName(mDevice, &nameInfo);
+		vkSetDebugUtilsObjectName(mDevice, &nameInfo);
 	}
 }
 

@@ -10,7 +10,7 @@ namespace Quartz
 {
 	template<typename CharType>
 	USize StringLength(const CharType* pString)
-	{ 
+	{
 		return 0;
 	}
 
@@ -39,10 +39,10 @@ namespace Quartz
 	class StringBase
 	{
 	public:
-		using StringType	= StringBase<_CharType>;
+		using StringType = StringBase<_CharType>;
 		using SubStringType = SubStringBase<_CharType>;
-		using CharType		= typename _CharType;
-		
+		using CharType = typename _CharType;
+
 		friend SubStringType;
 
 	protected:
@@ -63,7 +63,7 @@ namespace Quartz
 
 		union
 		{
-			Byte*		mpData;
+			Byte* mpData;
 			StringMeta* mpMeta;
 		};
 
@@ -145,7 +145,7 @@ namespace Quartz
 
 		Bool8 operator==(const StringType& string) const
 		{
-			return (Length() == string.Length()) && 
+			return (Length() == string.Length()) &&
 				(StringCompare(Str(), string.Str()) == 0);
 		}
 
@@ -272,8 +272,8 @@ namespace Quartz
 
 	protected:
 		USize	mSubLength;
-		Byte*	mpData;
-		
+		Byte* mpData;
+
 		// By keeping a copy of the original,
 		// we guarantee the data is not deleted until
 		// all substrings are destroyed
@@ -474,12 +474,13 @@ namespace Quartz
 		return static_cast<UInt32>(value.Hash());
 	}
 
+	// @Todo: Speed up
 	FORCE_INLINE StringW StringAToStringW(const StringA& stringA)
 	{
 		StringW wide;
 		wide.Resize(stringA.Length());
 
-		const char* pStr = stringA.Str();
+		char* pStr = const_cast<StringA&>(stringA).Data();
 		wchar_t* pWide = wide.Data();
 
 		while (*pStr)
@@ -490,6 +491,25 @@ namespace Quartz
 		}
 
 		return wide;
+	}
+
+	// @Todo: Speed up
+	FORCE_INLINE StringA StringWToStringA(const StringW& stringW)
+	{
+		StringA ascii;
+		ascii.Resize(stringW.Length());
+
+		wchar_t* pStr = const_cast<StringW&>(stringW).Data();
+		char* pAscii = ascii.Data();
+
+		while (*pStr)
+		{
+			*pAscii = *reinterpret_cast<char*>(pStr);
+			++pAscii;
+			++pStr;
+		}
+
+		return ascii;
 	}
 
 	FORCE_INLINE String operator"" _STRING(const char* str, USize size)

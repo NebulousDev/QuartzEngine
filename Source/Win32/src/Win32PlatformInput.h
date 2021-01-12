@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PlatformInput.h"
+#include "platform/Input.h"
 
 #include "Win32.h"
 #include <hidsdi.h>
@@ -25,7 +25,7 @@ namespace Quartz
 		Array<RAWINPUTDEVICELIST>	mPolledRawInputDevices;
 		Set<InputDeviceId>			mPolledIds;
 
-		Window* mpCapturedWindow;
+		VPWindow* mpCapturedWindow;
 
 	public:
 		void PollConnections() override;

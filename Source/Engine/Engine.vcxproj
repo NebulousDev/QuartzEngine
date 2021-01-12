@@ -5,14 +5,6 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release-Debug|Win32">
-      <Configuration>Release-Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release-Debug|x64">
-      <Configuration>Release-Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -46,13 +38,6 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -60,13 +45,6 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
@@ -84,16 +62,10 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -109,12 +81,6 @@
     <TargetName>engine</TargetName>
     <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|x64'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\intermediate\$(ProjectName)\</IntDir>
-    <TargetName>engine</TargetName>
-    <IncludePath>$(IncludePath)</IncludePath>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(SolutionDir)$(Configuration)\intermediate\$(ProjectName)\</IntDir>
     <TargetName>engine</TargetName>
@@ -125,23 +91,17 @@
     <TargetName>engine</TargetName>
     <IncludePath>$(SolutionDir)Source/Core/src;$(SolutionDir)ThirdParty/Vulkan;$(IncludePath)</IncludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|Win32'">
-    <IntDir>$(SolutionDir)$(Configuration)\intermediate\$(ProjectName)\</IntDir>
-    <TargetName>engine</TargetName>
-    <IncludePath>$(SolutionDir)Source/Core/src;$(SolutionDir)ThirdParty/Vulkan;$(IncludePath)</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty/STB;$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>core.lib;platform.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -151,12 +111,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty/STB;$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>core.lib;platform.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -168,37 +127,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty/STB;$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>core.lib;platform.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);</AdditionalLibraryDirectories>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty/STB;$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>core.lib;platform.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -210,100 +147,64 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty/STB;$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>core.lib;platform.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);</AdditionalLibraryDirectories>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty/STB;$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>QUARTZ_USE_DEBUG_NAMES;QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>core.lib;platform.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\entity\Entity.h" />
-    <ClInclude Include="src\entity\System.h" />
-    <ClInclude Include="src\entity\EntityView.h" />
-    <ClInclude Include="src\entity\World.h" />
-    <ClInclude Include="src\entity\SystemBase.h" />
+    <ClInclude Include="src\application\WindowManager.h" />
+    <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\event\Event.h" />
     <ClInclude Include="src\event\EventBuffer.h" />
     <ClInclude Include="src\event\EventDispatcher.h" />
-    <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\event\EventSystem.h" />
-    <ClInclude Include="src\graphics\PipelineState.h" />
+    <ClInclude Include="src\graphics\GFXDevice.h" />
+    <ClInclude Include="src\graphics\GFXPhysicalDevice.h" />
+    <ClInclude Include="src\graphics\GFXResource.h" />
+    <ClInclude Include="src\graphics\GFXUtil.h" />
+    <ClInclude Include="src\application\Window.h" />
+    <ClInclude Include="src\graphics\Mesh.h" />
+    <ClInclude Include="src\graphics\VGFXContext.h" />
     <ClInclude Include="src\graphics\system\Camera.h" />
     <ClInclude Include="src\graphics\system\CameraManager.h" />
-    <ClInclude Include="src\graphics\GFXFormat.h" />
-    <ClInclude Include="src\graphics\GFXRenderPass.h" />
-    <ClInclude Include="src\graphics\GFXCommandBuffer.h" />
-    <ClInclude Include="src\graphics\GFXFramebuffer.h" />
-    <ClInclude Include="src\graphics\GFXImage.h" />
-    <ClInclude Include="src\graphics\GFXPipelines.h" />
-    <ClInclude Include="src\graphics\GFXResource.h" />
-    <ClInclude Include="src\graphics\GFXBuffers.h" />
-    <ClInclude Include="src\graphics\GFXContext.h" />
-    <ClInclude Include="src\graphics\GFXDevice.h" />
-    <ClInclude Include="src\graphics\GFXQueue.h" />
-    <ClInclude Include="src\graphics\GFXShaders.h" />
-    <ClInclude Include="src\graphics\GFXSurface.h" />
-    <ClInclude Include="src\graphics\GFXUtil.h" />
-    <ClInclude Include="src\graphics\GFXPhysicalDevice.h" />
-    <ClInclude Include="src\graphics\system\CameraSystem.h" />
     <ClInclude Include="src\graphics\system\Transform.h" />
     <ClInclude Include="src\input\ConnectionEvent.h" />
     <ClInclude Include="src\input\ConnectionHandler.h" />
     <ClInclude Include="src\input\InputContext.h" />
     <ClInclude Include="src\input\InputState.h" />
     <ClInclude Include="src\log\Log.h" />
-    <ClInclude Include="src\log\DebugMessageEvent.h" />
-    <ClInclude Include="src\log\DebugMessageSystem.h" />
-    <ClInclude Include="src\graphics\system\RenderSystem.h" />
-    <ClInclude Include="src\input\InputHandler.h" />
     <ClInclude Include="src\object\Image.h" />
     <ClInclude Include="src\object\ImageLoader.h" />
     <ClInclude Include="src\object\Model.h" />
     <ClInclude Include="src\object\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
+    <ClInclude Include="src\platform\VPPlatform.h" />
+    <ClInclude Include="src\platform\VPWindow.h" />
+    <ClInclude Include="src\platform\Console.h" />
+    <ClInclude Include="src\platform\Input.h" />
+    <ClInclude Include="src\platform\Time.h" />
+    <ClInclude Include="src\system\System.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\Window.cpp" />
+    <ClCompile Include="src\application\WindowManager.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
-    <ClCompile Include="src\graphics\GFXContext.cpp" />
     <ClCompile Include="src\graphics\GFXUtil.cpp" />
-    <ClCompile Include="src\input\ConnectionHandler.cpp" />
-    <ClCompile Include="src\input\InputContext.cpp" />
-    <ClCompile Include="src\input\InputHandler.cpp" />
-    <ClCompile Include="src\input\InputState.cpp" />
-    <ClCompile Include="src\log\DebugMessageSystem.cpp" />
+    <ClCompile Include="src\graphics\Renderer.cpp" />
+    <ClCompile Include="src\graphics\Renderer.h" />
     <ClCompile Include="src\log\Log.cpp" />
-    <ClCompile Include="src\graphics\system\RenderSystem.cpp" />
     <ClCompile Include="src\object\OBJLoader.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
+    <ClCompile Include="src\platform\Input.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

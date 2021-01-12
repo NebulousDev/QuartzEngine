@@ -1,13 +1,13 @@
 #pragma once
 
-#include "PlatformConsole.h"
+#include "platform/Console.h"
 #include "Win32.h"
 
 #include <stdio.h>
 
 namespace Quartz
 {
-	class QUARTZ_API Win32Console : public PlatformConsole
+	class QUARTZ_API Win32Console : public VPDebugConsole
 	{
 	private:
 		HANDLE mConsoleHandle;

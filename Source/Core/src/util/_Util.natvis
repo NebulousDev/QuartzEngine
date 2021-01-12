@@ -19,22 +19,6 @@
     </Expand>
   </Type>
 
-  <Type Name = "Quartz::SubStringBase&lt;char&gt;">
-    <DisplayString Condition="mSubLength == 0">[Empty]</DisplayString>
-    <DisplayString>{mpData,[mSubLength]na}</DisplayString>
-    <Expand>
-      <Item Name="[Length]">mSubLength</Item>
-    </Expand>
-  </Type>
-
-  <Type Name = "Quartz::SubStringBase&lt;wchar_t&gt;">
-    <DisplayString Condition="mSubLength == 0">[Empty]</DisplayString>
-    <DisplayString>{mpData,[mSubLength]su}</DisplayString>
-    <Expand>
-      <Item Name="[Length]">mSubLength</Item>
-    </Expand>
-  </Type>
-
   <Type Name = "Quartz::Array&lt;*&gt;">
     <DisplayString>Size = {mSize}</DisplayString>
     <Expand>
@@ -44,41 +28,6 @@
         <Size>mSize</Size>
         <ValuePointer>mpData</ValuePointer>
       </ArrayItems>
-    </Expand>
-  </Type>
-
-  <Type Name = "Quartz::Storage&lt;*&gt;::StorageValue">
-    <DisplayString>{value}</DisplayString>
-    <Expand>
-      <Item Name="[Value]">value</Item>
-      <Item Name="[Instance]">instance</Item>
-      <Item Name="[LastIndex]">lastIndex</Item>
-      <Item Name="[NextIndex]">nextIndex</Item>
-    </Expand>
-  </Type>
-
-  <Type Name = "Quartz::Storage&lt;*&gt;::StorageBlock">
-    <DisplayString>[Block {mBlockIndex}, Size = {mSize}]</DisplayString>
-    <Expand>
-      <Item Name="[Index]">mBlockIndex</Item>
-      <Item Name="[Size]">mSize</Item>
-      <Item Name="[Start]">mStartIndex</Item>
-      <Item Name="[End]">mEndIndex</Item>
-      <Item Name="[Free]">mFree</Item>
-      <ArrayItems>
-        <Size>256</Size>
-        <ValuePointer>mElements</ValuePointer>
-      </ArrayItems>
-    </Expand>
-  </Type>
-  
-  <Type Name = "Quartz::Storage&lt;*&gt;">
-    <DisplayString>Size = {mSize}</DisplayString>
-    <Expand>
-      <Item Name="[Size]">mSize</Item>
-      <Item Name="[Capacity]">mBlocks.mSize * 256</Item>
-      <Item Name="[Blocks]">mBlocks</Item>
-      <Item Name="[FreeBlocks]">mFreeBlocks</Item>
     </Expand>
   </Type>
 

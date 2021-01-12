@@ -15,12 +15,12 @@ ubo;
 
 layout(location = 0) out struct
 {
-	vec3 color;
+	vec3 normal;
 }
 vertOut;
 
 void main()
 {
     gl_Position = (ubo.projection * ubo.view * ubo.model) * vec4(inPosition, 1.0);
-	vertOut.color = vec3(inTexCoord, 0.0);
+	vertOut.normal = inNormal;
 }

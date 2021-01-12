@@ -1,126 +1,84 @@
 #include "Engine.h"
-#include "log\Log.h"
+
+#include "log/Log.h"
 
 namespace Quartz
 {
-	void Engine::SetPlatform(Platform* pPlatform)
+	GameInfo Engine::mGameInfo{};
+	VPPlatform* Engine::mpPlatform = nullptr;
+	VGFXContext* Engine::mpGraphics = nullptr;
+	VPDebugConsole* Engine::mpDebugConsole = nullptr;
+
+	void Engine::SetupDebugConsole(Bool8 showConsole)
 	{
-		mpPlatform = pPlatform;
-	}
+		mpDebugConsole = mpPlatform->CreateDebugConsole();
+		mpDebugConsole->Create();
 
-	void Engine::SetGraphicsContext(GFXContext* pGFXContext)
-	{
-		mpGFXContext = pGFXContext;
-	}
+		StringW consoleTitle = mGameInfo.name + L" - Debug Console";
 
-	void Engine::SetWindowManager(WindowManager& manager)
-	{
-		mpWindowManager = &manager;
-	}
+		mpDebugConsole->SetTitle(consoleTitle.Str());
 
-	void Engine::SetWindow(Window* pWindow)
-	{
-		mpWindow = pWindow;
-	}
-
-	void Engine::Run()
-	{
-		Time64 lastTime = 0.0;
-		Time64 currentTime = 0.0;
-		Time64 deltaTime = 0.0;
-		Time64 elapsedTime = 0.0;
-
-		UInt32 fps = 0;
-
-		currentTime = mpPlatform->GetPlatformTime().GetTimeNanoseconds();
-
-		while (true)
+		if (showConsole)
 		{
-			lastTime = currentTime;
-			currentTime = mpPlatform->GetPlatformTime().GetTimeNanoseconds();
-			deltaTime = currentTime - lastTime;
-			elapsedTime += deltaTime;
-			mDeltaTime = deltaTime;
-
-			mpInputHandler->Update();
-			mpWindowManager->Update();
-			//mpWindow->Update();
-			mpEventSystem->DispatchEvents();
-
-			mWorld.Update(deltaTime);
-
-			if (elapsedTime >= 1.0)
-			{
-				mpConnectionHandler->Update();
-				mWorld.Tick(deltaTime);
-				
-				Log.Debug("MS: %.4llfms, FPS: %d", deltaTime * 1000.0, fps);
-				elapsedTime = 0.0;
-				fps = 0;
-			}
-
-			++fps;
+			mpDebugConsole->Show();
 		}
 	}
 
-	void Engine::Init()
+	void Engine::SetupDebugLogging()
 	{
-		mpEventSystem = new EventSystem();
-		mpEventSystem->InitializeEventSystem();
+		DebugLogger::SetDebugConsole(*mpDebugConsole);
+	}
 
-		mpInputHandler = new InputHandler();
-		mpInputHandler->Init();
+	void Engine::PrintSplash()
+	{
+		mpDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_DEFAULT);
+		mpDebugConsole->Print(L"-------------------------------------------------------\n");
+		mpDebugConsole->Print(L"|                    Nebulous Games                   |\n");
+		mpDebugConsole->Print(L"|                 QUARTZ ENGINE v0.3.0                |\n");
+		mpDebugConsole->Print(L"-------------------------------------------------------\n");
+		mpDebugConsole->Print(L" ~ Copyright © Ben Ratcliff (NebulousDev) 2019-2021 ~\n\n");
+		mpDebugConsole->SetColor(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+	}
 
-		mpConnectionHandler = new ConnectionHandler();
-		mpConnectionHandler->Init();
+	void Engine::Setup(const EngineInfo& info)
+	{
+		mGameInfo = info.gameInfo;
 
-		mWorld.RegisterSystem<DebugMessageSystem>();
-		mWorld.RegisterSystem<RenderSystem>();
+		mpPlatform = info.pPlatform;
+		mpGraphics = info.pGraphics;
 
-		mpDebugMessageSystem = &mWorld.GetSystem<DebugMessageSystem>();
-		mpRenderSystem = &mWorld.GetSystem<RenderSystem>();
+		SetupDebugConsole(info.showDebugConsole);
+		SetupDebugLogging();
 
-		/*
-		mEventSystem.InitializeEventSystem();
-		mDebugMessageSystem.Initialize();
-		*/
+		PrintSplash();
+		Log::General(L"Game Version: %s %s", mGameInfo.name.Str(), mGameInfo.version.Str());
+		Log::Info("Engine is starting...");
 
-		Log.Print("-------------------------------------------------------\n");
-		Log.Print("|                    Nebulous Games                   |\n");
-		Log.Print("|                 QUARTZ ENGINE v0.2.0                |\n");
-		Log.Print("-------------------------------------------------------\n");
+		mpPlatform->PreInitialize();
+		mpGraphics->PreInitialize();
 
-		Log.Info("Engine is starting...");
-
-		/*
-		mDeviceConnectionSystem.Initialize();
-		mInputSystem.Initialize();
-		mRenderSystem.Initialize();
-		*/
+		mpPlatform->Initialize();
+		mpGraphics->Initialize();
 	}
 
 	void Engine::Start()
 	{
-		if (mRunning)
-		{
-			Log.Warning("Engine.Start() was called while the engine is running.");
-			return;
-		}
-
-		mRunning = true;
-
-		Run();
+		
 	}
 
-	void Engine::Stop()
+	const GameInfo& Engine::GetGameInfo()
 	{
-		mWorld.DeregisterSystem<DebugMessageSystem>();
-		mWorld.DeregisterSystem<RenderSystem>();
+		return mGameInfo;
+	}
 
-		mpInputHandler->Destroy();
-		mpConnectionHandler->Destroy();
+	VPPlatform& Engine::GetPlatformContext()
+	{
+		return *mpPlatform;
+	}
 
-		mRunning = false;
+	VGFXContext& Engine::GetGraphicsContext()
+	{
+		return *mpGraphics;
 	}
 }
 

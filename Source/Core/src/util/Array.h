@@ -14,7 +14,7 @@ namespace Quartz
 	{
 	public:
 		using ValueType = _ValueType;
-		using SizeType	= USize;
+		using SizeType = USize;
 		using ArrayType = Array<_ValueType>;
 
 		class Iterator
@@ -87,7 +87,7 @@ namespace Quartz
 		};
 
 	protected:
-		ValueType*	mpData;
+		ValueType* mpData;
 		SizeType	mSize;
 		SizeType	mCapacity;
 
@@ -169,10 +169,16 @@ namespace Quartz
 		}
 
 		//Todo: make custom implementation
-		Array(std::initializer_list<ValueType> list)
+		Array(std::initializer_list<ValueType> list) :
+			ArrayType(list.size())
 		{
-			Resize(list.size());
-			memcpy(mpData, list.begin(), mSize * sizeof(ValueType));
+			//memcpy(mpData, list.begin(), mSize * sizeof(ValueType));
+
+			for (SizeType i = 0; i < mSize; i++)
+			{
+				// Construct value from given value from the array
+				new (&mpData[i]) ValueType(*(list.begin() + i));
+			}
 		}
 
 		~Array()
@@ -283,21 +289,22 @@ namespace Quartz
 					return true;
 				}
 			}
-			
+
 			return false;
 		}
 
+		// Returns size if index not found
 		SizeType IndexOf(const ValueType& value)
 		{
-			for (SizeType i = mSize; i < size; i++)
+			for (SizeType i = 0; i < mSize; i++)
 			{
-				if (mpData[i] != value)
+				if (mpData[i] == value)
 				{
-					continue;
+					return i;
 				}
-
-				return i;
 			}
+
+			return mSize;
 		}
 
 		void Resize(SizeType size)
@@ -331,7 +338,7 @@ namespace Quartz
 				{
 					Reserve(NextSize(size));
 				}
-				
+
 				for (SizeType i = mSize; i < size; i++)
 				{
 					// Construct new value with given initial value

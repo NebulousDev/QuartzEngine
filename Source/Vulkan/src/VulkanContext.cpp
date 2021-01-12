@@ -1,51 +1,38 @@
 #include "VulkanContext.h"
 
-#include "log/log.h"
+#include "log/Log.h"
+#include "VulkanUtil.h"
+#include "SPIRVUtil.h"
 
-#include "VulkanSurface.h"
-#include "VulkanDevice.h"
-#include "VulkanShader.h"
-#include "VulkanPipeline.h"
-#include "VulkanBuffer.h"
-#include "VulkanFrameBuffer.h"
-#include "VulkanCommandBuffer.h"
+#include "Engine.h"
+
+#include <cstdio>
 
 namespace Quartz
 {
-	VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT		messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT				messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void*										pUserData)
+		void* pUserData)
 	{
-		/*
 		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		{
-			Log.Error(pCallbackData->pMessage);
+			Log::Error("%s\n", pCallbackData->pMessage);
 		}
 		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
 		{
-			Log.Warning(pCallbackData->pMessage);
+			Log::Warning("%s\n", pCallbackData->pMessage);
 		}
 		else
 		{
-			Log.Debug(pCallbackData->pMessage);
+			//Log::Debug("%s\n", pCallbackData->pMessage);
 		}
-		*/
-
-		Log.Error(pCallbackData->pMessage);
 
 		return VK_FALSE;
 	}
 
-	void VulkanContext::SetDebugNameImpl(GFXResource* pResource, const String& debugName)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		//TODO: Make this work
-		//vulkanDevice.SetDebugMarkerObjectName(0, VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT, debugName); 
-	}
-
-	Bool8 EnumerateVkLayerProperties(Array<VkLayerProperties>& layerProperties)
+	static Bool8 EnumerateVkLayerProperties(Array<VkLayerProperties>& layerProperties)
 	{
 		VkResult result;
 		UInt32 layerCount = 0;
@@ -57,7 +44,7 @@ namespace Quartz
 		return result == VK_SUCCESS;
 	}
 
-	Bool8 EnumerateVkExtensionProperties(Array<VkExtensionProperties>& extensionProperties)
+	static Bool8 EnumerateVkExtensionProperties(Array<VkExtensionProperties>& extensionProperties)
 	{
 		VkResult result;
 		UInt32 extensionCount = 0;
@@ -65,11 +52,11 @@ namespace Quartz
 		result = vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
 		extensionProperties.Resize(extensionCount);
 		result = vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, extensionProperties.Data());
-	
+
 		return result == VK_SUCCESS;
 	}
 
-	Bool8 EnumerateVkPhysicalDevices(VkInstance instance, Array<VkPhysicalDevice>& physicalDevices)
+	static Bool8 EnumerateVkPhysicalDevices(VkInstance instance, Array<VkPhysicalDevice>& physicalDevices)
 	{
 		VkResult result;
 		UInt32 physicalDeviceCount;
@@ -81,12 +68,14 @@ namespace Quartz
 		return result == VK_SUCCESS;
 	}
 
-	Bool8 VulkanContext::InitInstance(const String& appName, const String& engineName,
-		const Array<String>& extensions, const Array<String>& validationLayers)
+	Bool8 VPLVulkanContext::InitInstance(const StringW& appName, const Array<String>& extensions,
+		const Array<String>& validationLayers)
 	{
+		String appNameA = StringWToStringA(appName).Str();
+
 		if (!EnumerateVkLayerProperties(mAvailableLayers))
 		{
-			Log.Warning("Failed to create a vulkan instance: Unable to enumerate validation layers!");
+			Log::Warning("Failed to create a vulkan instance: Unable to enumerate validation layers!");
 		}
 
 		for (const String& layerName : validationLayers)
@@ -100,14 +89,14 @@ namespace Quartz
 				}
 			}
 
-			Log.Warning("Attempted to enable unsupported vulkan instance layer [\'%s\']!", layerName.Str());
+			Log::Warning("Attempted to enable unsupported vulkan instance layer [\'%s\']!", layerName.Str());
 
 			layerFound:;
 		}
 
 		if (!EnumerateVkExtensionProperties(mAvailableExtensions))
 		{
-			Log.Warning("Failed to create a vulkan instance: Unable to enumerate extensions!");
+			Log::Warning("Failed to create a vulkan instance: Unable to enumerate extensions!");
 		}
 
 		for (const String& extName : extensions)
@@ -121,7 +110,7 @@ namespace Quartz
 				}
 			}
 
-			Log.Warning("Attempted to enable unsupported vulkan instance extension [\'%s\']!", extName.Str());
+			Log::Warning("Attempted to enable unsupported vulkan instance extension [\'%s\']!", extName.Str());
 
 			extFound:;
 		}
@@ -137,26 +126,26 @@ namespace Quartz
 		debugMessengerInfo.pfnUserCallback = DebugCallback;
 		debugMessengerInfo.pUserData = NULL;
 
-		VkApplicationInfo appInfo	= {};
-		appInfo.sType				= VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName	= appName.Str();
-		appInfo.applicationVersion	= VK_MAKE_VERSION(1, 0, 0);
-		appInfo.pEngineName			= engineName.Str();
-		appInfo.engineVersion		= VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion			= VK_API_VERSION_1_2; // NOTE: 1_2 is not yet needed
+		VkApplicationInfo appInfo = {};
+		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		appInfo.pApplicationName = appNameA.Str();
+		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.pEngineName = "Quartz Engine";
+		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.apiVersion = VK_API_VERSION_1_2; // NOTE: 1_2 is not yet needed
 
-		VkInstanceCreateInfo createInfo		= {};
-		createInfo.sType					= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		createInfo.pApplicationInfo			= &appInfo;
-		createInfo.enabledLayerCount		= mEnabledLayerNames.Size();
-		createInfo.ppEnabledLayerNames		= mEnabledLayerNames.Data();
-		createInfo.enabledExtensionCount	= mEnabledExtensionNames.Size();
-		createInfo.ppEnabledExtensionNames	= mEnabledExtensionNames.Data();
-		createInfo.pNext					= (VkDebugUtilsMessengerCreateInfoEXT*)&debugMessengerInfo;
+		VkInstanceCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		createInfo.pApplicationInfo = &appInfo;
+		createInfo.enabledLayerCount = mEnabledLayerNames.Size();
+		createInfo.ppEnabledLayerNames = mEnabledLayerNames.Data();
+		createInfo.enabledExtensionCount = mEnabledExtensionNames.Size();
+		createInfo.ppEnabledExtensionNames = mEnabledExtensionNames.Data();
+		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugMessengerInfo;
 
 		if (vkCreateInstance(&createInfo, NULL, &mVkInstance) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to create a vulkan instance: vkCreateInstance failed!");
+			Log::Critical("Failed to create a vulkan instance: vkCreateInstance failed!");
 			return false;
 		}
 
@@ -166,21 +155,21 @@ namespace Quartz
 
 		if (!vkCreateDebugUtilsMessengerEXT)
 		{
-			Log.Warning("Failed to address for \"PFN_vkCreateDebugUtilsMessengerEXT\"! No validation messages will be displayed!");
+			Log::Warning("Failed to address for \"PFN_vkCreateDebugUtilsMessengerEXT\"! No validation messages will be displayed!");
 		}
 		else if (vkCreateDebugUtilsMessengerEXT(mVkInstance, &debugMessengerInfo, NULL, &mDebugMessenger) != VK_SUCCESS)
 		{
-			Log.Warning("Failed to create validation debug messenger! No validation messages will be displayed!");
+			Log::Warning("Failed to create validation debug messenger! No validation messages will be displayed!");
 		}
 
 		return true;
 	}
 
-	Bool8 VulkanContext::InitDevices()
+	Bool8 VPLVulkanContext::InitDevices()
 	{
 		if (!EnumerateVkPhysicalDevices(mVkInstance, mAvailablePhysicalDevices))
 		{
-			Log.Error("Failed to initialize graphics device: vkEnumeratePhysicalDevices failed!");
+			Log::Error("Failed to initialize graphics device: vkEnumeratePhysicalDevices failed!");
 			return false;
 		}
 
@@ -207,307 +196,871 @@ namespace Quartz
 
 		if (pPhyiscalDeviceCandidate == nullptr)
 		{
-			Log.Critical("Failed to initialize graphics device: No suitable graphics adapter was detected!");
+			Log::Critical("Failed to initialize graphics device: No suitable graphics adapter was detected!");
 			return false;
 		}
 
 		Array<String> deviceExtensions;
 		deviceExtensions.PushBack(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-		//deviceExtensions.PushBack("VK_EXT_debug_report");
-		//deviceExtensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		//deviceExtensions.PushBack("VK_EXT_full_screen_exclusive");
 
 		mpDevice = new VulkanDevice(pPhyiscalDeviceCandidate, deviceExtensions);
 
 		if (!mpDevice->IsValidDevice())
 		{
-			Log.Critical("Failed to initialize graphics device: No valid device was created!");
+			Log::Critical("Failed to initialize graphics device: No valid device was created!");
 			return false;
 		}
 
 		return true;
 	}
 
-	VulkanContext::VulkanContext(const String& appName, const String& engineName,
-		const Array<String>& extensions, const Array<String>& validationLayers)
+	VPLVulkanContext::VPLVulkanContext() :
+		mVkInstance(VK_NULL_HANDLE),
+		mPhysicalDevices(),
+		mpDevice(nullptr),
+		mAvailableLayers(),
+		mAvailableExtensions(),
+		mAvailablePhysicalDevices(),
+		mEnabledLayerNames(),
+		mEnabledExtensionNames()
 	{
-		mAppName = appName;
-		mEngineName = engineName;
-
-		if (
-			InitInstance(appName, engineName, extensions, validationLayers) &&
-			InitDevices()
-			)
-		{
-			mValidContext = true;
-		}
-	}
-	
-	GFXSurface* VulkanContext::CreateSurface(Window& window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
-	{
-		return new VulkanSurface(mVkInstance, window, *mpDevice, width, height, vSync, fullscreen);
+		// Nothing
 	}
 
-	UInt32 VertexElementSize(VertexElementType elementType)
+	void VPLVulkanContext::CreateImageImpl(VkImage* pVkImage, VulkanDeviceMemoryAllocation* pMemory, VkImageType vkImageType,
+		VkImageUsageFlags vkUsageFlags, VkFormat vkFormat, UInt32 width, UInt32 height, UInt32 depth, UInt32 mipLevels, UInt32 layers)
 	{
-		switch (elementType)
-		{
-			case Quartz::VERTEX_TYPE_FLOAT:				return 1 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_FLOAT2:			return 2 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_FLOAT3:			return 3 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_FLOAT4:			return 4 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_INT:				return 1 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_INT2:				return 2 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_INT3:				return 3 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_INT4:				return 4 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_UINT:				return 1 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_UINT2:				return 2 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_UINT3:				return 3 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_UINT4:				return 4 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_INT_2_10_10_10:	return 1 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_UINT_2_10_10_10:	return 1 * sizeof(UInt32);
-			default: return 0;
-		}
-	}
+		VkImage vkImage;
+		VulkanDeviceMemoryAllocation* pMemoryImpl;
 
-	UInt32 CalcVertexStride(VertexFormat& vertexFormat)
-	{
-		UInt32 stride = 0;
-		for (UInt32 i = 0; i < vertexFormat.elementCount; i++)
+		VkImageCreateInfo vkImageInfo = {};
+		vkImageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		vkImageInfo.imageType = vkImageType;
+		vkImageInfo.format = vkFormat;
+		vkImageInfo.extent.width = width;
+		vkImageInfo.extent.height = height;
+		vkImageInfo.extent.depth = depth;
+		vkImageInfo.mipLevels = mipLevels;
+		vkImageInfo.arrayLayers = layers;
+		vkImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		vkImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		vkImageInfo.usage = vkUsageFlags;
+		vkImageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		vkImageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+
+		if (vkCreateImage(mpDevice->GetDeviceHandle(), &vkImageInfo, nullptr, &vkImage) != VK_SUCCESS)
 		{
-			stride += VertexElementSize(vertexFormat.elements[i].type);
+			Log::Error("Failed to create vulkan image: vkCreateImage failed!");
+			return;
 		}
 
-		return stride;
-	}
+		VkMemoryRequirements vkMemRequirements;
+		vkGetImageMemoryRequirements(mpDevice->GetDeviceHandle(), vkImage, &vkMemRequirements);
 
-	VkFormat FormatFromVertexElementType(VertexElementType elementType)
-	{
-		static VkFormat formatTable[] =
+		VulkanDeviceMemoryAllocator& allocator = mpDevice->GetDeviceMemoryAllocator();
+		pMemoryImpl = allocator.Allocate(vkMemRequirements.size, vkMemRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		if (pMemoryImpl == nullptr)
 		{
-			VK_FORMAT_R32_SFLOAT,
-			VK_FORMAT_R32G32_SFLOAT,
-			VK_FORMAT_R32G32B32_SFLOAT,
-			VK_FORMAT_R32G32B32A32_SFLOAT,
-			VK_FORMAT_R32_SINT,
-			VK_FORMAT_R32G32_SINT,
-			VK_FORMAT_R32G32B32_SINT,
-			VK_FORMAT_R32G32B32A32_SINT,
-			VK_FORMAT_R32_UINT,
-			VK_FORMAT_R32G32_UINT,
-			VK_FORMAT_R32G32B32_UINT,
-			VK_FORMAT_R32G32B32A32_UINT,
-			VK_FORMAT_A2B10G10R10_SINT_PACK32,
-			VK_FORMAT_A2B10G10R10_UINT_PACK32
-		};
-
-		return formatTable[(UInt32)elementType];
-	}
-
-	VkFormat ConvertAttributeType(AttributeType type)
-	{
-		static VkFormat typeTable[] =
-		{
-			VK_FORMAT_R32_SFLOAT,
-			VK_FORMAT_R32G32_SFLOAT,
-			VK_FORMAT_R32G32B32_SFLOAT,
-			VK_FORMAT_R32G32B32A32_SFLOAT,
-			VK_FORMAT_R32_SINT,
-			VK_FORMAT_R32G32_SINT,
-			VK_FORMAT_R32G32B32_SINT,
-			VK_FORMAT_R32G32B32A32_SINT,
-			VK_FORMAT_R32_UINT,
-			VK_FORMAT_R32G32_UINT,
-			VK_FORMAT_R32G32B32_UINT,
-			VK_FORMAT_R32G32B32A32_UINT,
-			VK_FORMAT_A2B10G10R10_SINT_PACK32,
-			VK_FORMAT_A2B10G10R10_UINT_PACK32
-		};
-
-		return typeTable[(UInt32)type];
-	}
-
-	UInt32 AttributeSize(AttributeType elementType)
-	{
-		switch (elementType)
-		{
-			case Quartz::VERTEX_TYPE_FLOAT:				return 1 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_FLOAT2:			return 2 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_FLOAT3:			return 3 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_FLOAT4:			return 4 * sizeof(Float32);
-			case Quartz::VERTEX_TYPE_INT:				return 1 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_INT2:				return 2 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_INT3:				return 3 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_INT4:				return 4 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_UINT:				return 1 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_UINT2:				return 2 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_UINT3:				return 3 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_UINT4:				return 4 * sizeof(UInt32);
-			case Quartz::VERTEX_TYPE_INT_2_10_10_10:	return 1 * sizeof(Int32);
-			case Quartz::VERTEX_TYPE_UINT_2_10_10_10:	return 1 * sizeof(UInt32);
-			default: return 0;
+			Log::Error("Failed to create vulkan image: Failed to allocate device memory!");
+			return;
 		}
-	}
 
-	VkPrimitiveTopology ConvertPrimitiveTopology(PrimitiveTopology topology)
-	{
-		static VkPrimitiveTopology topologyTable[] =
+		if (vkBindImageMemory(mpDevice->GetDeviceHandle(), vkImage, pMemoryImpl->GetDeviceMemoryHandle(), 0) != VK_SUCCESS)
 		{
-			VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
-			VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
-		};
+			Log::Error("Failed to create vulkan buffer object: vkBindBufferMemory failed!");
 
-		return topologyTable[(UInt32)topology];
+			allocator.Free(pMemoryImpl);
+			vkDestroyImage(mpDevice->GetDeviceHandle(), vkImage, nullptr);
+
+			return;
+		}
+
+		*pVkImage = vkImage;
+		pMemory = pMemoryImpl;
 	}
 
-	VkPolygonMode ConvertPolygonMode(PolygonMode mode)
+	void VPLVulkanContext::CreateImageViewImpl(VkImageView* pVkImageView, VkImage vkImage, VkImageViewType vkImageViewType,
+		VkImageAspectFlags vkAspectFlags, VkFormat vkFormat, UInt32 mipStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers)
 	{
-		static VkPolygonMode modeTable[] =
+		VkImageView vkImageView;
+
+		VkImageViewCreateInfo vkImageViewInfo = {};
+		vkImageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		vkImageViewInfo.flags = 0;
+		vkImageViewInfo.image = vkImage;
+		vkImageViewInfo.viewType = vkImageViewType;
+		vkImageViewInfo.format = vkFormat;
+
+		vkImageViewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		vkImageViewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		vkImageViewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		vkImageViewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+		vkImageViewInfo.subresourceRange.aspectMask = vkAspectFlags;
+		vkImageViewInfo.subresourceRange.baseMipLevel = mipStart;
+		vkImageViewInfo.subresourceRange.levelCount = mipLevels;
+		vkImageViewInfo.subresourceRange.baseArrayLayer = layerStart;
+		vkImageViewInfo.subresourceRange.layerCount = layers;
+
+		if (vkCreateImageView(mpDevice->GetDeviceHandle(), &vkImageViewInfo, nullptr, &vkImageView) != VK_SUCCESS)
 		{
-			VK_POLYGON_MODE_FILL,
-			VK_POLYGON_MODE_LINE,
-			VK_POLYGON_MODE_POINT
-		};
+			Log::Error("Failed to create vulkan image view: vkCreateImageView failed!");
+			return;
+		}
 
-		return modeTable[(UInt32)mode];
+		*pVkImageView = vkImageView;
 	}
 
-	VkCullModeFlags ConvertCullMode(CullMode mode)
+	void VPLVulkanContext::CreateDescriptorSetLayoutImpl(VkDescriptorSetLayout* pVkDescriptorSetLayout, const Array<VkDescriptorSetLayoutBinding>& bindings)
 	{
-		static VkCullModeFlags modeTable[] =
+		VkDescriptorSetLayout vkDescriptorSetLayout;
+
+		VkDescriptorSetLayoutCreateInfo vkDescriptorSetLayoutInfo = {};
+		vkDescriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		vkDescriptorSetLayoutInfo.flags = 0;
+		vkDescriptorSetLayoutInfo.bindingCount = bindings.Size();
+		vkDescriptorSetLayoutInfo.pBindings = bindings.Data();
+
+		if (vkCreateDescriptorSetLayout(mpDevice->GetDeviceHandle(), &vkDescriptorSetLayoutInfo, nullptr, &vkDescriptorSetLayout) != VK_SUCCESS)
 		{
-			VK_CULL_MODE_NONE,
-			VK_CULL_MODE_FRONT_BIT,
-			VK_CULL_MODE_BACK_BIT
-		};
+			Log::Error("Failed to create vulkan descriptor set layout: vkCreateDescriptorSetLayout failed!");
+			return;
+		}
 
-		return modeTable[(UInt32)mode];
+		*pVkDescriptorSetLayout = vkDescriptorSetLayout;
 	}
 
-	VkFrontFace ConvertFaceWind(FaceWind wind)
+	void VPLVulkanContext::CreatePipelineLayoutImpl(VkPipelineLayout* pVkPipelineLayout, const Array<VkDescriptorSetLayout>& desciptorSets)
 	{
-		static VkFrontFace windTable[] =
+		VkPipelineLayout vkPipelineLayout;
+
+		VkPipelineLayoutCreateInfo vkLayoutInfo = {};
+		vkLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		vkLayoutInfo.flags = 0;
+		vkLayoutInfo.setLayoutCount = desciptorSets.Size();
+		vkLayoutInfo.pSetLayouts = desciptorSets.Data();
+
+		// TODO: Support push constants?
+		vkLayoutInfo.pushConstantRangeCount = 0;
+		vkLayoutInfo.pPushConstantRanges = nullptr;
+
+		if (vkCreatePipelineLayout(mpDevice->GetDeviceHandle(), &vkLayoutInfo, nullptr, &vkPipelineLayout) != VK_SUCCESS)
 		{
-			VK_FRONT_FACE_COUNTER_CLOCKWISE,
-			VK_FRONT_FACE_CLOCKWISE
-		};
+			Log::Error("Failed to create vulkan pipeline layout: vkCreatePipelineLayout failed!");
+			return;
+		}
 
-		return windTable[(UInt32)wind];
+		*pVkPipelineLayout = vkPipelineLayout;
 	}
 
-	UInt32 ConvertMultisample(Multisample multisample)
+	void VPLVulkanContext::CreateGraphicsPipelineImpl(VkPipeline* pPipeline, const VulkanGraphicsPipelineInfo& info, VkPipeline parent)
 	{
-		//TODO: Add check for support
+		VkPipeline vkPipeline;
+
+		VkGraphicsPipelineCreateInfo vkPipelineInfo = {};
+		vkPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+
+		if (parent != VK_NULL_HANDLE /* && pParentPipeline->mPipelineState.flags & VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT*/)
+		{
+			vkPipelineInfo.flags |= VK_PIPELINE_CREATE_DERIVATIVE_BIT;
+			vkPipelineInfo.basePipelineHandle = parent;
+		}
+
+		/* Shader Stage State */
+
+		Array<VkPipelineShaderStageCreateInfo> shaderStageInfos;
+
+		VkPipelineShaderStageCreateInfo vkShaderStageInfo = {};
+		vkShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		vkShaderStageInfo.flags = 0;
+		vkShaderStageInfo.pSpecializationInfo = nullptr;
+		vkShaderStageInfo.pNext = nullptr;
+
+		if (info.vertexShader.vkShader != VK_NULL_HANDLE)
+		{
+			vkShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+			vkShaderStageInfo.module = info.vertexShader.vkShader;
+			vkShaderStageInfo.pName = info.vertexShader.entryPoint.Str();
+
+			shaderStageInfos.PushBack(vkShaderStageInfo);
+		}
+		else
+		{
+			Log::Error("Failed to create vulkan graphics pipeline: No required vertex shader attached!");
+			return;
+		}
+
+		if (info.pixelShader.vkShader != VK_NULL_HANDLE)
+		{
+			vkShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+			vkShaderStageInfo.module = info.pixelShader.vkShader;
+			vkShaderStageInfo.pName = info.pixelShader.entryPoint.Str();
+
+			shaderStageInfos.PushBack(vkShaderStageInfo);
+		}
+		else
+		{
+			Log::Error("Failed to create vulkan graphics pipeline: No required pixel shader attached!");
+			return;
+		}
+
+		vkPipelineInfo.stageCount = shaderStageInfos.Size();
+		vkPipelineInfo.pStages = shaderStageInfos.Data();
+
+		/* Vertex Input State */
+
+		VkPipelineVertexInputStateCreateInfo vkVertexInputStateInfo = {};
+		vkVertexInputStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vkVertexInputStateInfo.flags = 0;
+
+		Array<VkVertexInputBindingDescription> bindingDescriptions;
+		for (const VulkanVertexBinding& binding : info.vertexBindings)
+		{
+			VkVertexInputBindingDescription vkBindingDescription;
+			vkBindingDescription.binding = binding.binding;
+			vkBindingDescription.stride = binding.stride;
+			vkBindingDescription.inputRate = binding.inputRate;
+
+			bindingDescriptions.PushBack(vkBindingDescription);
+		}
+
+		vkVertexInputStateInfo.vertexBindingDescriptionCount = bindingDescriptions.Size();
+		vkVertexInputStateInfo.pVertexBindingDescriptions = bindingDescriptions.Data();
+
+		Array<VkVertexInputAttributeDescription> attributeDescriptions;
+		for (const VulkanVertexAttribute& attrib : info.vertexAttributes)
+		{
+			VkVertexInputAttributeDescription vkAttributeDescription;
+			vkAttributeDescription.binding = attrib.binding;
+			vkAttributeDescription.location = attrib.location;
+			vkAttributeDescription.format = attrib.format;
+			vkAttributeDescription.offset = attrib.offset;
+
+			attributeDescriptions.PushBack(vkAttributeDescription);
+		}
+
+		vkVertexInputStateInfo.vertexAttributeDescriptionCount = attributeDescriptions.Size();
+		vkVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions.Data();
+
+		vkPipelineInfo.pVertexInputState = &vkVertexInputStateInfo;
+
+		/* Input Assembly State */
+
+		VkPipelineInputAssemblyStateCreateInfo vkInputAssemblyInfo = {};
+		vkInputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		vkInputAssemblyInfo.flags = 0;
+		vkInputAssemblyInfo.topology = info.topology;
+
+		vkPipelineInfo.pInputAssemblyState = &vkInputAssemblyInfo;
+
+		/* Tesselation State */
+
+		vkPipelineInfo.pTessellationState = nullptr;
+
+		/* Viewport State */
+
+		VkPipelineViewportStateCreateInfo vkViewportInfo = {};
+		vkViewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		vkViewportInfo.flags = 0;
+
+		Array<VkViewport> viewports;
+		for (const VkViewport& viewport : info.viewports)
+		{
+			viewports.PushBack(viewport);
+		}
+
+		vkViewportInfo.viewportCount = viewports.Size();
+		vkViewportInfo.pViewports = viewports.Data();
+
+		Array<VkRect2D> scissors;
+		for (const VkRect2D& scissor : info.scissors)
+		{
+			scissors.PushBack(scissor);
+		}
+
+		vkViewportInfo.scissorCount = scissors.Size();
+		vkViewportInfo.pScissors = scissors.Data();
+
+		vkPipelineInfo.pViewportState = &vkViewportInfo;
+
+		/* Rasterization State */
+
+		VkPipelineRasterizationStateCreateInfo vkRasterizationInfo = {};
+		vkRasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		vkRasterizationInfo.flags = 0;
+		vkRasterizationInfo.depthClampEnable = VK_FALSE;
+		vkRasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
+		vkRasterizationInfo.polygonMode = info.polygonMode;
+		vkRasterizationInfo.cullMode = info.cullMode;
+		vkRasterizationInfo.frontFace = info.frontFace;
+		vkRasterizationInfo.depthBiasEnable = 0;
+		vkRasterizationInfo.depthBiasConstantFactor = 0;
+		vkRasterizationInfo.depthBiasClamp = 0;
+		vkRasterizationInfo.depthBiasSlopeFactor = 0;
+		vkRasterizationInfo.lineWidth = info.lineWidth;
+
+		vkPipelineInfo.pRasterizationState = &vkRasterizationInfo;
+
+		/* Multisample State */
+
+		UInt32 multisamples = info.multisamples;
+		UInt32 maxMultisamples = mpDevice->GetPhysicalDevice().GetPhysicalDeviceProperties().limits.framebufferColorSampleCounts;
+
+		if (multisamples == 0)
+		{
+			multisamples = 1;
+			Log::Warning("Invalid zero multisample value in pipeline creation, setting multisamples to 1");
+		}
+
+		if (info.multisamples > maxMultisamples)
+		{
+			multisamples = maxMultisamples;
+			Log::Warning("Invalid maximum multisample value in pipeline creation, setting multisamples to maxMultisamples");
+		}
+
+		VkPipelineMultisampleStateCreateInfo vkMultisampleInfo = {};
+		vkMultisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		vkMultisampleInfo.flags = 0;
+		vkMultisampleInfo.rasterizationSamples = (VkSampleCountFlagBits)multisamples;
+		vkMultisampleInfo.sampleShadingEnable = VK_FALSE;
+		vkMultisampleInfo.minSampleShading = 0.0f;
+		vkMultisampleInfo.pSampleMask = nullptr;
+		vkMultisampleInfo.alphaToCoverageEnable = VK_FALSE;
+		vkMultisampleInfo.alphaToOneEnable = VK_FALSE;
+
+		vkPipelineInfo.pMultisampleState = &vkMultisampleInfo;
+
+		/* Depth Stencil State */
+
+		VkPipelineDepthStencilStateCreateInfo vkDepthStencilInfo = {};
+		vkDepthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		vkDepthStencilInfo.flags = 0;
+		vkDepthStencilInfo.depthTestEnable = info.enableDepthTest;
+		vkDepthStencilInfo.depthWriteEnable = info.enableDepthWrite;
+		vkDepthStencilInfo.depthCompareOp = info.depthCompareOp;
+		vkDepthStencilInfo.depthBoundsTestEnable = info.enableDepthBoundsTest;
+		vkDepthStencilInfo.stencilTestEnable = info.enableStencilTest;
+		vkDepthStencilInfo.front.failOp = info.frontFailOp;
+		vkDepthStencilInfo.front.passOp = info.frontPassOp;
+		vkDepthStencilInfo.front.depthFailOp = info.frontDepthFailOp;
+		vkDepthStencilInfo.front.compareOp = info.frontCompareOp;
+		vkDepthStencilInfo.front.compareMask = info.frontCompareMask;
+		vkDepthStencilInfo.front.writeMask = info.frontWriteMask;
+		vkDepthStencilInfo.front.reference = info.frontReference;
+		vkDepthStencilInfo.back.failOp = info.backFailOp;
+		vkDepthStencilInfo.back.passOp = info.backPassOp;
+		vkDepthStencilInfo.back.depthFailOp = info.backDepthFailOp;
+		vkDepthStencilInfo.back.compareOp = info.backCompareOp;
+		vkDepthStencilInfo.back.compareMask = info.backCompareMask;
+		vkDepthStencilInfo.back.writeMask = info.backWriteMask;
+		vkDepthStencilInfo.back.reference = info.backReference;
+		vkDepthStencilInfo.minDepthBounds = info.minDepth;
+		vkDepthStencilInfo.maxDepthBounds = info.maxDepth;
+
+		vkPipelineInfo.pDepthStencilState = &vkDepthStencilInfo;
+
+		/* Color Blend State */
+
+		VkPipelineColorBlendStateCreateInfo vkColorBlendInfo = {};
+		vkColorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		vkColorBlendInfo.flags = 0;
+		vkColorBlendInfo.logicOpEnable = info.enableColorBlendLogicOp;
+		vkColorBlendInfo.logicOp = info.colorBlendLogicOp;
+
+		Array<VkPipelineColorBlendAttachmentState> blendAttachments;
+		for (const VulkanBlendAttachment& blendAttachment : info.colorBlendAttachments)
+		{
+			VkPipelineColorBlendAttachmentState vkBlendAttachmentState = {};
+			vkBlendAttachmentState.blendEnable = blendAttachment.enableBlend;
+			vkBlendAttachmentState.srcColorBlendFactor = blendAttachment.srcColorBlendFactor;
+			vkBlendAttachmentState.dstColorBlendFactor = blendAttachment.dstColorBlendFactor;
+			vkBlendAttachmentState.colorBlendOp = blendAttachment.colorBlendOp;
+			vkBlendAttachmentState.srcAlphaBlendFactor = blendAttachment.srcAlphaBlendFactor;
+			vkBlendAttachmentState.dstAlphaBlendFactor = blendAttachment.dstAlphaBlendFactor;
+			vkBlendAttachmentState.alphaBlendOp = blendAttachment.alphaBlendOp;
+			vkBlendAttachmentState.colorWriteMask = blendAttachment.colorWriteMask;
+
+			blendAttachments.PushBack(vkBlendAttachmentState);
+		}
+
+		vkColorBlendInfo.attachmentCount = blendAttachments.Size();
+		vkColorBlendInfo.pAttachments = blendAttachments.Data();
+
+		// TODO: expose blend constants to the pipeline state?
+		vkColorBlendInfo.blendConstants[0] = 1.0f;
+		vkColorBlendInfo.blendConstants[1] = 1.0f;
+		vkColorBlendInfo.blendConstants[2] = 1.0f;
+		vkColorBlendInfo.blendConstants[3] = 1.0f;
+
+		vkPipelineInfo.pColorBlendState = &vkColorBlendInfo;
+
+		/* Dynamic States */
+
+		// TODO: Support dynamic states
+		vkPipelineInfo.pDynamicState = nullptr;
+
+		/* Pipeline Layout */
+
+		vkPipelineInfo.layout = info.pipelineLayout;
+
+		/* Render Pass */
+
+		vkPipelineInfo.renderPass = info.renderPass;
+		vkPipelineInfo.subpass = info.subpassIndex;
+
+		if (vkCreateGraphicsPipelines(mpDevice->GetDeviceHandle(), VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &vkPipeline) != VK_SUCCESS)
+		{
+			Log::Error("Failed to create vulkan graphics pipeline: vkCreateGraphicsPipelines failed!");
+			return;
+		}
+
+		// TEMP
+
+		VkSampler vkSampler;
+
+		VkSamplerCreateInfo vkSamplerInfo{};
+		vkSamplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		vkSamplerInfo.magFilter = VK_FILTER_LINEAR;
+		vkSamplerInfo.minFilter = VK_FILTER_LINEAR;
+		vkSamplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		vkSamplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		vkSamplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		vkSamplerInfo.anisotropyEnable = VK_TRUE;
+		vkSamplerInfo.maxAnisotropy = 16.0f;
+		vkSamplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		vkSamplerInfo.unnormalizedCoordinates = VK_FALSE;
+		vkSamplerInfo.compareEnable = VK_FALSE;
+		vkSamplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		vkSamplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		vkSamplerInfo.mipLodBias = 0.0f;
+		vkSamplerInfo.minLod = 0.0f;
+		vkSamplerInfo.maxLod = 0.0f;
+
+		if (vkCreateSampler(mpDevice->GetDeviceHandle(), &vkSamplerInfo, nullptr, &vkSampler) != VK_SUCCESS)
+		{
+			// Failed
+		}
+
+		*pPipeline = vkPipeline;
+	}
+
+	HGFXImage VPLVulkanContext::CreateImage(GFXImageType type, GFXImageUsages usages, GFXImageFormat imageFormat,
+		UInt32 width, UInt32 height, UInt32 depth, UInt32 mipLevels, UInt32 layers)
+	{
+		VkImage vkImage = VK_NULL_HANDLE;
+		VulkanDeviceMemoryAllocation* pMemory = nullptr;
+
+		VkImageType vkImageType = ImageTypeToVkImageType(type);
+		VkImageUsageFlags vkUsage = ImageUsagesToVkImageUsage(usages);
+		VkFormat vkFormat = ImageFormatToVkFormat(imageFormat);
+
+		CreateImageImpl(&vkImage, pMemory, vkImageType, vkUsage, vkFormat, width, height, depth, mipLevels, layers);
+
+		if (vkImage == VK_NULL_HANDLE)
+		{
+			return HGFX_NULL_HANDLE;
+		}
+
+		VulkanImage* pImage = new VulkanImage();
+		pImage->vkImage = vkImage;
+		pImage->vkFormat = vkFormat;
+		pImage->vkUsage = vkUsage;
+		pImage->vkImageType = vkImageType;
+		pImage->pMemory = pMemory;
+		pImage->width = width;
+		pImage->height = height;
+		pImage->depth = depth;
+		pImage->mipLevels = mipLevels;
+		pImage->layers = layers;
+
+		return HGFXImage(pImage);
+	}
+
+	void VPLVulkanContext::DestroyImage(HGFXImage image)
+	{
+		VulkanImage* pImage = static_cast<VulkanImage*>(image);
+
+		vkFreeMemory(mpDevice->GetDeviceHandle(), pImage->pMemory->GetDeviceMemoryHandle(), VK_NULL_HANDLE);
+		mpDevice->GetDeviceMemoryAllocator().Free(pImage->pMemory);
+
+		delete pImage;
+	}
+
+	HGFXImageView VPLVulkanContext::CreateImageView(HGFXImage image, GFXImageViewType viewType, GFXImageUsage usage, 
+		UInt32 mipStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers)
+	{
+		VkImageView vkImageView = VK_NULL_HANDLE;
+		VulkanImage* pImage = static_cast<VulkanImage*>(image);
+
+		VkImageViewType vkViewType = ImageViewTypeToVkImageViewType(viewType);
+		VkImageAspectFlags vkAspectMask = ImageUsageToVkImageAspects(usage);
 		
-		static UInt32 multisampleTable[] =
-		{
-			1, 2, 4, 8
-		};
+		CreateImageViewImpl(&vkImageView, pImage->vkImage, vkViewType, vkAspectMask,
+			pImage->vkFormat, mipStart, mipLevels, layerStart, layers);
 
-		return multisampleTable[(UInt32)multisample];
+		if (vkImageView == VK_NULL_HANDLE)
+		{
+			return HGFX_NULL_HANDLE;
+		}
+
+		VulkanImageView* pImageView = new VulkanImageView();
+		pImageView->vkImageView = vkImageView;
+		pImageView->vkFormat = pImage->vkFormat;
+		pImageView->vkViewType = vkViewType;
+		pImageView->vkAspects = vkAspectMask;
+		pImageView->mipStart = mipStart;
+		pImageView->mipLevels = mipLevels;
+		pImageView->layerStart = layerStart;
+		pImageView->layers = layers;
+
+		return HGFXImageView(pImageView);
 	}
 
-	VkDescriptorType ConvertDescriptorType(DescriptorType type)
+	void VPLVulkanContext::DestroyImageView(HGFXImageView imageView)
 	{
-		static VkDescriptorType typeTable[] =
-		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-		};
+		VulkanImageView* pImageView = static_cast<VulkanImageView*>(imageView);
 
-		return typeTable[(UInt32)type];
+		vkDestroyImageView(mpDevice->GetDeviceHandle(), pImageView->vkImageView, VK_NULL_HANDLE);
+
+		delete pImageView;
 	}
 
-	VkPipelineStageFlags ConvertShaderStages(ShaderStages stages)
+	HGFXRenderPass VPLVulkanContext::CreateRenderPass(const GFXRenderPassInfo& info)
 	{
-		VkPipelineStageFlags resultStages = 0;
+		VkRenderPass vkRenderPass;
 
-		if ((stages & SHADER_STAGE_VERTEX) == SHADER_STAGE_VERTEX)
+		VkRenderPassCreateInfo vkRenderPassCreateInfo;
+
+		Array<VkAttachmentDescription> attachmentDescriptions;
+		Array<VkSubpassDescription> subpassDescriptions;
+
+		Array<Array<VkAttachmentReference>> subpassColorAttachmentReferences;
+		Array<Array<VkAttachmentReference>> subpassInputAttachmentReferences;
+		Array<VkAttachmentReference> subpassDepthAttachmentReferences;
+
+		subpassDescriptions.Resize(info.subpasses.Size());
+
+		subpassColorAttachmentReferences.Resize(info.subpasses.Size());
+		subpassInputAttachmentReferences.Resize(info.subpasses.Size());
+		subpassDepthAttachmentReferences.Resize(info.subpasses.Size());
+
+		Array<GFXRenderAttachment*> repeatAttachments;
+
+		for (UInt32 i = 0; i < info.subpasses.Size(); i++)
 		{
-			resultStages |= VK_SHADER_STAGE_VERTEX_BIT;
+			const GFXRenderSubpassInfo& subpass = info.subpasses[i];
+
+			VkSubpassDescription& vkSubpassDescription = subpassDescriptions[i];
+			vkSubpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			vkSubpassDescription.flags = 0;
+
+			for (UInt32 j = 0; j < subpass.attachments.Size(); j++)
+			{
+				const GFXRenderSubpassAttachment& subpassAttachemnt = subpass.attachments[j];
+				GFXRenderAttachment* pAttachment = subpassAttachemnt.pAttachment;
+
+				UInt32 index = repeatAttachments.IndexOf(pAttachment);
+
+				if (index >= repeatAttachments.Size())
+				{
+					VkAttachmentDescription vkAttachmentDescription;
+					vkAttachmentDescription.flags = 0;
+					vkAttachmentDescription.format = ImageFormatToVkFormat(pAttachment->format);
+					vkAttachmentDescription.loadOp = LoadOperationToVkAttachmentLoadOp(pAttachment->loadOp);
+					vkAttachmentDescription.storeOp = StoreOperationToVkAttachmentStoreOp(pAttachment->storeOp);
+					vkAttachmentDescription.stencilLoadOp = LoadOperationToVkAttachmentLoadOp(pAttachment->stencilLoadOp);
+					vkAttachmentDescription.stencilStoreOp = StoreOperationToVkAttachmentStoreOp(pAttachment->stencilStoreOp);
+					vkAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+					vkAttachmentDescription.initialLayout = ImageLayoutToVkImageLayout(pAttachment->initalLayout);
+					vkAttachmentDescription.finalLayout = ImageLayoutToVkImageLayout(pAttachment->finalLayout);
+
+					attachmentDescriptions.PushBack(vkAttachmentDescription);
+					repeatAttachments.PushBack(pAttachment);
+				}
+
+				VkAttachmentReference vkAttachmentReference;
+				vkAttachmentReference.attachment = index;
+				vkAttachmentReference.layout = ImageLayoutToVkImageLayout(subpassAttachemnt.layout);
+
+				if (vkAttachmentReference.layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+				{
+					vkSubpassDescription.colorAttachmentCount++;
+					subpassColorAttachmentReferences[i].PushBack(vkAttachmentReference);
+				}
+				else if ((UInt32)vkAttachmentReference.layout < (UInt32)VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL)
+				{
+					vkSubpassDescription.pDepthStencilAttachment = &vkAttachmentReference;
+					//TODO: throw error if multiple depth-stencil buffers are present?
+				}
+				else
+				{
+					vkSubpassDescription.inputAttachmentCount++;
+					subpassInputAttachmentReferences[i].PushBack(vkAttachmentReference);
+				}
+			}
+
+			vkSubpassDescription.pColorAttachments = subpassColorAttachmentReferences[i].Data();
+			vkSubpassDescription.pInputAttachments = subpassInputAttachmentReferences[i].Data();
+
+			vkSubpassDescription.preserveAttachmentCount = 0;
+			vkSubpassDescription.pPreserveAttachments = nullptr;
 		}
-		if ((stages & SHADER_STAGE_FRAGMENT) == SHADER_STAGE_FRAGMENT)
+
+		Array<VkSubpassDependency> subpassDependancies(info.dependancies.Size());
+
+		for (UInt32 i = 0; i < info.dependancies.Size(); i++)
 		{
-			resultStages |= VK_SHADER_STAGE_FRAGMENT_BIT;
+			const GFXSubpassDependancy& dependancy = info.dependancies[i];
+
+			VkSubpassDependency vkSubpassDependancy = {};
+			vkSubpassDependancy.srcSubpass = SubpassIndexToVkSubpassIndex(dependancy.subpassSrcIndex);
+			vkSubpassDependancy.dstSubpass = SubpassIndexToVkSubpassIndex(dependancy.subpassDestIndex);
+			vkSubpassDependancy.srcStageMask = PipelineStagesToVkPipelineStageFlags(dependancy.srcStage);
+			vkSubpassDependancy.dstStageMask = PipelineStagesToVkPipelineStageFlags(dependancy.destStage);
+			vkSubpassDependancy.srcAccessMask = PipelineAccessToVkAccessFlags(dependancy.srcAccess);
+			vkSubpassDependancy.dstAccessMask = PipelineAccessToVkAccessFlags(dependancy.destAccess);
+			vkSubpassDependancy.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+			subpassDependancies[i] = vkSubpassDependancy;
 		}
+
+		vkRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		vkRenderPassCreateInfo.flags = 0;
+		vkRenderPassCreateInfo.pNext = nullptr;
+		vkRenderPassCreateInfo.attachmentCount = attachmentDescriptions.Size();
+		vkRenderPassCreateInfo.pAttachments = attachmentDescriptions.Data();
+		vkRenderPassCreateInfo.subpassCount = subpassDescriptions.Size();
+		vkRenderPassCreateInfo.pSubpasses = subpassDescriptions.Data();
+		vkRenderPassCreateInfo.dependencyCount = subpassDependancies.Size();
+		vkRenderPassCreateInfo.pDependencies = subpassDependancies.Data();
+
+		if (vkCreateRenderPass(mpDevice->GetDeviceHandle(), &vkRenderPassCreateInfo, nullptr, &vkRenderPass) != VK_SUCCESS)
+		{
+			Log::Error("Failed to create vulkan render pass: vkCreateRenderPass failed!");
+			return HGFX_NULL_HANDLE;
+		}
+
+		VulkanRenderPass* pRenderPass = new VulkanRenderPass;
+		pRenderPass->vkRenderPass = vkRenderPass;
+
+		return HGFXRenderPass(pRenderPass);
+	}
+
+	HGFXFramebuffer VPLVulkanContext::CreateFramebuffer(HGFXRenderPass renderPass, const Array<HGFXImageView> imageViews, UInt32 width, UInt32 height)
+	{
+		Array<VkImageView> vkImageViews(imageViews.Size());
+		VkFramebuffer vkFramebuffer;
+
+		for (UInt32 i = 0; i < imageViews.Size(); i++)
+		{
+			vkImageViews[i] = static_cast<VulkanImageView*>(imageViews[i])->vkImageView;
+		}
+
+		VkFramebufferCreateInfo framebufferInfo{};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = static_cast<VulkanRenderPass*>(renderPass)->vkRenderPass;
+		framebufferInfo.attachmentCount = vkImageViews.Size();
+		framebufferInfo.pAttachments = vkImageViews.Data();
+		framebufferInfo.width = width;
+		framebufferInfo.height = height;
+		framebufferInfo.layers = 1;
+
+		if (vkCreateFramebuffer(mpDevice->GetDeviceHandle(), &framebufferInfo, nullptr, &vkFramebuffer) != VK_SUCCESS)
+		{
+			Log::Error("Failed to create vulkan frame buffer: vkCreateFramebuffer failed!");
+			return HGFX_NULL_HANDLE;
+		}
+
+		VulkanFramebuffer* pFramebuffer = new VulkanFramebuffer;
+		pFramebuffer->vkFramebuffer = vkFramebuffer;
+		pFramebuffer->width = width;
+		pFramebuffer->height = height;
+
+		return HGFXFramebuffer(pFramebuffer);
+	}
+
+	void VPLVulkanContext::GenerateDescriptorSets(Array<VkDescriptorSetLayout>& descriptorSetLayouts, const Array<VulkanShader>& shaders)
+	{
+		// @Todo: querry max supported sets
+		Array<Map<String, VkDescriptorSetLayoutBinding>> descriptorSetList(16);
+
+		USize maxSetIndex = 0;
+
+		for (VulkanShader& shader : shaders)
+		{
+			for (UInt32 i = 0; i < shader.uniforms.Size(); i++)
+			{
+				const SpirvUniform& uniform = shader.uniforms[i];
+
+				if (descriptorSetList[uniform.set].Contains(uniform.name))
+				{
+					descriptorSetList[uniform.set][uniform.name].stageFlags |= shader.stage;
+				}
+				else
+				{
+					VkDescriptorSetLayoutBinding vkBinding;
+					vkBinding.binding = uniform.binding;
+					vkBinding.descriptorCount = 1;
+					vkBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					vkBinding.stageFlags = shader.stage;
+					vkBinding.pImmutableSamplers = nullptr;
+
+					// @Safty: check set bounds < 16
+					descriptorSetList[uniform.set].Put(uniform.name, vkBinding);
+				}
+
+				if (uniform.set > maxSetIndex)
+				{
+					maxSetIndex = uniform.set;
+				}
+			}
+
+			// @Todo: samplers, etc.
+		}
+
+		descriptorSetLayouts.Resize(maxSetIndex + 1);
+
+		UInt32 setIndex = 0;
+		for (const Map<String, VkDescriptorSetLayoutBinding>& set : descriptorSetList)
+		{
+			if (setIndex > maxSetIndex)
+			{
+				break;
+			}
+
+			Array<VkDescriptorSetLayoutBinding> setBindings;
+
+			for (const MapPair<String, VkDescriptorSetLayoutBinding>& binding : set)
+			{
+				setBindings.PushBack(binding.value);
+			}
+
+			VkDescriptorSetLayout vkDescriptorSetLayout = VK_NULL_HANDLE;
+			CreateDescriptorSetLayoutImpl(&vkDescriptorSetLayout, setBindings);
+
+			descriptorSetLayouts[setIndex] = vkDescriptorSetLayout;
+
+			setIndex++;
+		}
+	}
+
+	void VPLVulkanContext::PreInitialize()
+	{
+		Log::Debug("Pre-initializing Vulkan Graphics...");
+		// Nothing
+	}
+
+	void VPLVulkanContext::Initialize()
+	{
+		Log::Debug("Initializing Vulkan Graphics...");
+
+		Array<String> extensions;
+		extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		extensions.PushBack(VK_KHR_SURFACE_EXTENSION_NAME);
+		extensions.PushBack("VK_KHR_win32_surface");
+
+		Array<String> validationLayers;
+		validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
+
+		InitInstance(Engine::GetGameInfo().name, extensions, validationLayers);
+		InitDevices();
+	}
+
+    HGFXGraphicsPipeline VPLVulkanContext::CreateGraphicsPipeline(const GFXGraphicsPipelineInfo& info, HGFXRenderPass renderPass, UInt32 renderPassIndex)
+    {
+		VkPipeline vkPipeline = VK_NULL_HANDLE;
+
+		VkPrimitiveTopology vkTopology = PrimitiveTopologyToVkPrimitiveTopology(info.topology);
+		VkPolygonMode vkPolygonMode = PolygonModeToVkPolygonMode(info.polygonMode);
+		VkCullModeFlags vkCullMode = CullModeToVkCullMode(info.cullMode);
+		VkFrontFace vkFrontFace = FaceWindToVkFrontFace(info.faceWind);
+		UInt32 multisamples = MultisampleToVkMultisample(info.multisample);
+
+		VulkanGraphicsPipelineInfo pipelineInfo = {};
+		pipelineInfo.flags = 0;
+		pipelineInfo.vertexShader = *static_cast<VulkanShader*>(info.vertexShader);
+		pipelineInfo.pixelShader = *static_cast<VulkanShader*>(info.pixelShader);
+		pipelineInfo.topology = vkTopology;
+
+		VkViewport vkViewport;
+		vkViewport.x = info.viewport.bounds.start.x;
+		vkViewport.y = info.viewport.bounds.Height() - info.viewport.bounds.start.y;
+		vkViewport.width = info.viewport.bounds.Width();
+		vkViewport.height = -info.viewport.bounds.Height();
+		vkViewport.minDepth = info.viewport.minDepth;
+		vkViewport.maxDepth = info.viewport.maxDepth;
+
+		VkRect2D vkScissor;
+		vkScissor.offset.x = info.scissor.bounds.start.x;
+		vkScissor.offset.y = info.scissor.bounds.start.y;
+		vkScissor.extent.width = info.scissor.bounds.Width();
+		vkScissor.extent.height = info.scissor.bounds.Height();
+
+		pipelineInfo.viewports.PushBack(vkViewport);
+		pipelineInfo.scissors.PushBack(vkScissor);
+		pipelineInfo.polygonMode = vkPolygonMode;
+		pipelineInfo.cullMode = vkCullMode;
+		pipelineInfo.frontFace = vkFrontFace;
 		
-		return resultStages;
-	}
+		pipelineInfo.lineWidth = info.lineWidth;
+		
+		pipelineInfo.multisamples = multisamples;
 
-	GFXGraphicsPipeline* VulkanContext::CreateGraphicsPipeline2(GraphicsPipelineState& state, GFXRenderPass& renderPass)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+		pipelineInfo.enableDepthTest = info.depthTesting;
+		pipelineInfo.enableDepthWrite = true;
+		pipelineInfo.enableDepthBoundsTest = false;
+		pipelineInfo.enableStencilTest = false;
 
-		VulkanGraphicsPipelineState graphicsPipelineState = {};
+		pipelineInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+		pipelineInfo.frontFailOp;
+		pipelineInfo.frontPassOp;
+		pipelineInfo.frontDepthFailOp;
+		pipelineInfo.frontCompareOp;
+		pipelineInfo.frontCompareMask;
+		pipelineInfo.frontWriteMask;
+		pipelineInfo.frontReference;
+		pipelineInfo.backFailOp;
+		pipelineInfo.backPassOp;
+		pipelineInfo.backDepthFailOp;
+		pipelineInfo.backCompareOp;
+		pipelineInfo.backCompareMask;
+		pipelineInfo.backWriteMask;
+		pipelineInfo.backReference;
 
-		graphicsPipelineState.flags = 0;
+		pipelineInfo.minDepth = 0.0f;
+		pipelineInfo.maxDepth = 1.0f;
 
-		graphicsPipelineState.pVertexShader = &state.pVertexShader->CastAs<VulkanVertexShader&>();
-		graphicsPipelineState.pPixelShader = &state.pPixelShader->CastAs<VulkanPixelShader&>();
+		pipelineInfo.enableColorBlendLogicOp = false;
+		pipelineInfo.colorBlendLogicOp = VK_LOGIC_OP_COPY;
 
-		graphicsPipelineState.topology = ConvertPrimitiveTopology(state.topology);
-
-		VkViewport viewport;
-		viewport.x = state.viewport.bounds.start.x;
-		viewport.y = state.viewport.bounds.Height() - state.viewport.bounds.start.y;
-		viewport.width = state.viewport.bounds.Width();
-		viewport.height = -state.viewport.bounds.Height();
-		viewport.minDepth = state.viewport.minDepth;
-		viewport.maxDepth = state.viewport.maxDepth;
-
-		VkRect2D scissor;
-		scissor.offset.x = state.scissor.bounds.start.x;
-		scissor.offset.y = state.scissor.bounds.start.y;
-		scissor.extent.width = state.scissor.bounds.Width();
-		scissor.extent.height = state.scissor.bounds.Height();
-
-		graphicsPipelineState.viewports.PushBack(viewport);
-		graphicsPipelineState.scissors.PushBack(scissor);
-
-		graphicsPipelineState.polygonMode = ConvertPolygonMode(state.polygonMode);
-		graphicsPipelineState.cullMode = ConvertCullMode(state.cullMode);
-		graphicsPipelineState.frontFace = ConvertFaceWind(state.faceWind);
-		graphicsPipelineState.lineWidth = state.lineWidth;
-
-		graphicsPipelineState.multisamples = ConvertMultisample(state.multisample);
-
-		graphicsPipelineState.enableDepthTest = state.depthTesting;
-		graphicsPipelineState.enableDepthWrite = true;
-		graphicsPipelineState.enableDepthBoundsTest = false;
-		graphicsPipelineState.enableStencilTest = false;
-		graphicsPipelineState.depthCompareOp = VK_COMPARE_OP_LESS;
-		graphicsPipelineState.minDepth = 0.0f;
-		graphicsPipelineState.maxDepth = 1.0f;
-
-		graphicsPipelineState.enableColorBlendLogicOp = false;
-		graphicsPipelineState.colorBlendLogicOp = VK_LOGIC_OP_COPY;
-
-		for (BufferAttachent bufferAttachment : state.bufferAttachemnts)
+		for (GFXBufferAttachent bufferAttachment : info.bufferAttachemnts)
 		{
 			VulkanVertexBinding bufferBinding;
 			bufferBinding.binding = bufferAttachment.binding;
 			bufferBinding.stride = bufferAttachment.stride;
 			bufferBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-			graphicsPipelineState.vertexBindings.PushBack(bufferBinding);
+			pipelineInfo.vertexBindings.PushBack(bufferBinding);
 		}
 
 		UInt32 elementOffset = 0;
-		for (VertexAttribute vertexAttribute : state.vertexAttributes)
+		for (GFXVertexAttribute vertexAttribute : info.vertexAttributes)
 		{
+			VkFormat vkFormat = AttributeTypeToVkFormat(vertexAttribute.type);
+
 			VulkanVertexAttribute vertexAttrib;
 			vertexAttrib.binding = vertexAttribute.binding;
 			vertexAttrib.location = vertexAttribute.location;
-			vertexAttrib.format = ConvertAttributeType(vertexAttribute.type);
+			vertexAttrib.format = vkFormat;
 			vertexAttrib.offset = elementOffset;
 
 			elementOffset += AttributeSize(vertexAttribute.type);
 
-			graphicsPipelineState.vertexAttributes.PushBack(vertexAttrib);
+			pipelineInfo.vertexAttributes.PushBack(vertexAttrib);
 		}
 
-		for (BlendAttachment blendAttachment : state.blendAttachments)
+		for (GFXBlendAttachment blendAttachment : info.blendAttachments)
 		{
 			VulkanBlendAttachment blend;
 			blend.enableBlend = VK_TRUE;
@@ -519,853 +1072,427 @@ namespace Quartz
 			blend.alphaBlendOp = VK_BLEND_OP_ADD;
 			blend.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
-			graphicsPipelineState.colorBlendAttachments.PushBack(blend);
+			pipelineInfo.colorBlendAttachments.PushBack(blend);
 		}
 
-		Array<VulkanDescriptorSetLayoutBinding> descriptorBindings;
-		for (DescriptorAttachment descriptorAttachment : state.descriptorAttachents)
-		{
-			VulkanDescriptorSetLayoutBinding binding;
-			binding.binding = descriptorAttachment.binding;
-			binding.descriptorCount = descriptorAttachment.arraySize;
-			binding.descriptorType = ConvertDescriptorType(descriptorAttachment.type);
-			binding.stageFlags = ConvertShaderStages(descriptorAttachment.stages);
+		Array<VkDescriptorSetLayout> descriptorSetLayouts;
+		Array<VulkanShader> shaders = { pipelineInfo.vertexShader, pipelineInfo.pixelShader };
+		GenerateDescriptorSets(descriptorSetLayouts, shaders);
 
-			descriptorBindings.PushBack(binding);
+		VkPipelineLayout vkPipelineLayout;
+		CreatePipelineLayoutImpl(&vkPipelineLayout, descriptorSetLayouts);
+
+		if (vkPipelineLayout == VK_NULL_HANDLE)
+		{
+			return HGFX_NULL_HANDLE;
 		}
 
-		Array<VulkanDescriptorSetLayout> descriptorSets;
-		VulkanDescriptorSetLayout descriptorLayout(vulkanDevice, descriptorBindings);
-		descriptorSets.PushBack(descriptorLayout);
+		pipelineInfo.pipelineLayout = vkPipelineLayout;
 
-		VulkanPipelineLayout pipelineLayout(vulkanDevice, descriptorSets);
-		graphicsPipelineState.pipelineLayout = pipelineLayout;
+		VulkanRenderPass* pVulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass);
 
-		graphicsPipelineState.renderPass = renderPass.CastAs<VulkanRenderPass&>();
-		graphicsPipelineState.subpassIndex = 0;
+		pipelineInfo.renderPass = pVulkanRenderPass->vkRenderPass;
+		pipelineInfo.subpassIndex = renderPassIndex;
 
-		return new VulkanGraphicsPipeline(vulkanDevice, graphicsPipelineState, nullptr);
-	}
+		CreateGraphicsPipelineImpl(&vkPipeline, pipelineInfo, VK_NULL_HANDLE);
 
-	GFXGraphicsPipeline* VulkanContext::CreateGraphicsPipeline(
-		GFXGraphicsPipelineShaderState& shaderState,
-		VertexFormat& vertexFormat,
-		GFXRenderPass& renderPass,
-		GFXSurface& surface, Array<GFXImageView>& imageViews)
-	{
-		const Int32 tempWidth = 1280;
-		const Int32 tempHeight = 720;
-
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-
-		VulkanGraphicsPipelineState graphicsPipelineState = {};
-
-		VulkanVertexBinding vertexBinding;
-		vertexBinding.binding = 0;
-		vertexBinding.stride = CalcVertexStride(vertexFormat);
-		vertexBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		graphicsPipelineState.vertexBindings.PushBack(vertexBinding);
-
-		UInt32 elementOffset = 0;
-
-		for (UInt32 i = 0; i < vertexFormat.elementCount; i++)
+		if (vkPipeline == VK_NULL_HANDLE)
 		{
-			VertexElement& element = vertexFormat.elements[i];
-
-			VulkanVertexAttribute vertexAttrib;
-			vertexAttrib.binding = 0;
-			vertexAttrib.location = element.location;
-			vertexAttrib.format = FormatFromVertexElementType(element.type);
-			vertexAttrib.offset = elementOffset;
-
-			elementOffset += VertexElementSize(element.type);
-
-			graphicsPipelineState.vertexAttributes.PushBack(vertexAttrib);
+			return HGFX_NULL_HANDLE;
 		}
 
-		VkViewport viewport;
-		viewport.x = 0;
-		viewport.y = tempHeight;
-		viewport.width = tempWidth;
-		viewport.height = -tempHeight;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
+		// @Todo: Properly implement SetBackbufferCount()
+		mBackbufferCount = info.backbufferCount;
+		Array<VkDescriptorSet> descriptorSets(mBackbufferCount);
 
-		VkRect2D scissor;
-		scissor.offset.x = 0;
-		scissor.offset.y = 0;
-		scissor.extent.width = tempWidth;
-		scissor.extent.height = tempHeight;
-
-		VulkanBlendAttachment colorBlendAttachment;
-		colorBlendAttachment.enableBlend = true;
-		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-
-		///////////////////////////////////////////////////////////////////////////////////
-
-		VulkanDescriptorSetLayoutBinding uniformBinding;
-		uniformBinding.binding = 0;
-		uniformBinding.descriptorCount = 1;
-		uniformBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uniformBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-
-
-
-		VkSamplerCreateInfo samplerInfo{};
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = 16.0f;
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 0.0f;
-
-		VkSampler textureSampler;
-
-		if (vkCreateSampler(vulkanDevice.GetDeviceHandle(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+		for (UInt32 i = 0; i < mBackbufferCount; i++)
 		{
-			// Failed
+			VkDescriptorSetAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			allocInfo.descriptorPool = mpDevice->GetDescriptorPool();
+			allocInfo.descriptorSetCount = descriptorSetLayouts.Size();
+			allocInfo.pSetLayouts = descriptorSetLayouts.Data();
+
+			if (vkAllocateDescriptorSets(mpDevice->GetDeviceHandle(), &allocInfo, &descriptorSets[i]) != VK_SUCCESS)
+			{
+				// @Todo: error message
+			}
 		}
 
-		for (GFXImageView& view : imageViews)
-		{
-			VulkanImageView& vulkanImageView = view.CastAs<VulkanImageView&>();
+        VulkanGraphicsPipeline* pPipeline = new VulkanGraphicsPipeline();
+        pPipeline->vkPipeline = vkPipeline;
+		pPipeline->pipelineInfo = pipelineInfo;
+		pPipeline->descriptorSets = descriptorSets;
 
-			VkDescriptorImageInfo imageInfo{};
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = vulkanImageView.GetImageViewHandle();
-			imageInfo.sampler = textureSampler;
+        return HGFXGraphicsPipeline(pPipeline);
+    }
+
+	HGFXCommandBuffer VPLVulkanContext::CreateCommandBuffer(GFXCommnadBufferUsages usage)
+	{
+		VkCommandBuffer vkCommandBuffer;
+		VkCommandPool vkCommandPool = VK_NULL_HANDLE;
+		
+		if (usage == 0)
+		{
+			return HGFX_NULL_HANDLE;
 		}
 
-
-		VulkanDescriptorSetLayoutBinding diffuseTextureBinding;
-		diffuseTextureBinding.binding = 1;
-		diffuseTextureBinding.descriptorCount = 1;
-		diffuseTextureBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		diffuseTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		diffuseTextureBinding.pImmutableSamplers = nullptr;
-
-		Array<VulkanDescriptorSetLayoutBinding> descriptorBindings;
-		descriptorBindings.PushBack(uniformBinding);
-		descriptorBindings.PushBack(diffuseTextureBinding);
-
-		VulkanDescriptorSetLayout descriptorLayout(vulkanDevice, descriptorBindings);
-
-		///////////////////////////////////////////////////////////////////////////////////
-
-		Array<VulkanDescriptorSetLayout> descriptorSets;
-		descriptorSets.PushBack(descriptorLayout);
-		VulkanPipelineLayout pipelineLayout(vulkanDevice, descriptorSets);
-
-		///////////////////////////////////////////////////////////////////////////////////
-
-		/*
-		VulkanAttachment colorAttachment;
-		colorAttachment.flags = 0;
-		colorAttachment.format = surface.CastAs<const VulkanSurface&>().GetFormat();
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-		VulkanAttachmentReference colorReference;
-		colorReference.attachment = 0;
-		colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VulkanSubpass subpass = {};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachments.PushBack(colorReference);
-
-		VulkanSubpassDependency subpassDependency = {};
-		subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		subpassDependency.dependencyFlags = 0;
-		subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		subpassDependency.srcAccessMask = 0;
-		subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-		Array<VulkanAttachment> attachments;
-		attachments.PushBack(colorAttachment);
-		Array<VulkanSubpass> subpasses;
-		subpasses.PushBack(subpass);
-		Array<VulkanSubpassDependency> subpassDependencies;
-		subpassDependencies.PushBack(subpassDependency);
-		VulkanRenderPass renderPass(vulkanDevice, attachments, subpasses, subpassDependencies);
-		*/
-
-		///////////////////////////////////////////////////////////////////////////////////
-
-		graphicsPipelineState.flags = 0;
-		graphicsPipelineState.pVertexShader = &shaderState.pVertexShader->CastAs<VulkanVertexShader&>();
-		graphicsPipelineState.pPixelShader = &shaderState.pPixelShader->CastAs<VulkanPixelShader&>();
-
-		graphicsPipelineState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-
-		graphicsPipelineState.viewports.PushBack(viewport);
-		graphicsPipelineState.scissors.PushBack(scissor);
-
-		graphicsPipelineState.polygonMode = VK_POLYGON_MODE_FILL;
-		graphicsPipelineState.cullMode = VK_CULL_MODE_NONE;//VK_CULL_MODE_BACK_BIT;
-		graphicsPipelineState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		graphicsPipelineState.lineWidth = 1.0f;
-
-		graphicsPipelineState.multisamples = 1;
-
-		graphicsPipelineState.enableDepthTest = true;
-		graphicsPipelineState.enableDepthWrite = true;
-		graphicsPipelineState.enableDepthBoundsTest = false;
-		graphicsPipelineState.enableStencilTest = false;
-		graphicsPipelineState.depthCompareOp = VK_COMPARE_OP_LESS;
-		graphicsPipelineState.minDepth = 0.0f;
-		graphicsPipelineState.maxDepth = 1.0f;
-
-		graphicsPipelineState.enableColorBlendLogicOp;
-		graphicsPipelineState.colorBlendLogicOp = VK_LOGIC_OP_COPY;
-
-		graphicsPipelineState.colorBlendAttachments.PushBack(colorBlendAttachment);
-
-		graphicsPipelineState.pipelineLayout = pipelineLayout;
-
-		graphicsPipelineState.renderPass = renderPass.CastAs<VulkanRenderPass&>();
-		graphicsPipelineState.subpassIndex = 0;
-
-		return new VulkanGraphicsPipeline(vulkanDevice, graphicsPipelineState, nullptr);
-	}
-
-	GFXVertexShader* VulkanContext::CreateVertexShader(const Array<Byte>& shaderCode)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		return new VulkanVertexShader(vulkanDevice, shaderCode, "main");
-	}
-
-	GFXPixelShader* VulkanContext::CreatePixelShader(const Array<Byte>& shaderCode)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		return new VulkanPixelShader(vulkanDevice, shaderCode, "main");
-	}
-
-	GFXVertexBuffer* VulkanContext::CreateVertexBuffer(UInt64 sizeBytes, Bool8 hostVisable)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-
-		VkMemoryPropertyFlags memoryProperties = 0;
-		if (hostVisable)
+		if (usage & GFX_COMMAND_BUFFER_USAGE_GRAPHICS_BIT)
 		{
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			vkCommandPool = mpDevice->GetGraphicsCommandPoolHandle();
+		}
+		else if (usage & GFX_COMMAND_BUFFER_USAGE_COMPUTE_BIT)
+		{
+			vkCommandPool = mpDevice->GetComputeCommandPoolHandle();
+		}
+		else
+		{
+			vkCommandPool = mpDevice->GetTransferCommandPoolHandle();
 		}
 
-		return new VulkanVertexBuffer(vulkanDevice, sizeBytes, memoryProperties, hostVisable);
-	}
+		VkCommandBufferAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = vkCommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
 
-	GFXIndexBuffer* VulkanContext::CreateIndexBuffer(UInt32 stride, UInt64 size, Bool8 hostVisable)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-
-		VkMemoryPropertyFlags memoryProperties = 0;
-		if (hostVisable)
+		if (vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, &vkCommandBuffer) != VK_SUCCESS)
 		{
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			Log::Error("Failed to allocate command buffer: vkAllocateCommandBuffers failed!");
+			return HGFX_NULL_HANDLE;
 		}
 
-		return new VulkanIndexBuffer(vulkanDevice, stride, size, memoryProperties, hostVisable);
+		VulkanCommandBuffer* pCommandBuffer = new VulkanCommandBuffer();
+		pCommandBuffer->vkCommandBuffer = vkCommandBuffer;
+		pCommandBuffer->vkCommandPool = vkCommandPool;
+		pCommandBuffer->usage = usage;
+
+		return HGFXCommandBuffer(pCommandBuffer);
 	}
 
-	GFXUniformBuffer* VulkanContext::CreateUniformBuffer(UInt32 sizeBytes, Bool8 hostVisable)
+	HGFXShader VPLVulkanContext::CreateShader(GFXShaderStage shaderStage, const Array<Byte>& shaderData, const char* entryPoint)
 	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
+		VkShaderModule vkShader;
+		SpirvReflection reflection;
 
-		VkMemoryPropertyFlags memoryProperties = 0;
-		if (hostVisable)
+		//TODO: remove entrypoint specification
+		if (entryPoint == nullptr)
 		{
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			Log::Error("Failed to create shader: no shader entry name specified!");
+			return HGFX_NULL_HANDLE;
 		}
 
-		return new VulkanUniformBuffer(vulkanDevice, sizeBytes, memoryProperties, hostVisable);
-	}
+		VkShaderModuleCreateInfo shaderInfo{};
+		shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		shaderInfo.codeSize = shaderData.Size();
+		shaderInfo.pCode = reinterpret_cast<const uint32_t*>(shaderData.Data());
 
-	GFXTextureBuffer* VulkanContext::CreateTextureBuffer(UInt32 sizeBytes, Bool8 hostVisable)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-
-		VkMemoryPropertyFlags memoryProperties = 0;
-		if (hostVisable)
+		if (vkCreateShaderModule(mpDevice->GetDeviceHandle(), &shaderInfo, nullptr, &vkShader) != VK_SUCCESS)
 		{
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-			memoryProperties |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			Log::Error("Failed to create shader: vkCreateShaderModule failed!");
+			return HGFX_NULL_HANDLE;
 		}
 
-		return new VulkanTextureBuffer(vulkanDevice, sizeBytes, memoryProperties, hostVisable);
-	}
-
-	GFXFramebuffer* VulkanContext::CreateFramebuffer(GFXGraphicsPipeline* pGrapicsPipeline, UInt32 width, UInt32 height, const Array<GFXImageView*>& images)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-
-		Array<VkImageView> attachments;
-		for (GFXImageView* pImageView : images)
+		if (!SpirvParseReflection(&reflection, shaderData))
 		{
-			VulkanImageView& vulkanImageView = pImageView->CastAs<VulkanImageView&>();
-			attachments.PushBack(vulkanImageView.GetImageViewHandle());
+			Log::Error("Failed to create shader: Failed to parse SPIR-V reflection data!");
+			return HGFX_NULL_HANDLE;
 		}
 
-		if (pGrapicsPipeline == nullptr)
+		Array<SpirvUniform> uniforms;
+		SpirvExtractUniforms(uniforms, reflection);
+
+		VulkanShader* pShader = new VulkanShader;
+		pShader->vkShader = vkShader;
+		pShader->stage = reflection.shaderStage;
+		pShader->entryPoint = entryPoint;
+		pShader->uniforms = uniforms;
+
+		return HGFXShader(pShader);
+	}
+
+	HGFXBuffer VPLVulkanContext::CreateBuffer(GFXBufferUsages usages, GFXBufferAccess access, UInt32 sizeBytes)
+	{
+		VkBuffer vkBuffer;
+
+		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = sizeBytes;
+		bufferInfo.usage = BufferUsagesToVkBufferUsageFlags(usages);
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		if (vkCreateBuffer(mpDevice->GetDeviceHandle(), &bufferInfo, nullptr, &vkBuffer) != VK_SUCCESS)
 		{
-			//TODO: Error
-			return nullptr;
+			Log::Error("Failed to create vulkan buffer object: vkCreateBuffer failed!");
+			return HGFX_NULL_HANDLE;
 		}
 
-		VulkanGraphicsPipeline& vulkanPipeline = pGrapicsPipeline->CastAs<VulkanGraphicsPipeline&>();
-		const VulkanRenderPass& renderPass = vulkanPipeline.GetPipelineState().renderPass;
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(mpDevice->GetDeviceHandle(), vkBuffer, &memRequirements);
 
-		return new VulkanFrameBuffer(vulkanDevice, renderPass.GetRenderPassHandle(), width, height, attachments);
-	}
+		VulkanDeviceMemoryAllocator& allocator = mpDevice->GetDeviceMemoryAllocator();
+		VulkanDeviceMemoryAllocation* pMemory = allocator.Allocate(memRequirements.size, 
+			memRequirements.memoryTypeBits, BufferAccessToVkMemoryPropertyFlags(access));
 
-	VkFormat FormatToVkFormat(GFXFormat format)
-	{
-		static VkFormat sFormatTable[] =
+		if (pMemory == nullptr)
 		{
-			VK_FORMAT_UNDEFINED,
-			VK_FORMAT_R8_UNORM,
-			VK_FORMAT_R8G8_UNORM,
-			VK_FORMAT_R8G8B8_UNORM,
-			VK_FORMAT_R8G8B8A8_UNORM,
-			VK_FORMAT_B8G8R8A8_UNORM,
-			VK_FORMAT_D24_UNORM_S8_UINT
-		};
-
-		return sFormatTable[(UInt32)format];
-	}
-
-	VkImageAspectFlags ImageUsageToVkImageAspects(GFXImageUsage usage)
-	{
-		static VkImageAspectFlags sAspectTable[] =
-		{
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			VK_IMAGE_ASPECT_DEPTH_BIT,
-			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT
-		};
-
-		return sAspectTable[(UInt32)usage];
-	}
-
-	VkImageUsageFlags ImageUsageToVkImageUsage(GFXImageUsage usage)
-	{
-		static VkImageAspectFlags sUsageTable[] =
-		{
-			VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-		};
-
-		return sUsageTable[(UInt32)usage];
-	}
-
-	GFXImage* VulkanContext::CreateImage(GFXImageUsage usage, UInt32 width, UInt32 height, GFXFormat format, UInt32 mipLevels, UInt32 layers)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VkFormat imageFormat = FormatToVkFormat(format);
-		VkImageUsageFlags imageUsage = ImageUsageToVkImageUsage(usage);
-		return new VulkanImage(vulkanDevice, VK_IMAGE_TYPE_2D, imageUsage, imageFormat, width, height, 1, mipLevels, layers);
-	}
-
-	GFXImageView* VulkanContext::CreateImageView(GFXImageUsage usage, GFXImage* pImage, UInt32 mipLevelStart, UInt32 mipLevels, UInt32 layerStart, UInt32 layers)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VkImageAspectFlags aspects = ImageUsageToVkImageAspects(usage);
-		VulkanImage& image = pImage->CastAs<VulkanImage&>();
-		return new VulkanImageView(image, VK_IMAGE_VIEW_TYPE_2D, aspects, mipLevelStart, mipLevels, layerStart, layers);
-	}
-
-	GFXCommandBuffer* VulkanContext::CreateGraphicsCommandBuffer()
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		return new VulkanCommandBuffer(vulkanDevice, vulkanDevice.GetGraphicsCommandPoolHandle());
-	}
-
-	GFXCommandBuffer* VulkanContext::CreateComputeCommandBuffer()
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		return new VulkanCommandBuffer(vulkanDevice, vulkanDevice.GetComputeCommandPoolHandle());
-	}
-
-	GFXCommandBuffer* VulkanContext::CreateTransferCommandBuffer()
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		return new VulkanCommandBuffer(vulkanDevice, vulkanDevice.GetTransferCommandPoolHandle());
-	}
-
-	VkAttachmentLoadOp LoadOpToAttachmentLoadOp(GFXLoadOp loadOp)
-	{
-		static VkAttachmentLoadOp sLoadOpTable[] = 
-		{ 
-			VK_ATTACHMENT_LOAD_OP_DONT_CARE, 
-			VK_ATTACHMENT_LOAD_OP_LOAD, 
-			VK_ATTACHMENT_LOAD_OP_CLEAR
-		};
-
-		return sLoadOpTable[(UInt32)loadOp];
-	}
-
-	VkAttachmentStoreOp StoreOpToAttachmentStoreOp(GFXStoreOp storeOp)
-	{
-		static VkAttachmentStoreOp sStoreOpTable[] =
-		{
-			VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			VK_ATTACHMENT_STORE_OP_STORE
-		};
-
-		return sStoreOpTable[(UInt32)storeOp];
-	}
-
-	GFXRenderPass* VulkanContext::CreateRenderPass(GFXRenderPassInfo& renderPassInfo)
-	{
-		VulkanRenderPassLayout renderPassLayout = {};
-
-		for (GFXColorAttachment& color : renderPassInfo.colorTargets)
-		{
-			VulkanAttachment attachment = {};
-			attachment.flags = 0;
-			attachment.format = FormatToVkFormat(color.format);
-			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-			attachment.loadOp = LoadOpToAttachmentLoadOp(color.loadOp);
-			attachment.storeOp = StoreOpToAttachmentStoreOp(color.storeOp);
-			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;//VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;//VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			renderPassLayout.attachments.PushBack(attachment);
+			Log::Error("Failed to create vulkan buffer object: Failed to allocate device memory!");
+			return HGFX_NULL_HANDLE;
 		}
 
-		for (GFXDepthStencilAttachment& depthStencil : renderPassInfo.depthStencilTargets)
+		if (vkBindBufferMemory(mpDevice->GetDeviceHandle(), vkBuffer, pMemory->GetDeviceMemoryHandle(), 0) != VK_SUCCESS)
 		{
-			VulkanAttachment attachment = {};
-			attachment.flags = 0;
-			attachment.format = FormatToVkFormat(depthStencil.format);
-			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-			attachment.loadOp = LoadOpToAttachmentLoadOp(depthStencil.depthLoadOp);
-			attachment.storeOp = StoreOpToAttachmentStoreOp(depthStencil.depthStoreOp);
-			attachment.stencilLoadOp = LoadOpToAttachmentLoadOp(depthStencil.stencilLoadOp);
-			attachment.stencilStoreOp = StoreOpToAttachmentStoreOp(depthStencil.stencilStoreOp);
-			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			Log::Error("Failed to create vulkan buffer object: vkBindBufferMemory failed!");
 
-			renderPassLayout.attachments.PushBack(attachment);
+			allocator.Free(pMemory);
+			vkDestroyBuffer(mpDevice->GetDeviceHandle(), vkBuffer, nullptr);
+
+			return HGFX_NULL_HANDLE;
 		}
 
-		VulkanSubpass subpass = {};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		VulkanBuffer* pVulkanBuffer = new VulkanBuffer;
+		pVulkanBuffer->vkBuffer = vkBuffer;
+		pVulkanBuffer->pMemory = pMemory;
+		pVulkanBuffer->sizeBytes = sizeBytes;
 
-		for (UInt32 i = 0; i < renderPassInfo.colorTargets.Size(); ++i)
-		{
-			VulkanAttachmentReference colorReference;
-			colorReference.attachment = i;
-			colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			subpass.colorAttachments.PushBack(colorReference);
-		}
-
-		for (UInt32 i = 0; i < renderPassInfo.depthStencilTargets.Size(); ++i)
-		{
-			VulkanAttachmentReference depthReference;
-			depthReference.attachment = renderPassInfo.colorTargets.Size() + i;
-			depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-			subpass.depthStencilAttachments.PushBack(depthReference);
-		}
-
-		renderPassLayout.subpasses.PushBack(subpass);
-
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		return new VulkanRenderPass(vulkanDevice, renderPassLayout);
+		return HGFXBuffer(pVulkanBuffer);
 	}
 
-	void VulkanContext::BeginRenderPass(GFXCommandBuffer& commandBuffer, GFXRenderPass& renderPass, GFXFramebuffer& frameBuffer)
+	HGFXUniform VPLVulkanContext::CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset)
 	{
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		VulkanRenderPass& vulkanRenderPass = renderPass.CastAs<VulkanRenderPass&>();
-		VulkanFrameBuffer& vulkanFrameBuffer = frameBuffer.CastAs<VulkanFrameBuffer&>();
 
-		VkClearValue clearColor[2]; 
-		clearColor[0].color = { 1.0f, 0.0f, 0.0f, 1.0f };
-		clearColor[0].depthStencil = { 1.0f, 0 };
-		clearColor[1].color = { 1.0f, 0.0f, 0.0f, 1.0f };
-		clearColor[1].depthStencil = { 1.0f, 0 };
+		return HGFXUniform();
+	}
+
+	void* VPLVulkanContext::MapBuffer(HGFXBuffer buffer)
+	{
+		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+
+		//TODO: clean this up
+		void* pMapData = pVulkanBuffer->pMemory->MapMemory(0, pVulkanBuffer->sizeBytes);
+
+		return pMapData;
+	}
+
+	void VPLVulkanContext::UnmapBuffer(HGFXBuffer buffer)
+	{
+		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+
+		//TODO: clean this up
+		pVulkanBuffer->pMemory->UnmapMemory();
+	}
+
+	void VPLVulkanContext::BeginCommandBuffer(HGFXCommandBuffer commandBuffer)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		if (vkBeginCommandBuffer(pCommandBuffer->vkCommandBuffer, &beginInfo) != VK_SUCCESS)
+		{
+			Log::Error("Failed to begin command buffer recording: vkBeginCommandBuffer failed!");
+		}
+	}
+
+	void VPLVulkanContext::EndCommandBuffer(HGFXCommandBuffer commandBuffer)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+
+		if (vkEndCommandBuffer(pCommandBuffer->vkCommandBuffer) != VK_SUCCESS)
+		{
+			Log::Error("Failed to end command buffer recording: vkBeginCommandBuffer failed!");
+		}
+	}
+
+	void VPLVulkanContext::BeginRenderPass(HGFXCommandBuffer commandBuffer, HGFXRenderPass renderPass, HGFXFramebuffer framebuffer)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+		VulkanRenderPass* pVulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass);
+		VulkanFramebuffer* pVulkanFramebuffer = static_cast<VulkanFramebuffer*>(framebuffer);
+
+		VkClearValue clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+		VkClearValue clearDepth = { 1.0f, 0 };
+
+		VkClearValue clearValues[] = { clearColor, clearDepth };
 
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = vulkanRenderPass.GetRenderPassHandle();
-		renderPassInfo.framebuffer = vulkanFrameBuffer.GetFrameBufferHandle();
+		renderPassInfo.renderPass = pVulkanRenderPass->vkRenderPass;
+		renderPassInfo.framebuffer = pVulkanFramebuffer->vkFramebuffer;
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = { vulkanFrameBuffer.GetWidth(), vulkanFrameBuffer.GetHeight() };
+		renderPassInfo.renderArea.extent = { pVulkanFramebuffer->width, pVulkanFramebuffer->height };
 		renderPassInfo.clearValueCount = 2;
-		renderPassInfo.pClearValues = clearColor;
+		renderPassInfo.pClearValues = clearValues;
 
-		vkCmdBeginRenderPass(vulkanCommandBuffer.GetCommandBufferHandle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(pCommandBuffer->vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void VulkanContext::EndRenderPass(GFXCommandBuffer& commandBuffer)
+	void VPLVulkanContext::EndRenderPass(HGFXCommandBuffer commandBuffer)
 	{
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		vkCmdEndRenderPass(vulkanCommandBuffer.GetCommandBufferHandle());
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+		vkCmdEndRenderPass(pCommandBuffer->vkCommandBuffer);
 	}
 
-	void VulkanContext::Submit(GFXCommandBuffer& commandBuffer, GFXSurface& surface)
+	void VPLVulkanContext::BindGraphicsPipeline(HGFXCommandBuffer commandBuffer, HGFXGraphicsPipeline pipeline, UInt32 bufferIndex)
 	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		VulkanSurface& vulkanSurface = surface.CastAs<VulkanSurface&>();
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+		VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pipeline);
 
-		VkCommandBuffer commandBuffers[] = { vulkanCommandBuffer.GetCommandBufferHandle() };
+		vkCmdBindPipeline(pCommandBuffer->vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pGraphicsPipeline->vkPipeline);
+	
+		// @Todo: This may need to be moved out of binding the pipeline
+		vkCmdBindDescriptorSets(pCommandBuffer->vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+			pGraphicsPipeline->pipelineInfo.pipelineLayout, 0, 1, &pGraphicsPipeline->descriptorSets[bufferIndex], 0, nullptr);
+	}
+
+	//TODO: Implement offsets?
+	void VPLVulkanContext::BindVertexBuffers(HGFXCommandBuffer commandBuffer, const Array<HGFXBuffer>& buffers)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+
+		Array<VkBuffer> vkBuffers(buffers.Size());
+		Array<VkDeviceSize> vkOffsetSizes(buffers.Size());
+
+		for (UInt32 i = 0; i < buffers.Size(); i++)
+		{
+			vkBuffers[i] = static_cast<VulkanBuffer*>(buffers[i])->vkBuffer;
+			vkOffsetSizes[i] = 0;
+		}
+
+		vkCmdBindVertexBuffers(pCommandBuffer->vkCommandBuffer, 0, buffers.Size(), vkBuffers.Data(), vkOffsetSizes.Data());
+	}
+
+	//TODO: Implement offsets and index type?
+	void VPLVulkanContext::BindIndexBuffer(HGFXCommandBuffer commandBuffer, HGFXBuffer buffer)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+		VulkanBuffer* pBuffer = static_cast<VulkanBuffer*>(buffer);
+
+		vkCmdBindIndexBuffer(pCommandBuffer->vkCommandBuffer, pBuffer->vkBuffer, 0, VK_INDEX_TYPE_UINT32);
+	}
+
+	void VPLVulkanContext::DrawIndexed(HGFXCommandBuffer commandBuffer, UInt32 count, UInt32 start)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+		vkCmdDrawIndexed(pCommandBuffer->vkCommandBuffer, count, 1, start, 0, 0);
+	}
+
+	void VPLVulkanContext::Submit(HGFXCommandBuffer commandBuffer, HGFXSwapchain swapchain)
+	{
+		VulkanCommandBuffer* pCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+		VulkanSwapchain* pVulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+
+		VkCommandBuffer commandBuffers[] = { pCommandBuffer->vkCommandBuffer };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		VkSemaphore waitSemaphores[] = { vulkanSurface.GetImageAqcuiredSemaphore(vulkanSurface.GetImageIndex()) };
-		VkSemaphore completedSemaphores[] = { vulkanSurface.GetImageCompleteSemaphore(vulkanSurface.GetImageIndex()) };
-		VkFence fence = vulkanSurface.GetImageFence(vulkanSurface.GetImageIndex());
+		VkSemaphore waitSemaphores[] = { pVulkanSwapchain->imageAcquiredSemaphores[pVulkanSwapchain->frameIndex] };
+		VkSemaphore signalSemaphores[] = { pVulkanSwapchain->imageCompleteSemaphores[pVulkanSwapchain->frameIndex] };
+
+		//vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex], VK_TRUE, UINT64_MAX);
+		vkResetFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex]);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = completedSemaphores;
+		submitInfo.pSignalSemaphores = signalSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = commandBuffers;
 
-		VulkanQueue& graphicsQueue = vulkanDevice.GetGraphicsQueue();
+		VulkanQueue& graphicsQueue = mpDevice->GetGrahpicsQueue();
 
-		//vkWaitForFences(vulkanDevice.GetDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
-		vkResetFences(vulkanDevice.GetDeviceHandle(), 1, &fence);
-
-		if (vkQueueSubmit(graphicsQueue.GetQueueHandle(), 1, &submitInfo, fence) != VK_SUCCESS)
+		if (vkQueueSubmit(graphicsQueue.GetQueueHandle(), 1, &submitInfo, pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex]) != VK_SUCCESS)
 		{
-			Log.Critical("Failed to submit queue: vkQueueSubmit failed!");
+			Log::Critical("Failed to submit queue: vkQueueSubmit failed!");
 		}
 	}
 
-	void VulkanContext::Present(GFXSurface* pSurface)
+	// Move to Win32 Vulkan
+	void VPLVulkanContext::Present(HGFXSwapchain swapchain)
 	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanSurface& vulkanSurface = pSurface->CastAs<VulkanSurface&>();
+		VulkanSwapchain* pVulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
 
-		VkSemaphore completedSemaphores[] = { vulkanSurface.GetImageCompleteSemaphore(vulkanSurface.GetImageIndex()) };
-		VkSwapchainKHR swapChains[] = { vulkanSurface.GetSwapChainHandle() };
-		UInt32 imageIndices[] = { vulkanSurface.GetImageIndex() };
+		VkSemaphore signalSemaphores[] = { pVulkanSwapchain->imageCompleteSemaphores[pVulkanSwapchain->frameIndex] };
+		VkSwapchainKHR swapChains[] = { pVulkanSwapchain->vkSwapchain };
+		UInt32 imageIndices[] = { pVulkanSwapchain->imageIndex };
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = completedSemaphores;
+		presentInfo.pWaitSemaphores = signalSemaphores;
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = imageIndices;
 		presentInfo.pResults = nullptr;
 
-		VulkanQueue& presentQueue = vulkanDevice.GetPresentQueue();
+		VulkanQueue& presentQueue = mpDevice->GetPresentQueue();
 
 		vkQueuePresentKHR(presentQueue.GetQueueHandle(), &presentInfo);
+
+		// @TODO: Might not be % imageCount
+		pVulkanSwapchain->frameIndex = (pVulkanSwapchain->frameIndex + 1) % pVulkanSwapchain->imageCount;
 	}
 
-	void VulkanContext::DrawIndexed(GFXCommandBuffer& commandBuffer, UInt32 indexCount, UInt32 indexOffset)
+	void VPLVulkanContext::SetUniformBuffer(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXBuffer buffer, UInt32 backbufferIndex)
 	{
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		vkCmdDrawIndexed(vulkanCommandBuffer.GetCommandBufferHandle(), indexCount, 1, indexOffset, 0, 0);
+		VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pipeline);
+		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+
+		VkDescriptorBufferInfo bufferInfo{};
+		bufferInfo.buffer = pVulkanBuffer->vkBuffer;
+		bufferInfo.offset = 0;
+		bufferInfo.range = pVulkanBuffer->sizeBytes;
+
+		VkWriteDescriptorSet descriptorWrite {};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = pGraphicsPipeline->descriptorSets[backbufferIndex];
+		descriptorWrite.dstBinding = 0;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	// This is all sorts of bad
-	void VulkanContext::CopyTextureBufferToImage(GFXTextureBuffer* pTextureBuffer, GFXImage* pImage)
+	// Move to Win32 Vulkan
+	UInt32 VPLVulkanContext::AcquireSwapchainImageIndex(HGFXSwapchain swapchain)
 	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanTextureBuffer& textureBuffer = pTextureBuffer->CastAs<VulkanTextureBuffer&>();
-		VulkanImage& image = pImage->CastAs<VulkanImage&>();
+		VulkanSwapchain* pVulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
 
-		//TODO: I really shouldn't build all new command buffers for this,
-		// plus I should use a utility here
+		vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex], VK_TRUE, UINT64_MAX);
 
-		VulkanCommandBuffer* pCmdBuffer = &CreateGraphicsCommandBuffer()->CastAs<VulkanCommandBuffer&>();
-
-		pCmdBuffer->Begin();
-
-		VkImageMemoryBarrier barrier{};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = image.GetImageHandle();
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-		vkCmdPipelineBarrier(
-			pCmdBuffer->GetCommandBufferHandle(),
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier
-		);
-
-		VkBufferImageCopy region{};
-		region.bufferOffset = 0;
-		region.bufferRowLength = 0;
-		region.bufferImageHeight = 0;
-		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = 1;
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = {
-			image.GetWidth(),
-			image.GetHeight(),
-			1
-		};
-
-		vkCmdCopyBufferToImage(pCmdBuffer->GetCommandBufferHandle(), textureBuffer.GetBufferHandle(), image.GetImageHandle(),
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-		VkImageMemoryBarrier barrier2{};
-		barrier2.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier2.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier2.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		barrier2.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier2.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier2.image = image.GetImageHandle();
-		barrier2.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier2.subresourceRange.baseMipLevel = 0;
-		barrier2.subresourceRange.levelCount = 1;
-		barrier2.subresourceRange.baseArrayLayer = 0;
-		barrier2.subresourceRange.layerCount = 1;
-		barrier2.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier2.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		vkCmdPipelineBarrier(
-			pCmdBuffer->GetCommandBufferHandle(),
-			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier2
-		);
-
-		pCmdBuffer->End();
-
-		VkCommandBuffer buffer = pCmdBuffer->GetCommandBufferHandle();
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &buffer;
-
-		vkQueueSubmit(vulkanDevice.GetGraphicsQueue().GetQueueHandle(), 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(vulkanDevice.GetGraphicsQueue().GetQueueHandle());
-
-		//Destroy command buffer
-		pCmdBuffer->CastAs<VulkanCommandBuffer&>().Destroy();
-	}
-
-	void VulkanContext::WaitSurfaceReady(GFXSurface& surface)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanSurface& vulkanSurface = surface.CastAs<VulkanSurface&>();
-
-		// Not supported
-	}
-
-	void VulkanContext::WaitForPresent()
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanQueue& presentQueue = vulkanDevice.GetPresentQueue();
-		vkQueueWaitIdle(presentQueue.GetQueueHandle());
-	}
-
-	void VulkanContext::BindGraphicsPipeline(GFXCommandBuffer& commandBuffer, GFXGraphicsPipeline& pipeline)
-	{
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		VulkanGraphicsPipeline& vulkanPipeline = pipeline.CastAs<VulkanGraphicsPipeline&>();
-
-		vkCmdBindPipeline(vulkanCommandBuffer.GetCommandBufferHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline.GetPipelineHandle());
-	}
-
-	void VulkanContext::UnbindGraphicsPipeline(GFXCommandBuffer& commandBuffer)
-	{
-		// Not supported
-	}
-
-	void* VulkanContext::MapVertexBuffer(GFXVertexBuffer* pVertexBuffer)
-	{
-		if (pVertexBuffer != nullptr && pVertexBuffer->IsHostVisible())
+		UInt32 imageIndex;
+		if (vkAcquireNextImageKHR(mpDevice->GetDeviceHandle(), pVulkanSwapchain->vkSwapchain, UINT64_MAX,
+			pVulkanSwapchain->imageAcquiredSemaphores[pVulkanSwapchain->frameIndex], VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
-			VulkanVertexBuffer& buffer = pVertexBuffer->CastAs<VulkanVertexBuffer&>();
-			void* pMapData = buffer.GetDeviceMemoryAllocation()->MapMemory(0, buffer.GetSizeBytes());
-			return pMapData;
+			Log::Error("Error acquiring next image index: vkAcquireNextImageKHR failed!");
+			return (UInt32)-1;
 		}
 
-		return nullptr;
-	}
-
-	void* VulkanContext::MapIndexBuffer(GFXIndexBuffer* pIndexBuffer)
-	{
-		if (pIndexBuffer != nullptr && pIndexBuffer->IsHostVisible())
+		if (pVulkanSwapchain->imageFenceMap[imageIndex] != VK_NULL_HANDLE)
 		{
-			VulkanIndexBuffer& buffer = pIndexBuffer->CastAs<VulkanIndexBuffer&>();
-			void* pMapData = buffer.GetDeviceMemoryAllocation()->MapMemory(0, buffer.GetSizeBytes());
-			return pMapData;
+			vkWaitForFences(mpDevice->GetDeviceHandle(), 1, &pVulkanSwapchain->imageFenceMap[imageIndex], VK_TRUE, UINT64_MAX);
 		}
 
-		return nullptr;
+		pVulkanSwapchain->imageFenceMap[imageIndex] = pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex];
+		pVulkanSwapchain->imageIndex = imageIndex;
+
+		return imageIndex;
 	}
 
-	void* VulkanContext::MapUniformBuffer(GFXUniformBuffer* pUniformBuffer)
+	HGFXImageView VPLVulkanContext::GetSwapchainImageView(HGFXSwapchain swapchain, UInt32 imageIndex)
 	{
-		if (pUniformBuffer != nullptr && pUniformBuffer->IsHostVisible())
+		VulkanSwapchain* pVulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+
+		if (pVulkanSwapchain->imageViews.Size() < imageIndex)
 		{
-			VulkanUniformBuffer& buffer = pUniformBuffer->CastAs<VulkanUniformBuffer&>();
-			void* pMapData = buffer.GetDeviceMemoryAllocation()->MapMemory(0, buffer.GetSizeBytes());
-			return pMapData;
+			return HGFX_NULL_HANDLE;
 		}
 
-		return nullptr;
-	}
-
-	void* VulkanContext::MapTextureBuffer(GFXTextureBuffer* textureBuffer)
-	{
-		if (textureBuffer != nullptr && textureBuffer->IsHostVisible())
-		{
-			VulkanTextureBuffer& buffer = textureBuffer->CastAs<VulkanTextureBuffer&>();
-			void* pMapData = buffer.GetDeviceMemoryAllocation()->MapMemory(0, buffer.GetSizeBytes());
-			return pMapData;
-		}
-
-		return nullptr;
-	}
-
-	void VulkanContext::UnmapVertexBuffer(GFXVertexBuffer* pVertexBuffer)
-	{
-		if (pVertexBuffer != nullptr && pVertexBuffer->IsHostVisible())
-		{
-			VulkanVertexBuffer& buffer = pVertexBuffer->CastAs<VulkanVertexBuffer&>();
-			buffer.GetDeviceMemoryAllocation()->UnmapMemory();
-		}
-	}
-
-	void VulkanContext::UnmapIndexBuffer(GFXIndexBuffer* pIndexBuffer)
-	{
-		if (pIndexBuffer != nullptr && pIndexBuffer->IsHostVisible())
-		{
-			VulkanIndexBuffer& buffer = pIndexBuffer->CastAs<VulkanIndexBuffer&>();
-			buffer.GetDeviceMemoryAllocation()->UnmapMemory();
-		}
-	}
-
-	void VulkanContext::UnmapUniformBuffer(GFXUniformBuffer* pUniformBuffer)
-	{
-		if (pUniformBuffer != nullptr && pUniformBuffer->IsHostVisible())
-		{
-			VulkanUniformBuffer& buffer = pUniformBuffer->CastAs<VulkanUniformBuffer&>();
-			buffer.GetDeviceMemoryAllocation()->UnmapMemory();
-		}
-	}
-
-	void VulkanContext::UnmapTextureBuffer(GFXTextureBuffer* textureBuffer)
-	{
-		if (textureBuffer != nullptr && textureBuffer->IsHostVisible())
-		{
-			VulkanTextureBuffer& buffer = textureBuffer->CastAs<VulkanTextureBuffer&>();
-			buffer.GetDeviceMemoryAllocation()->UnmapMemory();
-		}
-	}
-
-	void VulkanContext::BindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* pVertexBuffer)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		VulkanVertexBuffer& vulkanVertexBuffer = pVertexBuffer->CastAs<VulkanVertexBuffer&>();
-			
-		VkBuffer vertexBuffers[] = { vulkanVertexBuffer.GetBufferHandle() };
-		VkDeviceSize offsets[] = { 0 };
-
-		vkCmdBindVertexBuffers(vulkanCommandBuffer.GetCommandBufferHandle(), 0, 1, vertexBuffers, offsets);
-	}
-
-	void VulkanContext::BindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		VulkanIndexBuffer& vulkanIndexBuffer = pIndexBuffer->CastAs<VulkanIndexBuffer&>();
-
-		vkCmdBindIndexBuffer(vulkanCommandBuffer.GetCommandBufferHandle(), vulkanIndexBuffer.GetBufferHandle(), 0, VK_INDEX_TYPE_UINT32);
-	}
-
-	void VulkanContext::BindUniformBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer)
-	{
-		VulkanDevice& vulkanDevice = GetDefaultDevice().CastAs<VulkanDevice&>();
-		VulkanCommandBuffer& vulkanCommandBuffer = commandBuffer.CastAs<VulkanCommandBuffer&>();
-		VulkanUniformBuffer& vulkanUnifromBuffer = pUniformBuffer->CastAs<VulkanUniformBuffer&>();
-		VulkanGraphicsPipeline& vulkanPipeline = pipeline.CastAs<VulkanGraphicsPipeline&>();
-
-		VkDescriptorSet descriptorSets[] = { vulkanUnifromBuffer.GetDescriptorSet() };
-		
-		vkCmdBindDescriptorSets(vulkanCommandBuffer.GetCommandBufferHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, 
-			vulkanPipeline.GetPipelineState().pipelineLayout.GetPipelineLayoutHandle(), 0, 1, descriptorSets, 0, nullptr);
-	}
-
-	void VulkanContext::BindTextureBuffer(GFXGraphicsPipeline& pipeline, GFXCommandBuffer& commandBuffer, GFXTextureBuffer* textureBuffer)
-	{
-
-	}
-
-	void VulkanContext::UnbindVertexBuffer(GFXCommandBuffer& commandBuffer, GFXVertexBuffer* vertexBuffer)
-	{
-
-	}
-
-	void VulkanContext::UnbindIndexBuffer(GFXCommandBuffer& commandBuffer, GFXIndexBuffer* pIndexBuffer)
-	{
-
-	}
-
-	void VulkanContext::UnbindUniformBuffer(GFXCommandBuffer& commandBuffer, GFXUniformBuffer* pUniformBuffer)
-	{
-
-	}
-
-	void VulkanContext::UnbindTextureBuffer(GFXCommandBuffer& commandBuffer, GFXTextureBuffer* textureBuffer)
-	{
-
-	}
-
-	GFXDevice& VulkanContext::GetDefaultDevice()
-	{
-		return (*mpDevice).CastAs<GFXDevice&>();
+		return HGFXImageView(&pVulkanSwapchain->imageViews[imageIndex]);
 	}
 }
 

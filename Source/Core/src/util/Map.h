@@ -66,10 +66,8 @@ namespace Quartz
 		using PairType	= MapPair<KeyType, ValueType>;
 		using TableType = Table<PairType>;
 
-		using Iterator = typename TableType::Iterator;
-
 	private:
-		Table<PairType> mTable;
+		TableType mTable;
 
 	public:
 		Map()
@@ -98,11 +96,6 @@ namespace Quartz
 			return mTable.Insert(hash, PairType(key, value)).value;
 		}
 
-		void Remove(const KeyType& key)
-		{
-			mTable.Remove(Hash(key), PairType(key));
-		}
-
 		MapType& operator=(MapType map)
 		{
 			Swap(*this, map);
@@ -114,14 +107,24 @@ namespace Quartz
 			return Put(key, ValueType());
 		}
 
-		Iterator begin()
+		typename TableType::Iterator begin()
 		{
 			return mTable.begin();
 		}
 
-		Iterator end()
+		typename TableType::Iterator end()
 		{
 			return mTable.end();
+		}
+
+		typename TableType::Iterator begin() const
+		{
+			return const_cast<MapType*>(this)->mTable.begin();
+		}
+
+		typename TableType::Iterator end() const
+		{
+			return const_cast<MapType*>(this)->mTable.end();
 		}
 
 		PairType* Find(const KeyType& key)
@@ -143,11 +146,6 @@ namespace Quartz
 		void Shrink()
 		{
 			mTable.Shrink();
-		}
-
-		void Clear()
-		{
-			mTable.Clear();
 		}
 
 		Bool8 Contains(const KeyType& key)
