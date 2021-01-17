@@ -20,8 +20,8 @@ namespace Quartz
 		static void SendAllKeyCallbacks();
 
 		static void SendMouseMoveCallbacks(HVPInputMouse mouse, Float32 rx, Float32 ry);
-		static void SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 buttonId, InputAction action);
-		static void SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 scancode, InputAction action);
+		static void SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 buttonId, InputActions actions);
+		static void SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 scancode, InputActions actions);
 
 	public:
 		static void PreInitialize();
@@ -30,8 +30,8 @@ namespace Quartz
 		static void RegisterInputBindings(InputBindings* pInputBindings);
 
 		static void SendMouseMove(HVPInputMouse mouse, Float32 rx, Float32 ry);
-		static void SendMouseButton(HVPInputMouse mouse, UInt32 buttonId, InputAction action);
-		static void SendKey(HVPInputKeyboard keyboard, UInt32 scancode, InputAction action);
+		static void SendMouseButton(HVPInputMouse mouse, UInt32 buttonId, InputActions actions);
+		static void SendKey(HVPInputKeyboard keyboard, UInt32 scancode, InputActions actions);
 
 		static void Update();
 	};

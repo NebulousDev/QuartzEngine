@@ -43,16 +43,16 @@ namespace Quartz
 		Input::smInputState.UpdateMouseMoveState(mouse, relX, relY);
 	}
 
-	void Input::SendMouseButton(HVPInputMouse mouse, UInt32 button, InputAction action)
+	void Input::SendMouseButton(HVPInputMouse mouse, UInt32 button, InputActions actions)
 	{
-		ButtonState state = action & ANY_UP ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
+		ButtonState state = actions & ANY_UP ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
 		Input::smInputState.UpdateMouseButtonState(mouse, button, state);
 	}
 
-	void Input::SendKey(HVPInputKeyboard keyboard, UInt32 key, InputAction action)
+	void Input::SendKey(HVPInputKeyboard keyboard, UInt32 key, InputActions actions)
 	{
-		ButtonState state = action & ANY_UP ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
-		Input::smInputState.UpdateKeyButtonState(keyboard, key, state, action & ACTION_REPEAT);
+		ButtonState state = actions & ANY_UP ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
+		Input::smInputState.UpdateKeyButtonState(keyboard, key, state, actions & ACTION_REPEAT);
 	}
 
 	void Input::SendAllMouseMoveCallbacks()
@@ -72,21 +72,8 @@ namespace Quartz
 			for (auto& button : mouse.value)
 			{
 				InputActions actions = smInputState.GetMouseButtonActionFromState(button.value);
-
-				for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
-				{
-					if (actions & i)
-					{
-						InputAction action = (InputAction)i;
-						SendMouseButtonCallbacks(mouse.key, button.key, action);
-
-						// We only want to check if there are callbacks for *any* action
-						// We break as to not call repeat callbacks
-						break;
-					}
-				}
+				SendMouseButtonCallbacks(mouse.key, button.key, actions);
 			}
-
 		}
 	}
 
@@ -97,21 +84,8 @@ namespace Quartz
 			for (auto& button : keyboard.value)
 			{
 				InputActions actions = smInputState.GetKeyActionFromState(button.value);
-
-				for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT << 1); i <<= 1)
-				{
-					if (actions & i)
-					{
-						InputAction action = (InputAction)i;
-						SendKeyCallbacks(keyboard.key, button.key, action);
-
-						// We only want to check if there are callbacks for *any* action
-						// We break as to not call repeat callbacks
-						break;
-					}
-				}
+				SendKeyCallbacks(keyboard.key, button.key, actions);
 			}
-
 		}
 	}
 
@@ -148,7 +122,7 @@ namespace Quartz
 		}
 	}
 
-	void Input::SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 button, InputAction action)
+	void Input::SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 button, InputActions actions)
 	{
 		for (InputBindings* pBindings : smInputBindings)
 		{
@@ -166,9 +140,16 @@ namespace Quartz
 					{
 						InputBindings::MouseButtonCallback& callbackObject = (*callbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(mouse, button, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(mouse, button, actions, 1.0f * callbackObject.scale);
+
+								// We only want to check if there are callbacks for *any* action
+								// We break as to not call repeat callbacks
+								break;
+							}
 						}
 					}
 				}
@@ -179,13 +160,16 @@ namespace Quartz
 					{
 						InputBindings::MouseButtonCallback& callbackObject = (*anyButtonCallbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(mouse, button, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(mouse, button, actions, 1.0f * callbackObject.scale);
+								break;
+							}
 						}
 					}
 				}
-
 			}
 
 			if (anyMouseCallbackMaps != nullptr)
@@ -199,9 +183,13 @@ namespace Quartz
 					{
 						InputBindings::MouseButtonCallback& callbackObject = (*anyMouseCallbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(mouse, button, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(mouse, button, actions, 1.0f * callbackObject.scale);
+								break;
+							}
 						}
 					}
 				}
@@ -212,9 +200,13 @@ namespace Quartz
 					{
 						InputBindings::MouseButtonCallback& callbackObject = (*anyMouseAnyButtonCallbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(mouse, button, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(mouse, button, actions, 1.0f * callbackObject.scale);
+								break;
+							}
 						}
 					}
 				}
@@ -222,7 +214,7 @@ namespace Quartz
 		}
 	}
 
-	void Input::SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 key, InputAction action)
+	void Input::SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 key, InputActions actions)
 	{
 		for (InputBindings* pBindings : smInputBindings)
 		{
@@ -240,9 +232,16 @@ namespace Quartz
 					{
 						InputBindings::KeyboardKeyCallback& callbackObject = (*callbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(keyboard, key, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(keyboard, key, actions, 1.0f * callbackObject.scale);
+
+								// We only want to check if there are callbacks for *any* action
+								// We break as to not call repeat callbacks
+								break;
+							}
 						}
 					}
 				}
@@ -253,9 +252,13 @@ namespace Quartz
 					{
 						InputBindings::KeyboardKeyCallback& callbackObject = (*anyButtonCallbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(keyboard, key, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(keyboard, key, actions, 1.0f * callbackObject.scale);
+								break;
+							}
 						}
 					}
 				}
@@ -273,9 +276,13 @@ namespace Quartz
 					{
 						InputBindings::KeyboardKeyCallback& callbackObject = (*anyMouseCallbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(keyboard, key, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(keyboard, key, actions, 1.0f * callbackObject.scale);
+								break;
+							}
 						}
 					}
 				}
@@ -286,9 +293,13 @@ namespace Quartz
 					{
 						InputBindings::KeyboardKeyCallback& callbackObject = (*anyMouseAnyButtonCallbacks)[i];
 
-						if (callbackObject.validActions & action)
+						for (UInt32 i = 0x1; i <= (UInt32)(ACTION_REPEAT); i <<= 1)
 						{
-							callbackObject.callback(keyboard, key, action, 1.0f * callbackObject.scale);
+							if (actions & i && callbackObject.validActions & i)
+							{
+								callbackObject.callback(keyboard, key, actions, 1.0f * callbackObject.scale);
+								break;
+							}
 						}
 					}
 				}
