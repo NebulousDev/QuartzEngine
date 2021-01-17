@@ -354,17 +354,17 @@ namespace Quartz
 		*pVkPipelineLayout = vkPipelineLayout;
 	}
 
-	void VPLVulkanContext::CreateGraphicsPipelineImpl(VkPipeline* pPipeline, const VulkanGraphicsPipelineInfo& info, VkPipeline parent)
+	void VPLVulkanContext::CreateGraphicsPipelineImpl(VkPipeline* pPipeline, const VulkanGraphicsPipelineInfo& info, VkPipeline parentId)
 	{
 		VkPipeline vkPipeline;
 
 		VkGraphicsPipelineCreateInfo vkPipelineInfo = {};
 		vkPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
-		if (parent != VK_NULL_HANDLE /* && pParentPipeline->mPipelineState.flags & VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT*/)
+		if (parentId != VK_NULL_HANDLE /* && pParentPipeline->mPipelineState.flags & VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT*/)
 		{
 			vkPipelineInfo.flags |= VK_PIPELINE_CREATE_DERIVATIVE_BIT;
-			vkPipelineInfo.basePipelineHandle = parent;
+			vkPipelineInfo.basePipelineHandle = parentId;
 		}
 
 		/* Shader Stage State */

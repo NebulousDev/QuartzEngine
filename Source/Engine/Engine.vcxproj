@@ -160,6 +160,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\Input.h" />
+    <ClInclude Include="src\application\InputAction.h" />
+    <ClInclude Include="src\application\InputBindings.h" />
+    <ClInclude Include="src\application\InputState.h" />
     <ClInclude Include="src\application\WindowManager.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\event\Event.h" />
@@ -186,14 +190,17 @@
     <ClInclude Include="src\object\Model.h" />
     <ClInclude Include="src\object\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
+    <ClInclude Include="src\platform\VPInput.h" />
     <ClInclude Include="src\platform\VPPlatform.h" />
     <ClInclude Include="src\platform\VPWindow.h" />
-    <ClInclude Include="src\platform\Console.h" />
-    <ClInclude Include="src\platform\Input.h" />
+    <ClInclude Include="src\platform\VPDebugConsole.h" />
     <ClInclude Include="src\platform\Time.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\Input.cpp" />
+    <ClCompile Include="src\application\InputBindings.cpp" />
+    <ClCompile Include="src\application\InputState.cpp" />
     <ClCompile Include="src\application\Window.cpp" />
     <ClCompile Include="src\application\WindowManager.cpp" />
     <ClCompile Include="src\Engine.cpp" />
@@ -204,7 +211,6 @@
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\object\OBJLoader.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
-    <ClCompile Include="src\platform\Input.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

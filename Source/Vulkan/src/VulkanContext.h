@@ -240,7 +240,7 @@ namespace Quartz
 		void CreatePipelineLayoutImpl(VkPipelineLayout* pVkPipelineLayout,
 			const Array<VkDescriptorSetLayout>& desciptorSets);
 
-		void CreateGraphicsPipelineImpl(VkPipeline* pPipeline, const VulkanGraphicsPipelineInfo& info, VkPipeline parent);
+		void CreateGraphicsPipelineImpl(VkPipeline* pPipeline, const VulkanGraphicsPipelineInfo& info, VkPipeline parentId);
 
 		void GenerateDescriptorSets(Array<VkDescriptorSetLayout>& descriptorSetLayouts, const Array<VulkanShader>& shaders);
 
