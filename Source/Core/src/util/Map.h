@@ -104,6 +104,13 @@ namespace Quartz
 
 		ValueType& operator[](const KeyType& key)
 		{
+			ValueType* pValue = Get(key);
+
+			if (pValue != nullptr)
+			{
+				return *pValue;
+			}
+
 			return Put(key, ValueType());
 		}
 
@@ -146,6 +153,11 @@ namespace Quartz
 		void Shrink()
 		{
 			mTable.Shrink();
+		}
+
+		void Clear()
+		{
+			mTable.Clear();
 		}
 
 		Bool8 Contains(const KeyType& key)
