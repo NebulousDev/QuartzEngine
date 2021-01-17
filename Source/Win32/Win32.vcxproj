@@ -116,7 +116,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>core.lib;engine.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>core.lib;engine.lib;Cfgmgr32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -160,16 +160,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Win32Input.h" />
     <ClInclude Include="src\Win32Platform.h" />
-    <ClInclude Include="src\Win32PlatformInput.h" />
     <ClInclude Include="src\Win32.h" />
     <ClInclude Include="src\Win32PlatformConsole.h" />
     <ClInclude Include="src\Win32PlatformTime.h" />
     <ClInclude Include="src\Win32Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Win32Input.cpp" />
     <ClCompile Include="src\Win32Platform.cpp" />
-    <ClCompile Include="src\Win32PlatformInput.cpp" />
     <ClCompile Include="src\Win32PlatformConsole.cpp" />
     <ClCompile Include="src\Win32PlatformTime.cpp" />
     <ClCompile Include="src\Win32Window.cpp" />

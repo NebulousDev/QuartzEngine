@@ -1,0 +1,23 @@
+#pragma once
+
+#include "Common.h"
+
+namespace Quartz
+{
+	enum InputAction
+	{
+		ACTION_NONE = 0x00,
+		ACTION_UP = 0x01,
+		ACTION_DOWN = 0x02,
+		ACTION_PRESSED = 0x04,
+		ACTION_RELEASED = 0x08,
+		ACTION_REPEAT = 0x10
+	};
+
+	typedef Flags16 InputActions;
+
+#define ANY_ACTION (ACTION_UP | ACTION_DOWN | ACTION_PRESSED | ACTION_RELEASED | ACTION_REPEAT)
+#define ANY_UP (ACTION_UP | ACTION_RELEASED)
+#define ANY_DOWN (ACTION_DOWN | ACTION_PRESSED | ACTION_REPEAT)
+
+}

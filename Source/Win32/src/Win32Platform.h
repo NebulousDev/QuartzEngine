@@ -38,8 +38,5 @@ namespace Quartz
 		void DestroyWindow(HVPWindow window) override;
 
 		void PollEvents() override;
-
-		//PlatformInput& GetPlatformInput() override;
-		//PlatformTime& GetPlatformTime() override;
 	};
 }

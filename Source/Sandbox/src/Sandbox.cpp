@@ -10,9 +10,11 @@
 #include "Win32PlatformConsole.h"
 #include "Win32Platform.h"
 #include "Win32PlatformTime.h"
+#include "Win32Input.h"
 
 #include "Engine.h"
 #include "application/WindowManager.h"
+#include "application/Input.h"
 
 #include "object/OBJLoader.h"
 
@@ -55,12 +57,69 @@ namespace Quartz
 	}
 }
 
+Quaternion cameraOrientation;
+Vector3 cameraPosition;
+Quartz::Double64 deltaTime;
+Quartz::Bool8 captured;
+
+void MouseMoveCallback(Quartz::HVPInputMouse mouse, Quartz::Float32 rx, Quartz::Float32 ry)
+{
+	if (captured)
+	{
+		Vector3 globalUp = Vector3(0, 1, 0);
+		Vector3 right = cameraOrientation * Vector3(1, 0, 0);
+		cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Quartz::Double64)rx * deltaTime * 2.0);
+		cameraOrientation *= Quaternion().SetAxisAngle(right, (Quartz::Double64)ry * deltaTime * 2.0);
+	}
+}
+
+void CaptureMouseCallback(Quartz::HVPInputMouse mouse, Quartz::UInt32 button, Quartz::InputAction state, Quartz::Float32 value)
+{
+	captured = true;
+	//printf("Mouse: %p, Button: %d, State: %s\n", mouse, button, state == Quartz::BUTTON_STATE_UP ? "UP" : "DOWN");
+}
+
+void MoveCameraCallback(Quartz::HVPInputKeyboard keyboard, Quartz::UInt32 key, Quartz::InputAction state, Quartz::Float32 value)
+{
+	if (key == 1) // Escape
+	{
+		captured = false;
+	}
+
+	else if (key == 17) // W
+	{
+		Vector3 forward = cameraOrientation * Vector3(0, 0, -1);
+		cameraPosition += forward * (value * deltaTime * 8.0f);
+	}
+
+	else if (key == 31) // S
+	{
+		Vector3 forward = cameraOrientation * Vector3(0, 0, 1);
+		cameraPosition += forward * (value * deltaTime * 8.0f);
+	}
+
+	else if (key == 30) // A
+	{
+		Vector3 right = cameraOrientation * Vector3(1, 0, 0);
+		cameraPosition += right * (value * deltaTime * 8.0f);
+	}
+
+	else if (key == 32) // D
+	{
+		Vector3 right = cameraOrientation * Vector3(-1, 0, 0);
+		cameraPosition += right * (value * deltaTime * 8.0f);
+	}
+
+	//Quartz::DebugLogger::Info("Key: %d, State: %s", key, state == Quartz::BUTTON_STATE_UP ? "UP" : "DOWN");
+}
+
 int main()
 {
 	using namespace Quartz;
 
 	Win32Platform win32Platform;
 	Win32VulkanContext win32VulkanContext;
+	Win32Input win32Input;
 
 	EngineInfo engineInfo;
 	engineInfo.gameInfo.name = L"Sandbox";
@@ -71,6 +130,19 @@ int main()
 
 	Engine::Setup(engineInfo);
 	Engine::Start();
+
+	win32Input.PreInitialize();
+	win32Input.Initialize();
+
+	Input::PreInitialize();
+	Input::Initialize(&win32Input);
+
+	InputBindings bindings;
+	bindings.BindGlobalMouseMoveCallback("MouseMoveCallback", ANY_MOUSE, MouseMoveCallback, 1.0f, 1.0f);
+	bindings.BindGlobalMouseButtonCallback("CaptureMouseCallback", ANY_MOUSE, 0, ANY_DOWN, CaptureMouseCallback, 1.0f);
+	bindings.BindGlobalKeyboardKeyCallback("MoveCameraCallback", ANY_KEYBOARD, ANY_BUTTON, ANY_DOWN, MoveCameraCallback, 1.0f);
+
+	Input::RegisterInputBindings(&bindings);
 
 	GraphicsWindow* pWindow = WindowManager::CreateGraphicsWindow(100, 100, DEFAULT_WIDTH, DEFAULT_HEIGHT, L"Sandbox", SWAPCHAIN_IMAGE_COUNT);
 	pWindow->Show();
@@ -194,7 +266,7 @@ int main()
 	Array<Byte> modelFileData = ReadFile(MODEL_PATH);
 	String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
 	Model mModel = LoadOBJ(modelDataString);
-
+	
 	struct UBO
 	{
 		Matrix4 model;
@@ -261,7 +333,7 @@ int main()
 
 	Double64 currentTime = 0;
 	Double64 lastTime = 0;
-	Double64 deltaTime = 0;
+	//Double64 deltaTime = 0;
 	Double64 accumulatedTime = 0;
 	UInt32 frames = 0;
 	
@@ -289,6 +361,8 @@ int main()
 		lastFrameIndex = frameIndex;
 		frameIndex = pVulkanContext->AcquireSwapchainImageIndex(pWindow->swapchain);
 
+		ubo.view = Matrix4().SetTranslation(cameraPosition) * Matrix4().SetRotation(cameraOrientation);
+
 		void* pUniformData = pVulkanContext->MapBuffer(uniformBuffers[frameIndex]);
 		memcpy(pUniformData, &ubo, sizeof(UBO));
 		pVulkanContext->UnmapBuffer(uniformBuffers[frameIndex]);
@@ -299,6 +373,11 @@ int main()
 		win32Platform.PollEvents();
 
 		frames++;
+
+		//win32Input.PollConnections();
+		win32Input.PollInput();
+
+		Input::Update();
 	}
 
 	WindowManager::DestroyGraphicsWindow(pWindow);

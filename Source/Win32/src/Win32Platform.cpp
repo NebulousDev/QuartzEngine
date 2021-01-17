@@ -171,7 +171,7 @@ namespace Quartz
 		{
 			Log::Critical(L"Unable to create window '%s'! RegisterClass() failed.", title.Str());
 			PrintLastError();
-			return HGFX_NULL_HANDLE;
+			return VP_NULL_HANDLE;
 		}
 
 		RECT windowSize = { posX, posY, posX + clientWidth, posY + clientHeight };
@@ -189,7 +189,7 @@ namespace Quartz
 		{
 			Log::Critical(L"Unable to create window '%s'! CreateWindowEx() returned null.", title.Str());
 			PrintLastError();
-			return HGFX_NULL_HANDLE;
+			return VP_NULL_HANDLE;
 		}
 
 		Bounds2i realBounds(adjustedPosX, adjustedPosY, adjustedWidth, adjustedHeight);
