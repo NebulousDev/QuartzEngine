@@ -10,7 +10,7 @@
 
 FORCEINLINE Quaternion::Quaternion()
 {
-	// Nothing
+	Set(0, 0, 0, 1);
 }
 
 FORCEINLINE Quaternion::Quaternion(const Vector3& axis, float angle)
