@@ -51,7 +51,7 @@ namespace Quartz
 			}
 			else
 			{
-				actions |= (ACTION_UP | ACTION_RELEASED);
+				actions |= (ACTION_DOWN | ACTION_PRESSED);
 			}
 		}
 
@@ -59,7 +59,7 @@ namespace Quartz
 		{
 			if (state.lastState == BUTTON_STATE_DOWN)
 			{
-				actions |= (ACTION_DOWN | ACTION_PRESSED);
+				actions |= (ACTION_UP | ACTION_RELEASED);
 			}
 			else
 			{
@@ -121,6 +121,7 @@ namespace Quartz
 			{
 				KeyState& state = keyState.value;
 				state.lastState = state.state;
+				state.repeat = false;
 			}
 		}
 	}

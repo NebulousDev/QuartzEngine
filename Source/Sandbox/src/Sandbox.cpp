@@ -68,18 +68,18 @@ void MouseMoveCallback(Quartz::HVPInputMouse mouse, Quartz::Float32 rx, Quartz::
 	{
 		Vector3 globalUp = Vector3(0, 1, 0);
 		Vector3 right = cameraOrientation * Vector3(1, 0, 0);
-		cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Quartz::Double64)rx * deltaTime * 2.0);
-		cameraOrientation *= Quaternion().SetAxisAngle(right, (Quartz::Double64)ry * deltaTime * 2.0);
+		cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Quartz::Double64)-rx * deltaTime * 4.0);
+		cameraOrientation *= Quaternion().SetAxisAngle(right, (Quartz::Double64)-ry * deltaTime * 4.0);
 	}
 }
 
-void CaptureMouseCallback(Quartz::HVPInputMouse mouse, Quartz::UInt32 button, Quartz::InputAction state, Quartz::Float32 value)
+void CaptureMouseCallback(Quartz::HVPInputMouse mouse, Quartz::UInt32 button, Quartz::InputActions actions, Quartz::Float32 value)
 {
 	captured = true;
 	//printf("Mouse: %p, Button: %d, State: %s\n", mouse, button, state == Quartz::BUTTON_STATE_UP ? "UP" : "DOWN");
 }
 
-void MoveCameraCallback(Quartz::HVPInputKeyboard keyboard, Quartz::UInt32 key, Quartz::InputAction state, Quartz::Float32 value)
+void MoveCameraCallback(Quartz::HVPInputKeyboard keyboard, Quartz::UInt32 key, Quartz::InputActions actions, Quartz::Float32 value)
 {
 	if (key == 1) // Escape
 	{
@@ -110,7 +110,7 @@ void MoveCameraCallback(Quartz::HVPInputKeyboard keyboard, Quartz::UInt32 key, Q
 		cameraPosition += right * (value * deltaTime * 8.0f);
 	}
 
-	//Quartz::DebugLogger::Info("Key: %d, State: %s", key, state == Quartz::BUTTON_STATE_UP ? "UP" : "DOWN");
+	//Quartz::DebugLogger::Info("Key: %d, State: %d", key, actions);
 }
 
 int main()
@@ -140,7 +140,7 @@ int main()
 	InputBindings bindings;
 	bindings.BindGlobalMouseMoveCallback("MouseMoveCallback", ANY_MOUSE, MouseMoveCallback, 1.0f, 1.0f);
 	bindings.BindGlobalMouseButtonCallback("CaptureMouseCallback", ANY_MOUSE, 0, ANY_DOWN, CaptureMouseCallback, 1.0f);
-	bindings.BindGlobalKeyboardKeyCallback("MoveCameraCallback", ANY_KEYBOARD, ANY_BUTTON, ANY_DOWN, MoveCameraCallback, 1.0f);
+	bindings.BindGlobalKeyboardKeyCallback("MoveCameraCallback", ANY_KEYBOARD, ANY_BUTTON, ACTION_DOWN, MoveCameraCallback, 1.0f);
 
 	Input::RegisterInputBindings(&bindings);
 
@@ -277,7 +277,7 @@ int main()
 
 	ubo.model.SetTranslation({ 0.0f, 0.0f, 0.0f });
 	ubo.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
-	ubo.proj.SetPerspective(90.0f, (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
+	ubo.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
 
 	HGFXBuffer vertexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.vertexData.buffer.Size());

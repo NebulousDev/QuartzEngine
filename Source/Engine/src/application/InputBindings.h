@@ -8,8 +8,8 @@
 namespace Quartz
 {
 	typedef void (*GlobalMouseMoveCallbackFunc)(HVPInputMouse mouse, Float32 rx, Float32 ry);
-	typedef void (*GlobalMouseButtonCallbackFunc)(HVPInputMouse mouse, UInt32 button, InputAction action, Float32 value);
-	typedef void (*GlobalKeyboardKeyCallbackFunc)(HVPInputKeyboard keyboard, UInt32 key, InputAction action, Float32 value);
+	typedef void (*GlobalMouseButtonCallbackFunc)(HVPInputMouse mouse, UInt32 button, InputActions actions, Float32 value);
+	typedef void (*GlobalKeyboardKeyCallbackFunc)(HVPInputKeyboard keyboard, UInt32 key, InputActions actions, Float32 value);
 
 #define ANY_MOUSE reinterpret_cast<HVPInputMouse>(-1)
 #define ANY_KEYBOARD reinterpret_cast<HVPInputKeyboard>(-1)
