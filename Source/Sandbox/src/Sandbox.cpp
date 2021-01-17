@@ -277,7 +277,7 @@ int main()
 
 	ubo.model.SetTranslation({ 0.0f, 0.0f, 0.0f });
 	ubo.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
-	ubo.proj.SetPerspective(90.0f, (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
+	ubo.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
 
 	HGFXBuffer vertexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.vertexData.buffer.Size());
