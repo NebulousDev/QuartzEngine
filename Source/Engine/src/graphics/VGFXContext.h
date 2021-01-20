@@ -2,8 +2,9 @@
 
 #include "Common.h"
 #include "util/Array.h"
+#include "math/Bounds.h"
 
-#include "../platform/VPWindow.h"
+#include "../platform/VPPlatform.h"
 
 namespace Quartz
 {

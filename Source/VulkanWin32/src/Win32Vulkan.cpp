@@ -14,7 +14,7 @@ namespace Quartz
         VkWin32SurfaceCreateInfoKHR win32SurfaceInfo = {};
         win32SurfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         win32SurfaceInfo.hinstance = GetModuleHandle(nullptr);
-        win32SurfaceInfo.hwnd = pWindow->GetHWND();
+        win32SurfaceInfo.hwnd = pWindow->hwnd;
 
         VkResult result = vkCreateWin32SurfaceKHR(mVkInstance, &win32SurfaceInfo, nullptr, &surface);
 

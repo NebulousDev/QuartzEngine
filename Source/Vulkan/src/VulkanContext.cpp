@@ -963,7 +963,7 @@ namespace Quartz
 		Array<String> validationLayers;
 		validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
 
-		InitInstance(Engine::GetGameInfo().name, extensions, validationLayers);
+		InitInstance(Engine::GetInstance().GetGameInfo().name, extensions, validationLayers);
 		InitDevices();
 	}
 

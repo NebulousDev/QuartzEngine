@@ -1,4 +1,4 @@
-#include "Win32Input.h"
+#include "Win32Platform.h"
 
 #include "log/Log.h"
 
@@ -233,38 +233,75 @@ namespace Quartz
 		}
 	}
 
-	void Win32Input::PreInitialize()
-	{
-		
-	}
-
-	void Win32Input::Initialize()
-	{
-		PollConnections();
-	}
-
-	void Win32Input::SetMouseMoveCallback(VPMouseMoveCallbackFunc callback)
+	void Win32Platform::SetMouseMoveCallback(VPMouseMoveCallbackFunc callback)
 	{
 		mVPMouseMoveCallbackFunc = callback;
 	}
 
-	void Win32Input::SetMouseButtonCallback(VPMouseButtonCallbackFunc callback)
+	void Win32Platform::SetMouseButtonCallback(VPMouseButtonCallbackFunc callback)
 	{
 		mVPMouseButtonCallbackFunc = callback;
 	}
 
-	void Win32Input::SetKeyboardKeyCallback(VPKeyboardKeyCallbackFunc callback)
+	void Win32Platform::SetKeyboardKeyCallback(VPKeyboardKeyCallbackFunc callback)
 	{
 		mVPKeyboardKeyCallbackFunc = callback;
 	}
 
-	void Win32Input::PollConnections()
+	void Win32Platform::ShowCursor(Bool8 shown)
+	{
+		::ShowCursor(shown);
+	}
+
+	void Win32Platform::CaptureCursor(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+
+		if (mCapturingWindow != nullptr)
+		{
+			mCapturingWindow->capturingMouse = false;
+			mCapturingWindow = nullptr;
+		}
+
+		Bounds2i bounds = pWin32Window->clientBounds;
+		RECT* clip = new RECT{ bounds.start.x, bounds.start.y, bounds.end.x, bounds.end.y };
+
+		ClipCursor(clip);
+
+		mCapturingWindow = pWin32Window;
+		pWin32Window->capturingMouse = true;
+	}
+
+	void Win32Platform::ReleaseCursor()
+	{
+		if (mCapturingWindow != nullptr)
+		{
+			mCapturingWindow->capturingMouse = false;
+			mCapturingWindow = nullptr;
+		}
+
+		ClipCursor(NULL);
+	}
+
+	HVPWindow Win32Platform::GetCapturingWindow()
+	{
+		return mCapturingWindow ? mCapturingWindow : VP_NULL_HANDLE;
+	}
+
+	Point2i Win32Platform::GetCursorPosition()
+	{
+		POINT point;
+		GetCursorPos(&point);
+		return Point2i(point.x, point.y);
+	}
+
+	void Win32Platform::PollConnections()
 	{
 		Array<RAWINPUTDEVICELIST> rawInputDevices;
 
 		EnumerateDevices(rawInputDevices);
 
-		// We only care about active device handles
+		// We only care about mouseInside device handles
 		mDeviceIds.Clear();
 
 		for (const RAWINPUTDEVICELIST& rawInputDevice : rawInputDevices)
@@ -355,7 +392,7 @@ namespace Quartz
 		}
 	}
 
-	void Win32Input::PollInput()
+	void Win32Platform::PollInput()
 	{
 		RAWINPUT inputBuffer[INPUT_MAX_RAWINPUT_BUFFER_SIZE]{};
 		UInt32 bufferSize = sizeof(RAWINPUT) * INPUT_MAX_RAWINPUT_BUFFER_SIZE;

@@ -3,6 +3,9 @@
 #include "platform/VPPlatform.h"
 #include "graphics/VGFXContext.h"
 
+#include "application/Input.h"
+#include "application/WindowManager.h"
+
 namespace Quartz
 {
 	struct GameInfo
@@ -22,26 +25,35 @@ namespace Quartz
 	class QUARTZ_API Engine
 	{
 	private:
-		static GameInfo mGameInfo;
-		static VPPlatform* mpPlatform;
-		static VGFXContext* mpGraphics;
-
-		static VPDebugConsole* mpDebugConsole;
+		static Engine* sInstance;
 
 	private:
-		static void SetupDebugConsole(Bool8 showConsole);
-		static void SetupDebugLogging();
-		static void PrintSplash();
+		GameInfo		mGameInfo;
+		VPPlatform*		mpPlatform;
+		VGFXContext*	mpGraphics;
+		Input*			mpInput;
+		WindowManager*	mpWindowManager;
+		VPDebugConsole* mpDebugConsole;
+
+	private:
+		void Setup(const EngineInfo& info);
+		void SetupDebugConsole(Bool8 showConsole);
+		void SetupDebugLogging();
+
+		void PrintSplash();
 
 	public:
-		static void Setup(const EngineInfo& info);
-		static void Start();
+		static Engine& GetInstance();
 
-		// @Todo: find out why this cant be defined here?
-		static const GameInfo& GetGameInfo();
+		static Engine& CreateInstance(const EngineInfo& info);
+		void Start();
 
-		static VPPlatform& GetPlatformContext();
-		static VGFXContext& GetGraphicsContext();
+		const GameInfo& GetGameInfo();
+
+		VPPlatform& GetPlatform();
+		VGFXContext& GetGraphics();
+		Input& GetInput();
+		WindowManager& GetWindowManager();
 	};
 
 }

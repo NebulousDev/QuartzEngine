@@ -1,77 +1,115 @@
 #include "Input.h"
 
+#include "../Engine.h"
+#include "Window.h"
+
 namespace Quartz
 {
-	Array<InputBindings*> Input::smInputBindings;
-	InputState Input::smInputState;
-
 	void BindingMouseMoveCallback(HVPInputMouse mouse, Int64 relX, Int64 relY)
 	{
-		Input::smInputState.UpdateMouseMoveState(mouse, relX, relY);
+		Engine& engine = Engine::GetInstance();
+		engine.GetInput().mInputState.UpdateMouseMoveState(mouse, relX, relY);
 	}
 
 	void BindingMouseButtonCallback(HVPInputMouse mouse, UInt32 button, ButtonState state)
 	{
-		Input::smInputState.UpdateMouseButtonState(mouse, button, state);
+		Engine& engine = Engine::GetInstance();
+		engine.GetInput().mInputState.UpdateMouseButtonState(mouse, button, state);
 	}
 
 	void BindingKeyboardKeyCallback(HVPInputKeyboard keyboard, UInt32 key, ButtonState state)
 	{
-		Bool8 repeat = Input::smInputState.GetKeyAction(keyboard, key) & ACTION_DOWN;
-		Input::smInputState.UpdateKeyButtonState(keyboard, key, state, repeat);
+		Engine& engine = Engine::GetInstance();
+		Input& input = engine.GetInput();
+
+		Bool8 repeat = input.mInputState.GetKeyAction(keyboard, key) & ACTION_DOWN;
+		input.mInputState.UpdateKeyButtonState(keyboard, key, state, repeat);
 	}
 
 	void Input::PreInitialize()
 	{
-
+		mCaptured = false;
 	}
 
-	void Input::Initialize(VPInput* pInput)
+	void Input::Initialize()
 	{
-		pInput->SetMouseMoveCallback(BindingMouseMoveCallback);
-		pInput->SetMouseButtonCallback(BindingMouseButtonCallback);
-		pInput->SetKeyboardKeyCallback(BindingKeyboardKeyCallback);
+		Engine& engine = Engine::GetInstance();
+		VPPlatform& platform = engine.GetPlatform();
+
+		platform.SetMouseMoveCallback(BindingMouseMoveCallback);
+		platform.SetMouseButtonCallback(BindingMouseButtonCallback);
+		platform.SetKeyboardKeyCallback(BindingKeyboardKeyCallback);
 	}
 
 	void Input::RegisterInputBindings(InputBindings* pInputBindings)
 	{
-		smInputBindings.PushBack(pInputBindings);
+		mInputBindings.PushBack(pInputBindings);
 	}
 
 	void Input::SendMouseMove(HVPInputMouse mouse, Float32 relX, Float32 relY)
 	{
-		Input::smInputState.UpdateMouseMoveState(mouse, relX, relY);
+		mInputState.UpdateMouseMoveState(mouse, relX, relY);
 	}
 
 	void Input::SendMouseButton(HVPInputMouse mouse, UInt32 button, InputActions actions)
 	{
 		ButtonState state = actions & ANY_UP ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
-		Input::smInputState.UpdateMouseButtonState(mouse, button, state);
+		mInputState.UpdateMouseButtonState(mouse, button, state);
 	}
 
 	void Input::SendKey(HVPInputKeyboard keyboard, UInt32 key, InputActions actions)
 	{
 		ButtonState state = actions & ANY_UP ? BUTTON_STATE_UP : BUTTON_STATE_DOWN;
-		Input::smInputState.UpdateKeyButtonState(keyboard, key, state, actions & ACTION_REPEAT);
+		mInputState.UpdateKeyButtonState(keyboard, key, state, actions & ACTION_REPEAT);
+	}
+
+	void Input::ShowCursor(Bool8 shown)
+	{
+		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		platform.ShowCursor(shown);
+	}
+
+	void Input::CaptureCursor(Window& window)
+	{
+		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		platform.CaptureCursor(window.GetNativeWindow());
+	}
+
+	void Input::ReleaseCursor()
+	{
+		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		platform.ReleaseCursor();
+	}
+
+	Point2i Input::GetCursorPosition()
+	{
+		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		return platform.GetCursorPosition();
+	}
+
+	Bool8 Input::IsMouseCaptured()
+	{
+		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		return platform.GetCapturingWindow() != VP_NULL_HANDLE;
 	}
 
 	void Input::SendAllMouseMoveCallbacks()
 	{
-		for (auto& mouse : smInputState.mMouseMoveStates)
+		for (auto& mouse : mInputState.mMouseMoveStates)
 		{
 			SendMouseMoveCallbacks(mouse.key, 
-				smInputState.GetMouseRelXFromState(mouse.value), 
-				smInputState.GetMouseRelYFromState(mouse.value));
+				mInputState.GetMouseRelXFromState(mouse.value), 
+				mInputState.GetMouseRelYFromState(mouse.value));
 		}
 	}
 
 	void Input::SendAllMosueButtonCallbacks()
 	{
-		for (auto& mouse : smInputState.mMouseButtonStates)
+		for (auto& mouse : mInputState.mMouseButtonStates)
 		{
 			for (auto& button : mouse.value)
 			{
-				InputActions actions = smInputState.GetMouseButtonActionFromState(button.value);
+				InputActions actions = mInputState.GetMouseButtonActionFromState(button.value);
 				SendMouseButtonCallbacks(mouse.key, button.key, actions);
 			}
 		}
@@ -79,11 +117,11 @@ namespace Quartz
 
 	void Input::SendAllKeyCallbacks()
 	{
-		for (auto& keyboard : smInputState.mKeyStates)
+		for (auto& keyboard : mInputState.mKeyStates)
 		{
 			for (auto& button : keyboard.value)
 			{
-				InputActions actions = smInputState.GetKeyActionFromState(button.value);
+				InputActions actions = mInputState.GetKeyActionFromState(button.value);
 				SendKeyCallbacks(keyboard.key, button.key, actions);
 			}
 		}
@@ -91,7 +129,7 @@ namespace Quartz
 
 	void Input::SendMouseMoveCallbacks(HVPInputMouse mouse, Float32 rx, Float32 ry)
 	{
-		for (InputBindings* pBindings : smInputBindings)
+		for (InputBindings* pBindings : mInputBindings)
 		{
 			auto* callbacks = pBindings->mGlobalMouseMoveCallbacks.Get(mouse);
 			auto* anyCallbacks = pBindings->mGlobalMouseMoveCallbacks.Get(ANY_MOUSE);
@@ -124,7 +162,7 @@ namespace Quartz
 
 	void Input::SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 button, InputActions actions)
 	{
-		for (InputBindings* pBindings : smInputBindings)
+		for (InputBindings* pBindings : mInputBindings)
 		{
 			auto* callbackMaps = pBindings->mGlobalMouseButtonCallbacks.Get(mouse);
 			auto* anyMouseCallbackMaps = pBindings->mGlobalMouseButtonCallbacks.Get(ANY_MOUSE);
@@ -216,7 +254,7 @@ namespace Quartz
 
 	void Input::SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 key, InputActions actions)
 	{
-		for (InputBindings* pBindings : smInputBindings)
+		for (InputBindings* pBindings : mInputBindings)
 		{
 			auto* callbackMaps = pBindings->mGlobalKeyboardKeyCallbacks.Get(keyboard);
 			auto* anyMouseCallbackMaps = pBindings->mGlobalKeyboardKeyCallbacks.Get(ANY_MOUSE);
@@ -309,11 +347,14 @@ namespace Quartz
 	
 	void Input::Update()
 	{
-		SendAllMouseMoveCallbacks();
-		SendAllMosueButtonCallbacks();
-		SendAllKeyCallbacks();
+		if (true);//mCaptured)
+		{
+			SendAllMouseMoveCallbacks();
+			SendAllMosueButtonCallbacks();
+			SendAllKeyCallbacks();
 
-		smInputState.UpdateStates();
+			mInputState.UpdateStates();
+		}
 	}
 }
 
