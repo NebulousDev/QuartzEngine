@@ -157,7 +157,7 @@ namespace Quartz
 
 // @TODO: Move to using platform main instead
 
-int main()
+int main(int argc, char* argv[])
 {
 	using namespace Quartz;
 
@@ -326,7 +326,14 @@ int main()
 		UNIFORMS
 	=====================================*/
 
-	Array<Byte> modelFileData = ReadFile(MODEL_PATH);
+	String modelPath = MODEL_PATH;
+
+	if (argc > 1)
+	{
+		modelPath = argv[1];
+	}
+
+	Array<Byte> modelFileData = ReadFile(modelPath);
 	String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
 	Model mModel = LoadOBJ(modelDataString);
 	
