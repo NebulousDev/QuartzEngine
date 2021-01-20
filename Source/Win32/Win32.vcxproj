@@ -160,7 +160,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Win32Input.h" />
     <ClInclude Include="src\Win32Platform.h" />
     <ClInclude Include="src\Win32.h" />
     <ClInclude Include="src\Win32PlatformConsole.h" />
@@ -172,7 +171,6 @@
     <ClCompile Include="src\Win32Platform.cpp" />
     <ClCompile Include="src\Win32PlatformConsole.cpp" />
     <ClCompile Include="src\Win32PlatformTime.cpp" />
-    <ClCompile Include="src\Win32Window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

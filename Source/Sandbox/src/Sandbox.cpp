@@ -10,7 +10,6 @@
 #include "Win32PlatformConsole.h"
 #include "Win32Platform.h"
 #include "Win32PlatformTime.h"
-#include "Win32Input.h"
 
 #include "Engine.h"
 #include "application/WindowManager.h"
@@ -25,16 +24,28 @@
 
 _declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
-#define SWAPCHAIN_IMAGE_COUNT 3
-#define FRAME_RESOURCE_COUNT 2
-
-#define MODEL_PATH "models/testScene.obj"
-#define DIFFUSE_PATH "textures/default.png"
-
 namespace Quartz
 {
+	/*=====================================
+		WINDOW/GRAPHICS PROPERITES
+	=====================================*/
+
+	#define DEFAULT_WIDTH 1280
+	#define DEFAULT_HEIGHT 720
+	#define SWAPCHAIN_IMAGE_COUNT 3
+	#define FRAME_RESOURCE_COUNT 3
+
+	/*=====================================
+		SCENE RESOURCES
+	=====================================*/
+
+	#define MODEL_PATH "models/testScene.obj"
+	#define DIFFUSE_PATH "textures/default.png"
+
+	/*=====================================
+		TEMP FILE READER
+	=====================================*/
+
 	static Array<Byte> ReadFile(const String& filename)
 	{
 		std::ifstream file(filename.Str(), std::ios::ate | std::ios::binary);
@@ -55,118 +66,165 @@ namespace Quartz
 
 		return buffer;
 	}
-}
 
-Quaternion cameraOrientation;
-Vector3 cameraPosition;
-Quartz::Double64 deltaTime;
-Quartz::Bool8 captured;
+	/*=====================================
+		TEMP GLOBALS
+	=====================================*/
 
-void MouseMoveCallback(Quartz::HVPInputMouse mouse, Quartz::Float32 rx, Quartz::Float32 ry)
-{
-	if (captured)
+	Quaternion cameraOrientation;
+	Vector3 cameraPosition;
+	Double64 deltaTime;
+
+	Input* gpInput;
+	Window* gpWindow;
+
+	/*=====================================
+		TEMP WINDOW/INPUT CALLBACKS
+	=====================================*/
+
+	void MouseMoveCallback(HVPInputMouse mouse, Float32 rx, Float32 ry)
 	{
-		Vector3 globalUp = Vector3(0, 1, 0);
-		Vector3 right = cameraOrientation * Vector3(1, 0, 0);
-		cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Quartz::Double64)-rx * deltaTime * 4.0);
-		cameraOrientation *= Quaternion().SetAxisAngle(right, (Quartz::Double64)-ry * deltaTime * 4.0);
+		if (gpInput->IsMouseCaptured())
+		{
+			Vector3 globalUp = Vector3(0, 1, 0);
+			Vector3 right = cameraOrientation * Vector3(1, 0, 0);
+			cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Double64) - rx * deltaTime * 4.0);
+			cameraOrientation *= Quaternion().SetAxisAngle(right, (Double64) - ry * deltaTime * 4.0);
+		}
+	}
+
+	void CaptureMouseCallback(HVPInputMouse mouse, UInt32 button, InputActions actions, Float32 value)
+	{
+		Bounds2i bounds = gpWindow->GetBounds();
+		RECT* clip = new RECT{ bounds.start.x, bounds.start.y, bounds.end.x, bounds.end.y };
+
+		if (gpWindow->IsFocused() && gpWindow->IsMouseInside())
+		{
+			gpInput->CaptureCursor(*gpWindow);
+			Log::Info("CAPTURING CURSOR");
+			ShowCursor(false);
+		}
+	}
+
+	void MoveCameraCallback(HVPInputKeyboard keyboard, UInt32 key, InputActions actions, Float32 value)
+	{
+		if (key == 1 && (actions & ACTION_PRESSED)) // Escape
+		{
+			gpInput->ReleaseCursor();
+			Log::Info("RELEASING CURSOR");
+			ShowCursor(true);
+		}
+
+		else if (key == 17) // W
+		{
+			Vector3 forward = cameraOrientation * Vector3(0, 0, -1);
+			cameraPosition += forward * (value * deltaTime * 8.0f);
+		}
+
+		else if (key == 31) // S
+		{
+			Vector3 forward = cameraOrientation * Vector3(0, 0, 1);
+			cameraPosition += forward * (value * deltaTime * 8.0f);
+		}
+
+		else if (key == 30) // A
+		{
+			Vector3 right = cameraOrientation * Vector3(1, 0, 0);
+			cameraPosition += right * (value * deltaTime * 8.0f);
+		}
+
+		else if (key == 32) // D
+		{
+			Vector3 right = cameraOrientation * Vector3(-1, 0, 0);
+			cameraPosition += right * (value * deltaTime * 8.0f);
+		}
+	}
+
+	void WindowFocus(Window& window, Bool8 focus)
+	{
+		if (!focus)
+		{
+			Log::Debug("Unfocused!");
+			Log::Info("RELEASING CURSOR");
+			ShowCursor(true);
+		}
 	}
 }
 
-void CaptureMouseCallback(Quartz::HVPInputMouse mouse, Quartz::UInt32 button, Quartz::InputActions actions, Quartz::Float32 value)
-{
-	captured = true;
-	//printf("Mouse: %p, Button: %d, State: %s\n", mouse, button, state == Quartz::BUTTON_STATE_UP ? "UP" : "DOWN");
-}
+/*=====================================
+	QUARTZ MAIN
+=====================================*/
 
-void MoveCameraCallback(Quartz::HVPInputKeyboard keyboard, Quartz::UInt32 key, Quartz::InputActions actions, Quartz::Float32 value)
-{
-	if (key == 1) // Escape
-	{
-		captured = false;
-	}
-
-	else if (key == 17) // W
-	{
-		Vector3 forward = cameraOrientation * Vector3(0, 0, -1);
-		cameraPosition += forward * (value * deltaTime * 8.0f);
-	}
-
-	else if (key == 31) // S
-	{
-		Vector3 forward = cameraOrientation * Vector3(0, 0, 1);
-		cameraPosition += forward * (value * deltaTime * 8.0f);
-	}
-
-	else if (key == 30) // A
-	{
-		Vector3 right = cameraOrientation * Vector3(1, 0, 0);
-		cameraPosition += right * (value * deltaTime * 8.0f);
-	}
-
-	else if (key == 32) // D
-	{
-		Vector3 right = cameraOrientation * Vector3(-1, 0, 0);
-		cameraPosition += right * (value * deltaTime * 8.0f);
-	}
-
-	//Quartz::DebugLogger::Info("Key: %d, State: %d", key, actions);
-}
+// @TODO: Move to using platform main instead
 
 int main()
 {
 	using namespace Quartz;
 
-	Win32Platform win32Platform;
-	Win32VulkanContext win32VulkanContext;
-	Win32Input win32Input;
+	/*=====================================
+		ENGINE INITIALIZATION
+	=====================================*/
+
+	Win32Platform		win32Platform;
+	Win32VulkanContext	win32VulkanContext;
 
 	EngineInfo engineInfo;
-	engineInfo.gameInfo.name = L"Sandbox";
-	engineInfo.gameInfo.version = L"0.0.0";
-	engineInfo.pPlatform = &win32Platform;
-	engineInfo.pGraphics = &win32VulkanContext;
-	engineInfo.showDebugConsole = true;
+	engineInfo.gameInfo.name		= L"Sandbox";
+	engineInfo.gameInfo.version		= L"1.0.0";
+	engineInfo.pPlatform			= &win32Platform;
+	engineInfo.pGraphics			= &win32VulkanContext;
+	engineInfo.showDebugConsole		= true;
 
-	Engine::Setup(engineInfo);
-	Engine::Start();
+	Engine& engine = Engine::CreateInstance(engineInfo);
+	engine.Start();
 
-	win32Input.PreInitialize();
-	win32Input.Initialize();
-
-	Input::PreInitialize();
-	Input::Initialize(&win32Input);
+	/*=====================================
+		INPUT BINDINGS
+	=====================================*/
 
 	InputBindings bindings;
 	bindings.BindGlobalMouseMoveCallback("MouseMoveCallback", ANY_MOUSE, MouseMoveCallback, 1.0f, 1.0f);
-	bindings.BindGlobalMouseButtonCallback("CaptureMouseCallback", ANY_MOUSE, 0, ANY_DOWN, CaptureMouseCallback, 1.0f);
+	bindings.BindGlobalMouseButtonCallback("CaptureMouseCallback", ANY_MOUSE, 0, ACTION_PRESSED, CaptureMouseCallback, 1.0f);
 	bindings.BindGlobalKeyboardKeyCallback("MoveCameraCallback", ANY_KEYBOARD, ANY_BUTTON, ACTION_DOWN, MoveCameraCallback, 1.0f);
 
-	Input::RegisterInputBindings(&bindings);
+	engine.GetInput().RegisterInputBindings(&bindings);
 
-	GraphicsWindow* pWindow = WindowManager::CreateGraphicsWindow(100, 100, DEFAULT_WIDTH, DEFAULT_HEIGHT, L"Sandbox", SWAPCHAIN_IMAGE_COUNT);
+	GraphicsWindow* pWindow = engine.GetWindowManager().CreateGraphicsWindow(100, 100, DEFAULT_WIDTH, DEFAULT_HEIGHT, L"Sandbox", SWAPCHAIN_IMAGE_COUNT);
 	pWindow->Show();
 	pWindow->Focus();
+
+	engine.GetWindowManager().RegisterWindowFocusCallback(*pWindow, WindowFocus);
+
+	/*=====================================
+		SET TEMP GLOBALS
+	=====================================*/
+
+	gpInput		= &engine.GetInput();
+	gpWindow	= pWindow;
+
+	/*=====================================
+		GRAPHICS INITIALIZATION
+	=====================================*/
 
 	Win32VulkanContext* pVulkanContext = &win32VulkanContext;
 
 	GFXRenderAttachment colorAttachment;
-	colorAttachment.format = GFX_IMAGE_FORMAT_BGRA8_UNORM;
-	colorAttachment.initalLayout = GFX_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = GFX_IMAGE_LAYOUT_PRESENT;
-	colorAttachment.stencilLoadOp = GFX_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = GFX_STORE_OP_DONT_CARE;
-	colorAttachment.loadOp = GFX_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = GFX_STORE_OP_STORE;
+	colorAttachment.format			= GFX_IMAGE_FORMAT_BGRA8_UNORM;
+	colorAttachment.initalLayout	= GFX_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout		= GFX_IMAGE_LAYOUT_PRESENT;
+	colorAttachment.stencilLoadOp	= GFX_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp	= GFX_STORE_OP_DONT_CARE;
+	colorAttachment.loadOp			= GFX_LOAD_OP_CLEAR;
+	colorAttachment.storeOp			= GFX_STORE_OP_STORE;
 
 	GFXRenderAttachment depthAttachment;
-	depthAttachment.format = GFX_IMAGE_FORMAT_DEPTH24_UNORM_STENCIL8_UINT;
-	depthAttachment.initalLayout = GFX_IMAGE_LAYOUT_UNDEFINED;
-	depthAttachment.finalLayout = GFX_IMAGE_LAYOUT_DEPTH_STENCIL_OUTPUT;
-	depthAttachment.stencilLoadOp = GFX_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = GFX_STORE_OP_DONT_CARE;
-	depthAttachment.loadOp = GFX_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = GFX_STORE_OP_DONT_CARE;
+	depthAttachment.format			= GFX_IMAGE_FORMAT_DEPTH24_UNORM_STENCIL8_UINT;
+	depthAttachment.initalLayout	= GFX_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout		= GFX_IMAGE_LAYOUT_DEPTH_STENCIL_OUTPUT;
+	depthAttachment.stencilLoadOp	= GFX_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp	= GFX_STORE_OP_DONT_CARE;
+	depthAttachment.loadOp			= GFX_LOAD_OP_CLEAR;
+	depthAttachment.storeOp			= GFX_STORE_OP_DONT_CARE;
 
 	GFXRenderPassInfo renderPassInfo =
 	{
@@ -203,47 +261,49 @@ int main()
 	{
 		Bounds2f renderBounds(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-		pipelineInfo.vertexShader = pVulkanContext->CreateShader(GFX_SHADER_STAGE_VERTEX, ReadFile("shaders/vert.spv"), "main");
-		pipelineInfo.pixelShader = pVulkanContext->CreateShader(GFX_SHADER_STAGE_PIXEL, ReadFile("shaders/frag.spv"), "main");
+		pipelineInfo.vertexShader		= pVulkanContext->CreateShader(GFX_SHADER_STAGE_VERTEX, ReadFile("shaders/vert.spv"), "main");
+		pipelineInfo.pixelShader		= pVulkanContext->CreateShader(GFX_SHADER_STAGE_PIXEL, ReadFile("shaders/frag.spv"), "main");
 		
-		pipelineInfo.viewport.bounds = renderBounds;
-		pipelineInfo.viewport.minDepth = 0.0f;
-		pipelineInfo.viewport.maxDepth = 1.0f;
+		pipelineInfo.viewport.bounds	= renderBounds;
+		pipelineInfo.viewport.minDepth	= 0.0f;
+		pipelineInfo.viewport.maxDepth	= 1.0f;
 		
-		pipelineInfo.scissor.bounds = renderBounds;
+		pipelineInfo.scissor.bounds		= renderBounds;
 		
-		pipelineInfo.topology = GFX_PRIMITIVE_TOPOLOGY_TRIANGLES;
-		pipelineInfo.polygonMode = GFX_POLYGON_MODE_FILL;
-		pipelineInfo.cullMode = GFX_CULL_MODE_NONE;
-		pipelineInfo.faceWind = GFX_FACE_WIND_COUNTER_CLOCKWISE;
-		pipelineInfo.lineWidth = 1.0f;
+		pipelineInfo.topology			= GFX_PRIMITIVE_TOPOLOGY_TRIANGLES;
+		pipelineInfo.polygonMode		= GFX_POLYGON_MODE_FILL;
+		pipelineInfo.cullMode			= GFX_CULL_MODE_BACK;
+		pipelineInfo.faceWind			= GFX_FACE_WIND_COUNTER_CLOCKWISE;
+		pipelineInfo.lineWidth			= 1.0f;
 		
-		pipelineInfo.multisample = GFX_MULTISAMPLE_DISABLED;
+		pipelineInfo.multisample		= GFX_MULTISAMPLE_DISABLED;
 		
-		pipelineInfo.depthTesting = true;
-		pipelineInfo.depthOperation = GFX_COMPARE_OP_LESS_OR_EQUAL;
+		pipelineInfo.depthTesting		= true;
+		pipelineInfo.depthOperation		= GFX_COMPARE_OP_LESS_OR_EQUAL;
 
 		GFXBufferAttachent vertexBufferAttachment;
-		vertexBufferAttachment.binding = 0;
-		vertexBufferAttachment.stride = 8 * sizeof(Float32);
+		vertexBufferAttachment.binding	= 0;
+		vertexBufferAttachment.stride	= 8 * sizeof(Float32);
+
 		pipelineInfo.bufferAttachemnts.PushBack(vertexBufferAttachment);
 
 		GFXVertexAttribute positionAttrib;
-		positionAttrib.binding = 0;
-		positionAttrib.location = 0;
-		positionAttrib.type = GFX_ATTRIBUTE_TYPE_FLOAT3;
-		pipelineInfo.vertexAttributes.PushBack(positionAttrib);
+		positionAttrib.binding	= 0;
+		positionAttrib.location	= 0;
+		positionAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT3;
 
 		GFXVertexAttribute normalAttrib;
-		normalAttrib.binding = 0;
-		normalAttrib.location = 1;
-		normalAttrib.type = GFX_ATTRIBUTE_TYPE_FLOAT3;
-		pipelineInfo.vertexAttributes.PushBack(normalAttrib);
+		normalAttrib.binding	= 0;
+		normalAttrib.location	= 1;
+		normalAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT3;
 
 		GFXVertexAttribute texCoordAttrib;
-		texCoordAttrib.binding = 0;
+		texCoordAttrib.binding	= 0;
 		texCoordAttrib.location = 2;
-		texCoordAttrib.type = GFX_ATTRIBUTE_TYPE_FLOAT2;
+		texCoordAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT2;
+
+		pipelineInfo.vertexAttributes.PushBack(positionAttrib);
+		pipelineInfo.vertexAttributes.PushBack(normalAttrib);
 		pipelineInfo.vertexAttributes.PushBack(texCoordAttrib);
 
 		GFXBlendAttachment colorOutputBlendAttachment;
@@ -262,6 +322,9 @@ int main()
 	HGFXImageView depthStencilView = pVulkanContext->CreateImageView(depthStencilImage, 
 		GFX_IMAGE_VIEW_TYPE_2D, GFX_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT, 0, 1, 0, 1);
 
+	/*=====================================
+		UNIFORMS
+	=====================================*/
 
 	Array<Byte> modelFileData = ReadFile(MODEL_PATH);
 	String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
@@ -279,6 +342,10 @@ int main()
 	ubo.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
 	ubo.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
 
+	/*=====================================
+		BUFFERS
+	=====================================*/
+
 	HGFXBuffer vertexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.vertexData.buffer.Size());
 	void* pVertexData = pVulkanContext->MapBuffer(vertexBuffer);
@@ -290,6 +357,10 @@ int main()
 	void* pIndexData = pVulkanContext->MapBuffer(indexBuffer);
 	memcpy(pIndexData, mModel.indexData.buffer.Data(), mModel.indexData.buffer.Size());
 	pVulkanContext->UnmapBuffer(indexBuffer);
+
+	/*=====================================
+		GENERATE COMMAND BUFFERS
+	=====================================*/
 
 	HGFXCommandBuffer commandBuffers[SWAPCHAIN_IMAGE_COUNT];
 	HGFXFramebuffer frameBuffers[SWAPCHAIN_IMAGE_COUNT];
@@ -305,7 +376,7 @@ int main()
 
 		commandBuffers[i] = pVulkanContext->CreateCommandBuffer(GFX_COMMAND_BUFFER_USAGE_GRAPHICS_BIT);
 		
-		HGFXImageView swapChainImageView = pVulkanContext->GetSwapchainImageView(pWindow->swapchain, i);
+		HGFXImageView swapChainImageView = pVulkanContext->GetSwapchainImageView(pWindow->GetSwapchain(), i);
 
 		Array<HGFXImageView> frameBufferImages =
 		{
@@ -330,6 +401,10 @@ int main()
 		pVulkanContext->EndRenderPass(commandBuffers[i]);
 		pVulkanContext->EndCommandBuffer(commandBuffers[i]);
 	}
+
+	/*=====================================
+		GAME LOOP
+	=====================================*/
 
 	Double64 currentTime = 0;
 	Double64 lastTime = 0;
@@ -359,7 +434,7 @@ int main()
 		}
 
 		lastFrameIndex = frameIndex;
-		frameIndex = pVulkanContext->AcquireSwapchainImageIndex(pWindow->swapchain);
+		frameIndex = pVulkanContext->AcquireSwapchainImageIndex(pWindow->GetSwapchain());
 
 		ubo.view = Matrix4().SetTranslation(cameraPosition) * Matrix4().SetRotation(cameraOrientation);
 
@@ -367,20 +442,24 @@ int main()
 		memcpy(pUniformData, &ubo, sizeof(UBO));
 		pVulkanContext->UnmapBuffer(uniformBuffers[frameIndex]);
 
-		pVulkanContext->Submit(commandBuffers[frameIndex], pWindow->swapchain);
-		pVulkanContext->Present(pWindow->swapchain);
+		pVulkanContext->Submit(commandBuffers[frameIndex], pWindow->GetSwapchain());
+		pVulkanContext->Present(pWindow->GetSwapchain());
 
 		win32Platform.PollEvents();
 
 		frames++;
 
-		//win32Input.PollConnections();
-		win32Input.PollInput();
+		//win32Platform.PollConnections();
+		win32Platform.PollInput();
 
-		Input::Update();
+		engine.GetInput().Update();
 	}
 
-	WindowManager::DestroyGraphicsWindow(pWindow);
+	/*=====================================
+		SHUTDOWN
+	=====================================*/
+
+	engine.GetWindowManager().DestroyGraphicsWindow(pWindow);
 
 	return 0;
 }

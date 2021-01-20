@@ -1,4 +1,6 @@
 #include "Win32Platform.h"
+#include "Win32Window.h"
+
 #include "log/Log.h"
 
 namespace Quartz
@@ -6,14 +8,21 @@ namespace Quartz
 	void Win32Platform::PreInitialize()
 	{
 		Log::Debug("Pre-initializing Windows platform...");
-
-		// Nothing
 	}
 
 	void Win32Platform::Initialize()
 	{
 		Log::Debug("Initializing Windows platform...");
+
 		mInstance = GetModuleHandle(NULL);
+		mWindowMovedCallback = nullptr;
+		mWindowResizedCallback = nullptr;
+		mWindowFocusCallback = nullptr;
+		mWindowMouseEnteredCallback = nullptr;
+		mCapturingWindow = nullptr;
+
+		PollConnections();
+		PollEvents();
 	}
 
 	VPDebugConsole* Win32Platform::CreateDebugConsole()
@@ -28,100 +37,136 @@ namespace Quartz
 
 	LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		Win32Platform* pWindowManager = (Win32Platform*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+		Win32Platform* pPlatform = (Win32Platform*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-		if (pWindowManager != nullptr)
+		if (pPlatform != nullptr)
 		{
-			Win32Window* pWindow = pWindowManager->mHWNDMap[reinterpret_cast<Handle64>(hwnd)];
+			Win32Window* pWindow = pPlatform->mHWNDMap[reinterpret_cast<Handle64>(hwnd)];
 
 			if (pWindow != nullptr)
 			{
 				switch (uMsg)
 				{
-				case WM_KILLFOCUS:
-				{
-					/*
-					WindowFocusLostCallback callback = pWindowManager->GetFocusLostCallback();
-
-					if (callback)
+					case WM_KILLFOCUS:
 					{
-						callback(*pWindow);
+						if (pPlatform->mWindowFocusCallback)
+						{
+							pWindow->focused = false;
+							pPlatform->mWindowFocusCallback(pWindow, false);
+						}
+
+						if (pPlatform->mCapturingWindow)
+						{
+							pPlatform->ReleaseCursor();
+						}
+
+						break;
 					}
 
-					break;
-					*/
-				}
-				case WM_SETFOCUS:
-				{
-					/*
-					WindowFocusGainedCallback callback = pWindowManager->GetFocusGainedCallback();
-
-					if (callback)
+					case WM_SETFOCUS:
 					{
-						callback(*pWindow);
+						if (pPlatform->mWindowFocusCallback)
+						{
+							pWindow->focused = true;
+							pPlatform->mWindowFocusCallback(pWindow, true);
+						}
+
+						break;
 					}
 
-					break;
-					*/
-				}
-				case WM_SIZE:
-				{
-					/*
-					WindowResizedCallback callback = pWindowManager->GetResizedCallback();
-
-					UInt32 x = LOWORD(lParam);
-					UInt32 y = HIWORD(lParam);
-
-					RECT rect, clientRect;
-					GetWindowRect(pWindow->GetHWND(), &rect);
-					GetClientRect(pWindow->GetHWND(), &clientRect);
-					ClientToScreen(pWindow->GetHWND(), reinterpret_cast<POINT*>(&clientRect.left));
-					ClientToScreen(pWindow->GetHWND(), reinterpret_cast<POINT*>(&clientRect.right));
-
-					Bounds2i bounds(rect.left, rect.top, rect.right, rect.bottom);
-					Bounds2i clientBounds(clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
-
-					pWindowManager->SetWindowBounds(*pWindow, bounds, clientBounds);
-
-					if (callback)
+					case WM_MOUSEMOVE:
 					{
-						callback(*pWindow, Point2u(bounds.Width(), bounds.Height()));
+						if (!pWindow->mouseInside)
+						{
+							if (pPlatform->mWindowMouseEnteredCallback)
+							{
+								pWindow->mouseInside = true;
+								pPlatform->mWindowMouseEnteredCallback(pWindow, true);
+							}
+						}
+
+						break;
+					}
+				
+					case WM_MOUSELEAVE:
+					{
+						if (pPlatform->mWindowMouseEnteredCallback)
+						{
+							pWindow->mouseInside = false;
+							pPlatform->mWindowMouseEnteredCallback(pWindow, false);
+						}
+
+						break;
 					}
 
-					break;
-					*/
-				}
-				case WM_MOVE:
-				{
-					/*
-					WindowMovedCallback callback = pWindowManager->GetMovedCallback();
-
-					RECT rect, clientRect;
-					GetWindowRect(pWindow->GetHWND(), &rect);
-					GetClientRect(pWindow->GetHWND(), &clientRect);
-					ClientToScreen(pWindow->GetHWND(), reinterpret_cast<POINT*>(&clientRect.left));
-					ClientToScreen(pWindow->GetHWND(), reinterpret_cast<POINT*>(&clientRect.right));
-
-					Bounds2i bounds(rect.left, rect.top, rect.right, rect.bottom);
-					Bounds2i clientBounds(clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
-
-					pWindowManager->SetWindowBounds(*pWindow, bounds, clientBounds);
-
-					if (callback)
+					case WM_SIZE:
 					{
-						callback(*pWindow, Point2i(bounds.start.x, bounds.start.y));
-					}
+						UInt32 x = LOWORD(lParam);
+						UInt32 y = HIWORD(lParam);
 
-					break;
-					*/
-				}
-				case WM_DESTROY:
-				{
-					//pWindowManager->DestroyWindow();
-					break;
-				}
-				default:
-					break;
+						RECT rect, clientRect;
+						GetWindowRect(hwnd, &rect);
+						GetClientRect(hwnd, &clientRect);
+						ClientToScreen(hwnd, reinterpret_cast<POINT*>(&clientRect.left));
+						ClientToScreen(hwnd, reinterpret_cast<POINT*>(&clientRect.right));
+
+						Bounds2i bounds(rect.left, rect.top, rect.right, rect.bottom);
+						Bounds2i clientBounds(clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
+
+						pWindow->bounds = bounds;
+						pWindow->clientBounds = clientBounds;
+
+						if (pPlatform->mWindowResizedCallback)
+						{
+							pPlatform->mWindowResizedCallback(pWindow, clientBounds.Width(), clientBounds.Height());
+						}
+
+						if (pPlatform->mCapturingWindow)
+						{
+							// @Note: Recapture mouse to reset clipping 
+							pPlatform->CaptureCursor(pPlatform->mCapturingWindow);
+						}
+
+						break;
+					}
+					case WM_MOVE:
+					{
+						UInt32 x = LOWORD(lParam);
+						UInt32 y = HIWORD(lParam);
+
+						RECT rect, clientRect;
+						GetWindowRect(hwnd, &rect);
+						GetClientRect(hwnd, &clientRect);
+						ClientToScreen(hwnd, reinterpret_cast<POINT*>(&clientRect.left));
+						ClientToScreen(hwnd, reinterpret_cast<POINT*>(&clientRect.right));
+
+						Bounds2i bounds(rect.left, rect.top, rect.right, rect.bottom);
+						Bounds2i clientBounds(clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
+
+						pWindow->bounds = bounds;
+						pWindow->clientBounds = clientBounds;
+
+						if (pPlatform->mWindowMovedCallback)
+						{
+							pPlatform->mWindowMovedCallback(pWindow, clientBounds.start.x, clientBounds.start.y);
+						}
+
+						if (pPlatform->mCapturingWindow)
+						{
+							// @Note: Recapture mouse to reset clipping 
+							pPlatform->CaptureCursor(pPlatform->mCapturingWindow);
+						}
+
+						break;
+					}
+					case WM_DESTROY:
+					{
+						pPlatform->ReleaseCursor();
+
+						break;
+					}
+					default:
+						break;
 				}
 			}
 		}
@@ -196,14 +241,16 @@ namespace Quartz
 		Bounds2i clientBounds(posX, posY, posX + clientWidth, posY + clientHeight);
 
 		Win32Window* pWindow = new Win32Window;
-		pWindow->mHWND = windowHandle;
-		pWindow->mTitle = title;
-		pWindow->mBounds = realBounds;
-		pWindow->mClientBounds = clientBounds;
-		pWindow->mMaximized = false;
-		pWindow->mMinimized = false;
-		pWindow->mFullscreen = false;
-		pWindow->mVisible = false;
+		pWindow->hwnd = windowHandle;
+		pWindow->title = title;
+		pWindow->bounds = realBounds;
+		pWindow->clientBounds = clientBounds;
+		pWindow->maximized = false;
+		pWindow->minimized = false;
+		pWindow->fullscreen = false;
+		pWindow->visible = false;
+		pWindow->mouseInside = false;
+		pWindow->focused = false;
 
 		mHWNDMap.Put(reinterpret_cast<Handle64>(windowHandle), pWindow);
 
@@ -215,8 +262,107 @@ namespace Quartz
 	void Win32Platform::DestroyWindow(HVPWindow window)
 	{
 		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
-		::DestroyWindow(pWin32Window->mHWND);
+		::DestroyWindow(pWin32Window->hwnd);
 		delete pWin32Window;
+	}
+
+	void Win32Platform::MoveWindow(HVPWindow window, UInt32 x, UInt32 y)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		::SetWindowPos(pWin32Window->hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	}
+
+	void Win32Platform::ResizeWindow(HVPWindow window, UInt32 width, UInt32 height)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		::SetWindowPos(pWin32Window->hwnd, NULL, 0, 0, width, height, SWP_NOREPOSITION | SWP_NOZORDER);
+	}
+
+	void Win32Platform::FocusWindow(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		SetFocus(pWin32Window->hwnd);
+	}
+
+	void Win32Platform::ShowWindow(HVPWindow window, Bool8 show)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		::ShowWindow(pWin32Window->hwnd, show);
+	}
+
+	void Win32Platform::SetWindowMovedCallback(VPWindowMovedCallback callback)
+	{
+		mWindowMovedCallback = callback;
+	}
+
+	void Win32Platform::SetWindowResizedCallback(VPWindowResizedCallback callback)
+	{
+		mWindowResizedCallback = callback;
+	}
+
+	void Win32Platform::SetWindowFocusCallback(VPWindowFocusCallback callback)
+	{
+		mWindowFocusCallback = callback;
+	}
+
+	void Win32Platform::SetWindowMouseEnteredCallback(VPWindowMouseEnteredCallback callback)
+	{
+		mWindowMouseEnteredCallback = callback;
+	}
+
+	Point2i Win32Platform::GetWindowPosition(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->bounds.start;
+	}
+
+	Point2i Win32Platform::GetWindowClientPosition(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->clientBounds.start;
+	}
+
+	Point2i Win32Platform::GetWindowSize(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return Point2i(pWin32Window->bounds.Width(), pWin32Window->bounds.Height());
+	}
+
+	Point2i Win32Platform::GetWindowClientSize(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return Point2i(pWin32Window->clientBounds.Width(), pWin32Window->clientBounds.Height());
+	}
+
+	Bounds2i Win32Platform::GetWindowBounds(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->bounds;
+	}
+
+	Bounds2i Win32Platform::GetWindowClientBounds(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->clientBounds;
+	}
+
+	Bool8 Win32Platform::IsWindowFocus(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->focused;
+	}
+
+	Bool8 Win32Platform::IsMouseInsideWindow(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->mouseInside;
+	}
+
+	Bool8 Win32Platform::IsMouseInsideWindowClient(HVPWindow window)
+	{
+		Win32Window* pWin32Window = static_cast<Win32Window*>(window);
+		return pWin32Window->mouseInside && 
+			PointInBounds(GetCursorPosition(), pWin32Window->clientBounds);
 	}
 
 	void Win32Platform::PollEvents()
@@ -237,17 +383,5 @@ namespace Quartz
 			DispatchMessageW(&msg);
 		}
 	}
-
-	/*
-	PlatformInput& Win32Platform::GetPlatformInput()
-	{
-		return mWin32PlatformInput;
-	}
-
-	PlatformTime& Win32Platform::GetPlatformTime()
-	{
-		return mWin32PlatformTime;
-	}
-	*/
 }
 

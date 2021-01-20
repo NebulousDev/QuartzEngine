@@ -190,9 +190,7 @@
     <ClInclude Include="src\object\Model.h" />
     <ClInclude Include="src\object\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
-    <ClInclude Include="src\platform\VPInput.h" />
     <ClInclude Include="src\platform\VPPlatform.h" />
-    <ClInclude Include="src\platform\VPWindow.h" />
     <ClInclude Include="src\platform\VPDebugConsole.h" />
     <ClInclude Include="src\platform\Time.h" />
     <ClInclude Include="src\system\System.h" />

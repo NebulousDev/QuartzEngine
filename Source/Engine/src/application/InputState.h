@@ -1,7 +1,7 @@
 #pragma once
 
 #include "InputAction.h"
-#include "../platform/VPInput.h"
+#include "../platform/VPPlatform.h"
 
 #include "util/Map.h"
 

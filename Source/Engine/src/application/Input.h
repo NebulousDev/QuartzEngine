@@ -5,34 +5,44 @@
 
 namespace Quartz
 {
+	class Window;
+
 	class QUARTZ_API Input
 	{
 	private:
-		static Array<InputBindings*> smInputBindings;
-		static InputState smInputState;
+		Array<InputBindings*> mInputBindings;
+		InputState mInputState;
+		Bool8 mCaptured;
 
 		friend void BindingMouseMoveCallback(HVPInputMouse mouse, Int64 relX, Int64 relY);
 		friend void BindingMouseButtonCallback(HVPInputMouse mouse, UInt32 button, ButtonState state);
 		friend void BindingKeyboardKeyCallback(HVPInputKeyboard keyboard, UInt32 key, ButtonState state);
 
-		static void SendAllMouseMoveCallbacks();
-		static void SendAllMosueButtonCallbacks();
-		static void SendAllKeyCallbacks();
+		void SendAllMouseMoveCallbacks();
+		void SendAllMosueButtonCallbacks();
+		void SendAllKeyCallbacks();
 
-		static void SendMouseMoveCallbacks(HVPInputMouse mouse, Float32 rx, Float32 ry);
-		static void SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 buttonId, InputActions actions);
-		static void SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 scancode, InputActions actions);
+		void SendMouseMoveCallbacks(HVPInputMouse mouse, Float32 rx, Float32 ry);
+		void SendMouseButtonCallbacks(HVPInputMouse mouse, UInt32 buttonId, InputActions actions);
+		void SendKeyCallbacks(HVPInputKeyboard keyboard, UInt32 scancode, InputActions actions);
 
 	public:
-		static void PreInitialize();
-		static void Initialize(VPInput* pInput);
+		void PreInitialize();
+		void Initialize();
 
-		static void RegisterInputBindings(InputBindings* pInputBindings);
+		void RegisterInputBindings(InputBindings* pInputBindings);
 
-		static void SendMouseMove(HVPInputMouse mouse, Float32 rx, Float32 ry);
-		static void SendMouseButton(HVPInputMouse mouse, UInt32 buttonId, InputActions actions);
-		static void SendKey(HVPInputKeyboard keyboard, UInt32 scancode, InputActions actions);
+		void SendMouseMove(HVPInputMouse mouse, Float32 rx, Float32 ry);
+		void SendMouseButton(HVPInputMouse mouse, UInt32 buttonId, InputActions actions);
+		void SendKey(HVPInputKeyboard keyboard, UInt32 scancode, InputActions actions);
+		
+		void ShowCursor(Bool8 shown);
+		void CaptureCursor(Window& window);
+		void ReleaseCursor();
 
-		static void Update();
+		Point2i GetCursorPosition();
+		Bool8 IsMouseCaptured();
+
+		void Update();
 	};
 }
