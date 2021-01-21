@@ -4,12 +4,15 @@
 layout(location = 0) in struct
 {
 	vec3 normal;
+	vec2 texCoord;
 }
 fragIn;
+
+layout(binding = 1) uniform sampler2D diffuseTexSampler;
 
 layout(location = 0) out vec4 fragOut;
 
 void main()
 {
-    fragOut = vec4(fragIn.normal, 1.0);
+    fragOut = texture(diffuseTexSampler, fragIn.texCoord);
 }

@@ -65,7 +65,7 @@ namespace Quartz
 		VulkanDeviceMemoryAllocator& GetDeviceMemoryAllocator() { return mDeviceMemoryAllocator; }
 		VkDescriptorPool& GetDescriptorPool() { return mDescriptorPool; }
 
-		VulkanQueue& GetGrahpicsQueue() { return *mpGraphicsQueue; }
+		VulkanQueue& GetGraphicsQueue() { return *mpGraphicsQueue; }
 		VulkanQueue& GetTransferQueue() { return *mpTransferQueue; }
 		VulkanQueue& GetComputeQueue() { return *mpComputeQueue; }
 		VulkanQueue& GetPresentQueue() { return *mpPresentQueue; }

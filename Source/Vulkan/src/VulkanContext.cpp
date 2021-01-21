@@ -902,7 +902,7 @@ namespace Quartz
 					VkDescriptorSetLayoutBinding vkBinding;
 					vkBinding.binding = uniform.binding;
 					vkBinding.descriptorCount = 1;
-					vkBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					vkBinding.descriptorType = uniform.descriptorType;
 					vkBinding.stageFlags = shader.stage;
 					vkBinding.pImmutableSamplers = nullptr;
 
@@ -1260,8 +1260,38 @@ namespace Quartz
 
 	HGFXUniform VPLVulkanContext::CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset)
 	{
-
+		// Unfinished
 		return HGFXUniform();
+	}
+
+	HGFXSampler VPLVulkanContext::CreateSampler(GFXSamplerFilter filter, GFXSamplerFilter mipmapFilter, GFXSamplerMode mode, UInt32 anisotropy)
+	{
+		VkSampler vkSampler;
+
+		VkSamplerCreateInfo samplerInfo {};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_NEAREST;
+		samplerInfo.minFilter = VK_FILTER_NEAREST;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = anisotropy;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+
+		if (vkCreateSampler(mpDevice->GetDeviceHandle(), &samplerInfo, nullptr, &vkSampler) != VK_SUCCESS)
+		{
+			Log::Error("Failed to create sapler: vkCreateSampler failed!");
+		}
+
+		VulkanSampler* pVulkanSampler = new VulkanSampler;
+		pVulkanSampler->vkSampler = vkSampler;
+
+		return HGFXSampler(pVulkanSampler);
 	}
 
 	void* VPLVulkanContext::MapBuffer(HGFXBuffer buffer)
@@ -1280,6 +1310,142 @@ namespace Quartz
 
 		//TODO: clean this up
 		pVulkanBuffer->pMemory->UnmapMemory();
+	}
+
+	void VPLVulkanContext::CopyBufferToImage(HGFXBuffer buffer, HGFXImage image)
+	{
+		// @TODO: Probably clean this up to not have to recreate command buffers
+
+		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+		VulkanImage* pVulkanImage = static_cast<VulkanImage*>(image);
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = mpDevice->GetTransferCommandPoolHandle();
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, &commandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		VkBufferImageCopy imageCopy{};
+		imageCopy.bufferOffset = 0;
+		imageCopy.bufferRowLength = 0;
+		imageCopy.bufferImageHeight = 0;
+
+		imageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageCopy.imageSubresource.mipLevel = 0;
+		imageCopy.imageSubresource.baseArrayLayer = 0;
+		imageCopy.imageSubresource.layerCount = 1;
+
+		imageCopy.imageOffset = { 0, 0, 0 };
+		imageCopy.imageExtent = { pVulkanImage->width, pVulkanImage->height, 1 };
+
+		vkCmdCopyBufferToImage(
+			commandBuffer,
+			pVulkanBuffer->vkBuffer,
+			pVulkanImage->vkImage,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1,
+			&imageCopy
+		);
+
+		vkEndCommandBuffer(commandBuffer);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		vkQueueSubmit(mpDevice->GetTransferQueue().GetQueueHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(mpDevice->GetTransferQueue().GetQueueHandle());
+
+		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetTransferCommandPoolHandle(), 1, &commandBuffer);
+	}
+
+	void VPLVulkanContext::TransitionImage(HGFXImage image, GFXImageLayout oldLayout, GFXImageLayout newLayout)
+	{
+		// @TODO: Probably clean this up to not have to recreate command buffers
+
+		VulkanImage* pVulkanImage = static_cast<VulkanImage*>(image);
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = mpDevice->GetGraphicsCommandPoolHandle();
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, &commandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = ImageLayoutToVkImageLayout(oldLayout);
+		barrier.newLayout = ImageLayoutToVkImageLayout(newLayout);
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = pVulkanImage->vkImage;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = 0;
+
+		VkPipelineStageFlags sourceStage;
+		VkPipelineStageFlags destinationStage;
+
+		if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
+			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+			&& barrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else
+		{
+			// @TODO: Implement more
+			Log::Critical("Failed to transition image: Invalid layouts");
+		}
+
+		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 
+			0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+		vkEndCommandBuffer(commandBuffer);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		vkQueueSubmit(mpDevice->GetGraphicsQueue().GetQueueHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(mpDevice->GetGraphicsQueue().GetQueueHandle());
+
+		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetGraphicsCommandPoolHandle(), 1, &commandBuffer);
 	}
 
 	void VPLVulkanContext::BeginCommandBuffer(HGFXCommandBuffer commandBuffer)
@@ -1401,7 +1567,7 @@ namespace Quartz
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = commandBuffers;
 
-		VulkanQueue& graphicsQueue = mpDevice->GetGrahpicsQueue();
+		VulkanQueue& graphicsQueue = mpDevice->GetGraphicsQueue();
 
 		if (vkQueueSubmit(graphicsQueue.GetQueueHandle(), 1, &submitInfo, pVulkanSwapchain->allFences[pVulkanSwapchain->frameIndex]) != VK_SUCCESS)
 		{
@@ -1435,7 +1601,7 @@ namespace Quartz
 		pVulkanSwapchain->frameIndex = (pVulkanSwapchain->frameIndex + 1) % pVulkanSwapchain->imageCount;
 	}
 
-	void VPLVulkanContext::SetUniformBuffer(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXBuffer buffer, UInt32 backbufferIndex)
+	void VPLVulkanContext::SetUniformBuffer(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXBuffer buffer, UInt32 bufferIndex)
 	{
 		VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pipeline);
 		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
@@ -1447,12 +1613,35 @@ namespace Quartz
 
 		VkWriteDescriptorSet descriptorWrite {};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = pGraphicsPipeline->descriptorSets[backbufferIndex];
-		descriptorWrite.dstBinding = 0;
+		descriptorWrite.dstSet = pGraphicsPipeline->descriptorSets[bufferIndex];
+		descriptorWrite.dstBinding = binding;
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), 1, &descriptorWrite, 0, nullptr);
+	}
+
+	void VPLVulkanContext::SetUniformSampledImage(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXSampler sampler, HGFXImageView imageView, UInt32 bufferIndex)
+	{
+		VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pipeline);
+		VulkanSampler* pSampler = static_cast<VulkanSampler*>(sampler);
+		VulkanImageView* pImageView = static_cast<VulkanImageView*>(imageView);
+
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = pImageView->vkImageView;
+		imageInfo.sampler = pSampler->vkSampler;
+
+		VkWriteDescriptorSet descriptorWrite{};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = pGraphicsPipeline->descriptorSets[bufferIndex];
+		descriptorWrite.dstBinding = binding;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), 1, &descriptorWrite, 0, nullptr);
 	}

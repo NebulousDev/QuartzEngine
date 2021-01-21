@@ -487,7 +487,23 @@ namespace Quartz
 
 			if (object.storageClass == SpvStorageClassUniformConstant)
 			{
-				// Not supported by Vulkan
+				// Only sampler2D constant uniforms supported by Vulkan
+
+				SpirvObject& pointerObject = reflection.objects[object.variableId];
+				SpirvObject& valueObject = reflection.objects[pointerObject.pointerType.typeId];
+
+				if (valueObject.type == SPIRV_TYPE_SAMPLED_IMAGE)
+				{
+					SpirvUniform uniform;
+					uniform.name = object.name;
+					uniform.set = object.decoration.set;
+					uniform.binding = object.decoration.binding;
+					uniform.sizeBytes = SpirvObjectSize(valueObject, reflection);
+					uniform.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					uniform.shaderStage = reflection.shaderStage;
+
+					uniforms.PushBack(uniform);
+				}
 			}
 
 			else if (object.storageClass == SpvStorageClassUniform)
@@ -500,6 +516,7 @@ namespace Quartz
 				uniform.set = object.decoration.set;
 				uniform.binding = object.decoration.binding;
 				uniform.sizeBytes = SpirvObjectSize(valueObject, reflection);
+				uniform.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				uniform.shaderStage = reflection.shaderStage;
 
 				uniforms.PushBack(uniform);

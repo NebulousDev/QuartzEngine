@@ -193,6 +193,7 @@ namespace Quartz
 		UInt32 binding;
 		Bool8 isBlock;
 		UInt32 sizeBytes;
+		VkDescriptorType descriptorType;
 		VkShaderStageFlags shaderStage;
 	};
 

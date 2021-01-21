@@ -16,6 +16,7 @@ ubo;
 layout(location = 0) out struct
 {
 	vec3 normal;
+	vec2 texCoord;
 }
 vertOut;
 
@@ -23,4 +24,5 @@ void main()
 {
     gl_Position = (ubo.projection * ubo.view * ubo.model) * vec4(inPosition, 1.0);
 	vertOut.normal = inNormal;
+	vertOut.texCoord = inTexCoord;
 }

@@ -16,6 +16,7 @@
 #include "application/Input.h"
 
 #include "object/OBJLoader.h"
+#include "object/ImageLoader.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,8 +31,8 @@ namespace Quartz
 		WINDOW/GRAPHICS PROPERITES
 	=====================================*/
 
-	#define DEFAULT_WIDTH 1280
-	#define DEFAULT_HEIGHT 720
+	#define DEFAULT_WIDTH 1920//1280
+	#define DEFAULT_HEIGHT 1080//720
 	#define SWAPCHAIN_IMAGE_COUNT 3
 	#define FRAME_RESOURCE_COUNT 3
 
@@ -366,6 +367,33 @@ int main(int argc, char* argv[])
 	pVulkanContext->UnmapBuffer(indexBuffer);
 
 	/*=====================================
+		TEXTURES
+	=====================================*/
+
+	Image diffuseImage = LoadImageSTB(DIFFUSE_PATH);
+	UInt32 diffuseSizeBytes = diffuseImage.width * diffuseImage.height * 4;
+
+	HGFXImage diffuseTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
+		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
+		GFX_IMAGE_FORMAT_RGBA8_UNORM, diffuseImage.width, diffuseImage.height, 1, 1, 1);
+
+	HGFXBuffer diffuseTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, diffuseSizeBytes);
+	void* pDiffusePixelBufferData = pVulkanContext->MapBuffer(diffuseTextureBuffer);
+	memcpy(pDiffusePixelBufferData, diffuseImage.pData, diffuseSizeBytes);
+	pVulkanContext->UnmapBuffer(diffuseTextureBuffer);
+
+	pVulkanContext->TransitionImage(diffuseTextureImage, GFX_IMAGE_LAYOUT_UNDEFINED, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION);
+	pVulkanContext->CopyBufferToImage(diffuseTextureBuffer, diffuseTextureImage);
+	pVulkanContext->TransitionImage(diffuseTextureImage, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION, GFX_IMAGE_LAYOUT_COLOR_INPUT);
+	
+	HGFXImageView diffuseImageView = pVulkanContext->CreateImageView(diffuseTextureImage, 
+		GFX_IMAGE_VIEW_TYPE_2D, GFX_IMAGE_USAGE_SAMPLED_TEXTURE, 0, 1, 0, 1);
+
+	HGFXSampler diffuseSampler = pVulkanContext->CreateSampler(GFX_SAMPLER_FILTER_NEAREST, 
+		GFX_SAMPLER_FILTER_NEAREST, GFX_SAMPLER_MODE_REPEAT, 16);
+
+	/*=====================================
 		GENERATE COMMAND BUFFERS
 	=====================================*/
 
@@ -395,6 +423,7 @@ int main(int argc, char* argv[])
 	
 		// I dont like this
 		pVulkanContext->SetUniformBuffer(pipeline, 0, 0, uniformBuffers[i], i);
+		pVulkanContext->SetUniformSampledImage(pipeline, 0, 1, diffuseSampler, diffuseImageView, i);
 
 		pVulkanContext->BeginCommandBuffer(commandBuffers[i]);
 		pVulkanContext->BeginRenderPass(commandBuffers[i], renderPass, frameBuffers[i]);

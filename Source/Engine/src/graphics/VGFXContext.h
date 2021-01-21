@@ -25,6 +25,7 @@ namespace Quartz
 	struct VGFXFramebuffer : public VGFXResource {};
 	struct VGFXShader : public VGFXResource {};
 	struct VGFXUniform : public VGFXResource {};
+	struct VGFXSampler : public VGFXResource {};
 
 	/* Virtual Graphics Handles */
 
@@ -41,6 +42,7 @@ namespace Quartz
 	typedef VGFXResource* HGFXFramebuffer;
 	typedef VGFXResource* HGFXShader;
 	typedef VGFXResource* HGFXUniform;
+	typedef VGFXResource* HGFXSampler;
 
 	/* Null Handles */
 
@@ -430,6 +432,20 @@ namespace Quartz
 		GFX_UNIFORM_TYPE_STRUCT
 	};
 
+	enum GFXSamplerFilter
+	{
+		GFX_SAMPLER_FILTER_NEAREST,
+		GFX_SAMPLER_FILTER_LINEAR
+	};
+
+	enum GFXSamplerMode
+	{
+		GFX_SAMPLER_MODE_REPEAT,
+		GFX_SAMPLER_MODE_MIRRORED_REPEAT,
+		GFX_SAMPLER_MODE_CLAMP_TO_EDGE,
+		GFX_SAMPLER_MODE_CLAMP_TO_BORDER
+	};
+
 	/* The virtual graphics context */
 
 	class QUARTZ_API VGFXContext
@@ -469,9 +485,15 @@ namespace Quartz
 
 		virtual HGFXUniform CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset) = 0;
 
+		virtual HGFXSampler CreateSampler(GFXSamplerFilter filter, GFXSamplerFilter mipmapFilter, GFXSamplerMode mode, UInt32 anisotropy) = 0;
+
 		virtual void* MapBuffer(HGFXBuffer buffer) = 0;
 
 		virtual void UnmapBuffer(HGFXBuffer buffer) = 0;
+
+		virtual void CopyBufferToImage(HGFXBuffer buffer, HGFXImage image) = 0;
+
+		virtual void TransitionImage(HGFXImage image, GFXImageLayout oldLayout, GFXImageLayout newLayout) = 0;
 
 		virtual void BeginCommandBuffer(HGFXCommandBuffer commandBuffer) = 0;
 
@@ -496,6 +518,9 @@ namespace Quartz
 
 		// @Todo: This is awful. Please properly build a system for this
 		virtual void SetUniformBuffer(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXBuffer buffer, UInt32 bufferIndex) = 0;
+
+		virtual void SetUniformSampledImage(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, 
+			HGFXSampler sampler, HGFXImageView imageView, UInt32 bufferIndex) = 0;
 
 		virtual UInt32 AcquireSwapchainImageIndex(HGFXSwapchain swapchain) = 0;
 

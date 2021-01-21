@@ -207,6 +207,11 @@ namespace Quartz
 		UInt32 sizeBytes;
 	};
 
+	struct VulkanSampler : public VGFXSampler
+	{
+		VkSampler vkSampler;
+	};
+
 	class QUARTZ_API VPLVulkanContext : public VGFXContext
 	{
 	protected:
@@ -274,9 +279,15 @@ namespace Quartz
 
 		HGFXUniform CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset) override;
 
+		HGFXSampler CreateSampler(GFXSamplerFilter filter, GFXSamplerFilter mipmapFilter, GFXSamplerMode mode, UInt32 anisotropy) override;
+
 		void* MapBuffer(HGFXBuffer buffer) override;
 
 		void UnmapBuffer(HGFXBuffer buffer) override;
+
+		void CopyBufferToImage(HGFXBuffer buffer, HGFXImage image) override;
+
+		void TransitionImage(HGFXImage image, GFXImageLayout oldLayout, GFXImageLayout newLayout) override;
 
 		void BeginCommandBuffer(HGFXCommandBuffer commandBuffer) override;
 
@@ -299,6 +310,9 @@ namespace Quartz
 		void Present(HGFXSwapchain swapchain) override;
 
 		void SetUniformBuffer(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, HGFXBuffer buffer, UInt32 bufferIndex) override;
+
+		void SetUniformSampledImage(HGFXGraphicsPipeline pipeline, UInt32 set, UInt32 binding, 
+			HGFXSampler sampler, HGFXImageView imageView, UInt32 bufferIndex) override;
 
 		HGFXImageView GetSwapchainImageView(HGFXSwapchain swapchain, UInt32 imageIndex) override;
 
