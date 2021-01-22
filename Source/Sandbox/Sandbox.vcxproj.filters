@@ -15,14 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\shader.vert" />
-    <None Include="src\shader.frag" />
-    <None Include="src\vert.spv" />
-    <None Include="src\frag.spv" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="src\Sandbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="src\shader.vert" />
+    <_EmbedManagedResourceFile Include="src\shader.frag" />
   </ItemGroup>
 </Project>

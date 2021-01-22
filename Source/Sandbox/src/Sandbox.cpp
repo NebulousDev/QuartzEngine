@@ -18,6 +18,8 @@
 #include "object/OBJLoader.h"
 #include "object/ImageLoader.h"
 
+#include "object/Lights.h"
+
 #include <iostream>
 #include <fstream>
 
@@ -40,8 +42,10 @@ namespace Quartz
 		SCENE RESOURCES
 	=====================================*/
 
-	#define MODEL_PATH "models/testScene.obj"
-	#define DIFFUSE_PATH "textures/default.png"
+	#define MODEL_PATH "models/testscene.obj"
+	#define DIFFUSE_PATH "textures/stone.png"
+	#define NORMAL_PATH "textures/stone_normal.png"
+	#define SPECULAR_PATH "textures/stone_specular.png"
 
 	/*=====================================
 		TEMP FILE READER
@@ -284,7 +288,7 @@ int main(int argc, char* argv[])
 
 		GFXBufferAttachent vertexBufferAttachment;
 		vertexBufferAttachment.binding	= 0;
-		vertexBufferAttachment.stride	= 8 * sizeof(Float32);
+		vertexBufferAttachment.stride	= 14 * sizeof(Float32);
 
 		pipelineInfo.bufferAttachemnts.PushBack(vertexBufferAttachment);
 
@@ -298,13 +302,25 @@ int main(int argc, char* argv[])
 		normalAttrib.location	= 1;
 		normalAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT3;
 
+		GFXVertexAttribute binormalAttrib;
+		binormalAttrib.binding	= 0;
+		binormalAttrib.location	= 2;
+		binormalAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT3;
+
+		GFXVertexAttribute tangentAttrib;
+		tangentAttrib.binding	= 0;
+		tangentAttrib.location	= 3;
+		tangentAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT3;
+
 		GFXVertexAttribute texCoordAttrib;
 		texCoordAttrib.binding	= 0;
-		texCoordAttrib.location = 2;
+		texCoordAttrib.location = 4;
 		texCoordAttrib.type		= GFX_ATTRIBUTE_TYPE_FLOAT2;
 
 		pipelineInfo.vertexAttributes.PushBack(positionAttrib);
 		pipelineInfo.vertexAttributes.PushBack(normalAttrib);
+		pipelineInfo.vertexAttributes.PushBack(binormalAttrib);
+		pipelineInfo.vertexAttributes.PushBack(tangentAttrib);
 		pipelineInfo.vertexAttributes.PushBack(texCoordAttrib);
 
 		GFXBlendAttachment colorOutputBlendAttachment;
@@ -344,11 +360,41 @@ int main(int argc, char* argv[])
 		Matrix4 view;
 		Matrix4 proj;
 	}
-	ubo{};
+	mvp{};
 
-	ubo.model.SetTranslation({ 0.0f, 0.0f, 0.0f });
-	ubo.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
-	ubo.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
+	mvp.model.SetTranslation({ 0.0f, 0.0f, 0.0f });
+	mvp.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
+	mvp.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
+
+	struct Lights
+	{
+		Vector4 cameraPosition;
+		DirectionalLight directional[4];
+		PointLight point[4];
+		UInt32 directionalCount;
+		UInt32 pointCount;
+		UInt32 buffer[2];
+	}
+	lights{};
+
+	lights.cameraPosition = Vector4(cameraPosition, 1.0f);
+	lights.directional[0].direction = Vector4(1.0f, 1.0f, -0.5f, 0.0f).Normalize();
+	lights.directional[0].color = Vector4(0.1f, 0.1f, 0.2f, 1.0f);
+
+	lights.point[0].position = Vector4(-6.0f, 2.0f, 0.0f, 1.0f);
+	lights.point[0].color = Vector4(4.0f, 0.0f, 0.0f, 1.0f);
+	lights.point[0].attenuation = Vector4(1.0f, 0.22f, 0.20f, 0.0f);
+
+	lights.point[1].position = Vector4(0.0f, 2.0f, 0.0f, 1.0f);
+	lights.point[1].color = Vector4(0.0f, 4.0f, 0.0f, 1.0f);
+	lights.point[1].attenuation = Vector4(1.0f, 0.22f, 0.20f, 0.0f);
+
+	lights.point[2].position = Vector4(6.0f, 2.0f, 0.0f, 1.0f);
+	lights.point[2].color = Vector4(0.0f, 0.0f, 4.0f, 1.0f);
+	lights.point[2].attenuation = Vector4(1.0f, 0.22f, 0.20f, 0.0f);
+
+	lights.directionalCount = 1;
+	lights.pointCount = 3;
 
 	/*=====================================
 		BUFFERS
@@ -371,11 +417,24 @@ int main(int argc, char* argv[])
 	=====================================*/
 
 	Image diffuseImage = LoadImageSTB(DIFFUSE_PATH);
+	Image normalImage = LoadImageSTB(NORMAL_PATH);
+	Image specularImage = LoadImageSTB(SPECULAR_PATH);
+
 	UInt32 diffuseSizeBytes = diffuseImage.width * diffuseImage.height * 4;
+	UInt32 normalSizeBytes = normalImage.width * normalImage.height * 4;
+	UInt32 specularSizeBytes = specularImage.width * specularImage.height * 4;
 
 	HGFXImage diffuseTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
 		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
 		GFX_IMAGE_FORMAT_RGBA8_UNORM, diffuseImage.width, diffuseImage.height, 1, 1, 1);
+
+	HGFXImage normalTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
+		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
+		GFX_IMAGE_FORMAT_RGBA8_UNORM, normalImage.width, normalImage.height, 1, 1, 1);
+
+	HGFXImage specularTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
+		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
+		GFX_IMAGE_FORMAT_RGBA8_UNORM, specularImage.width, specularImage.height, 1, 1, 1);
 
 	HGFXBuffer diffuseTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, diffuseSizeBytes);
@@ -383,15 +442,41 @@ int main(int argc, char* argv[])
 	memcpy(pDiffusePixelBufferData, diffuseImage.pData, diffuseSizeBytes);
 	pVulkanContext->UnmapBuffer(diffuseTextureBuffer);
 
+	HGFXBuffer normalTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, normalSizeBytes);
+	void* pNormalPixelBufferData = pVulkanContext->MapBuffer(normalTextureBuffer);
+	memcpy(pNormalPixelBufferData, normalImage.pData, normalSizeBytes);
+	pVulkanContext->UnmapBuffer(normalTextureBuffer);
+
+	HGFXBuffer specularTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, specularSizeBytes);
+	void* pSpecularPixelBufferData = pVulkanContext->MapBuffer(specularTextureBuffer);
+	memcpy(pSpecularPixelBufferData, specularImage.pData, specularSizeBytes);
+	pVulkanContext->UnmapBuffer(specularTextureBuffer);
+
 	pVulkanContext->TransitionImage(diffuseTextureImage, GFX_IMAGE_LAYOUT_UNDEFINED, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION);
 	pVulkanContext->CopyBufferToImage(diffuseTextureBuffer, diffuseTextureImage);
 	pVulkanContext->TransitionImage(diffuseTextureImage, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION, GFX_IMAGE_LAYOUT_COLOR_INPUT);
+
+	pVulkanContext->TransitionImage(normalTextureImage, GFX_IMAGE_LAYOUT_UNDEFINED, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION);
+	pVulkanContext->CopyBufferToImage(normalTextureBuffer, normalTextureImage);
+	pVulkanContext->TransitionImage(normalTextureImage, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION, GFX_IMAGE_LAYOUT_COLOR_INPUT);
+
+	pVulkanContext->TransitionImage(specularTextureImage, GFX_IMAGE_LAYOUT_UNDEFINED, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION);
+	pVulkanContext->CopyBufferToImage(specularTextureBuffer, specularTextureImage);
+	pVulkanContext->TransitionImage(specularTextureImage, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION, GFX_IMAGE_LAYOUT_COLOR_INPUT);
 	
 	HGFXImageView diffuseImageView = pVulkanContext->CreateImageView(diffuseTextureImage, 
 		GFX_IMAGE_VIEW_TYPE_2D, GFX_IMAGE_USAGE_SAMPLED_TEXTURE, 0, 1, 0, 1);
 
-	HGFXSampler diffuseSampler = pVulkanContext->CreateSampler(GFX_SAMPLER_FILTER_NEAREST, 
-		GFX_SAMPLER_FILTER_NEAREST, GFX_SAMPLER_MODE_REPEAT, 16);
+	HGFXImageView normalImageView = pVulkanContext->CreateImageView(normalTextureImage,
+		GFX_IMAGE_VIEW_TYPE_2D, GFX_IMAGE_USAGE_SAMPLED_TEXTURE, 0, 1, 0, 1);
+
+	HGFXImageView specularImageView = pVulkanContext->CreateImageView(specularTextureImage,
+		GFX_IMAGE_VIEW_TYPE_2D, GFX_IMAGE_USAGE_SAMPLED_TEXTURE, 0, 1, 0, 1);
+
+	HGFXSampler textureSampler = pVulkanContext->CreateSampler(GFX_SAMPLER_FILTER_LINEAR, 
+		GFX_SAMPLER_FILTER_LINEAR, GFX_SAMPLER_MODE_REPEAT, 16);
 
 	/*=====================================
 		GENERATE COMMAND BUFFERS
@@ -399,15 +484,22 @@ int main(int argc, char* argv[])
 
 	HGFXCommandBuffer commandBuffers[SWAPCHAIN_IMAGE_COUNT];
 	HGFXFramebuffer frameBuffers[SWAPCHAIN_IMAGE_COUNT];
-	HGFXBuffer uniformBuffers[SWAPCHAIN_IMAGE_COUNT];
+	HGFXBuffer mvpUniformBuffers[SWAPCHAIN_IMAGE_COUNT];
+	HGFXBuffer lightsUniformBuffers[SWAPCHAIN_IMAGE_COUNT];
 
 	for (UInt32 i = 0; i < SWAPCHAIN_IMAGE_COUNT; i++)
 	{
-		uniformBuffers[i] = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		mvpUniformBuffers[i] = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, sizeof(UBO));
-		void* pUniformData = pVulkanContext->MapBuffer(uniformBuffers[i]);
-		memcpy(pUniformData, &ubo, sizeof(UBO));
-		pVulkanContext->UnmapBuffer(uniformBuffers[i]);
+		void* pUniformData = pVulkanContext->MapBuffer(mvpUniformBuffers[i]);
+		memcpy(pUniformData, &mvp, sizeof(UBO));
+		pVulkanContext->UnmapBuffer(mvpUniformBuffers[i]);
+
+		lightsUniformBuffers[i] = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, sizeof(Lights));
+		void* pLightsData = pVulkanContext->MapBuffer(lightsUniformBuffers[i]);
+		memcpy(pLightsData, &lights, sizeof(Lights));
+		pVulkanContext->UnmapBuffer(lightsUniformBuffers[i]);
 
 		commandBuffers[i] = pVulkanContext->CreateCommandBuffer(GFX_COMMAND_BUFFER_USAGE_GRAPHICS_BIT);
 		
@@ -422,8 +514,11 @@ int main(int argc, char* argv[])
 		frameBuffers[i] = pVulkanContext->CreateFramebuffer(renderPass, frameBufferImages, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	
 		// I dont like this
-		pVulkanContext->SetUniformBuffer(pipeline, 0, 0, uniformBuffers[i], i);
-		pVulkanContext->SetUniformSampledImage(pipeline, 0, 1, diffuseSampler, diffuseImageView, i);
+		pVulkanContext->SetUniformBuffer(pipeline, 0, 0, mvpUniformBuffers[i], i);
+		pVulkanContext->SetUniformBuffer(pipeline, 0, 1, lightsUniformBuffers[i], i);
+		pVulkanContext->SetUniformSampledImage(pipeline, 0, 2, textureSampler, diffuseImageView, i);
+		pVulkanContext->SetUniformSampledImage(pipeline, 0, 3, textureSampler, normalImageView, i);
+		pVulkanContext->SetUniformSampledImage(pipeline, 0, 4, textureSampler, specularImageView, i);
 
 		pVulkanContext->BeginCommandBuffer(commandBuffers[i]);
 		pVulkanContext->BeginRenderPass(commandBuffers[i], renderPass, frameBuffers[i]);
@@ -472,11 +567,16 @@ int main(int argc, char* argv[])
 		lastFrameIndex = frameIndex;
 		frameIndex = pVulkanContext->AcquireSwapchainImageIndex(pWindow->GetSwapchain());
 
-		ubo.view = Matrix4().SetTranslation(cameraPosition) * Matrix4().SetRotation(cameraOrientation);
+		mvp.view = Matrix4().SetTranslation(cameraPosition) * Matrix4().SetRotation(cameraOrientation);
+		lights.cameraPosition = Vector4(cameraPosition, 1.0f);
 
-		void* pUniformData = pVulkanContext->MapBuffer(uniformBuffers[frameIndex]);
-		memcpy(pUniformData, &ubo, sizeof(UBO));
-		pVulkanContext->UnmapBuffer(uniformBuffers[frameIndex]);
+		void* pUniformData = pVulkanContext->MapBuffer(mvpUniformBuffers[frameIndex]);
+		memcpy(pUniformData, &mvp, sizeof(UBO));
+		pVulkanContext->UnmapBuffer(mvpUniformBuffers[frameIndex]);
+
+		void* pLightsData = pVulkanContext->MapBuffer(lightsUniformBuffers[frameIndex]);
+		memcpy(pLightsData, &lights, sizeof(Lights));
+		pVulkanContext->UnmapBuffer(lightsUniformBuffers[frameIndex]);
 
 		pVulkanContext->Submit(commandBuffers[frameIndex], pWindow->GetSwapchain());
 		pVulkanContext->Present(pWindow->GetSwapchain());

@@ -43,6 +43,7 @@ namespace Quartz
 		mDefaultColor = consoleInfo.wAttributes;
 
 		mConsoleWindow = GetConsoleWindow();
+		//ShowWindow(mConsoleWindow, false);
 
 		// https://support.microsoft.com/en-us/help/190351/how-to-spawn-console-processes-with-redirected-standard-handles
 

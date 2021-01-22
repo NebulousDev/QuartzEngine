@@ -1477,7 +1477,7 @@ namespace Quartz
 		VulkanRenderPass* pVulkanRenderPass = static_cast<VulkanRenderPass*>(renderPass);
 		VulkanFramebuffer* pVulkanFramebuffer = static_cast<VulkanFramebuffer*>(framebuffer);
 
-		VkClearValue clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+		VkClearValue clearColor = { 0.02f, 0.05f, 0.05f, 1.0f };
 		VkClearValue clearDepth = { 1.0f, 0 };
 
 		VkClearValue clearValues[] = { clearColor, clearDepth };
@@ -1641,6 +1641,7 @@ namespace Quartz
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = nullptr;
 		descriptorWrite.pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), 1, &descriptorWrite, 0, nullptr);

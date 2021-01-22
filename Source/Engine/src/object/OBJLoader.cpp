@@ -194,9 +194,11 @@ namespace Quartz
 			{
 				{ 0, VERTEX_ATTRIBUTE_POSITION, VERTEX_TYPE_FLOAT3 },
 				{ 1, VERTEX_ATTRIBUTE_NORMAL, VERTEX_TYPE_FLOAT3 },
-				{ 2, VERTEX_ATTRIBUTE_TEXCOORD, VERTEX_TYPE_FLOAT2 },
+				{ 2, VERTEX_ATTRIBUTE_BINORMAL, VERTEX_TYPE_FLOAT3 },
+				{ 3, VERTEX_ATTRIBUTE_TANGENT, VERTEX_TYPE_FLOAT3 },
+				{ 4, VERTEX_ATTRIBUTE_TEXCOORD, VERTEX_TYPE_FLOAT2 },
 			},
-			3
+			5
 		};
 
 		VertexData vertexData{};
@@ -209,45 +211,80 @@ namespace Quartz
 		Map<OBJIndex, UInt32> indexMap{};
 		indexMap.Reserve(objModel.indices.Size());
 
-		for (const OBJIndex& index : objModel.indices)
+		for (UInt32 i = 0; i < objModel.indices.Size(); i += 3)
 		{
-			UInt32* pIdx = indexMap.Get(index);
+			const OBJIndex& index0 = objModel.indices[i];
+			const OBJIndex& index1 = objModel.indices[i + 1];
+			const OBJIndex& index2 = objModel.indices[i + 2];
 
-			if (pIdx != nullptr)
+			Vector3 binormal = Vector3(0, 0, 0);
+			Vector3 tangent = Vector3(0, 0, 0);
+
+			if (objModel.texCoords.Size() > 0 && 
+				index0.texCoordIdx != 0 && index1.texCoordIdx != 0 && index2.texCoordIdx != 0)
 			{
-				indexData.buffer.Push(*pIdx);
+				// Generate tangents/binormals *per-face*
+
+				Vector3 deltaPos1 = objModel.positions[index1.positionIdx - 1] - objModel.positions[index0.positionIdx - 1];
+				Vector3 deltaPos2 = objModel.positions[index2.positionIdx - 1] - objModel.positions[index1.positionIdx - 1];
+				Vector2 deltaTex1 = objModel.texCoords[index1.texCoordIdx - 1] - objModel.texCoords[index0.texCoordIdx - 1];
+				Vector2 deltaTex2 = objModel.texCoords[index2.texCoordIdx - 1] - objModel.texCoords[index1.texCoordIdx - 1];
+
+				float f = 1.0f / (deltaTex1.x * deltaTex2.y - deltaTex2.x * deltaTex1.y);
+
+				tangent.x = f * (deltaTex2.y * deltaPos1.x - deltaTex1.y * deltaPos2.x);
+				tangent.y = f * (deltaTex2.y * deltaPos1.y - deltaTex1.y * deltaPos2.y);
+				tangent.z = f * (deltaTex2.y * deltaPos1.z - deltaTex1.y * deltaPos2.z);
+
+				binormal.x = f * (-deltaTex2.x * deltaPos1.x + deltaTex1.x * deltaPos2.x);
+				binormal.y = f * (-deltaTex2.x * deltaPos1.y + deltaTex1.x * deltaPos2.y);
+				binormal.z = f * (-deltaTex2.x * deltaPos1.z + deltaTex1.x * deltaPos2.z);
 			}
-			else
+
+			for (UInt32 j = 0; j < 3; j++)
 			{
-				Vector3& position = objModel.positions[index.positionIdx - 1];
-				vertexData.buffer.Push(position);
+				const OBJIndex& index = objModel.indices[i + j];
+				UInt32* pIdx = indexMap.Get(index);
 
-				if (objModel.normals.Size() > 0 && index.normalIdx != 0)
+				if (pIdx != nullptr)
 				{
-					Vector3& normal = objModel.normals[index.normalIdx - 1];
-					vertexData.buffer.Push(normal);
+					indexData.buffer.Push(*pIdx);
 				}
 				else
 				{
-					// Generate normals
-					Vector3 normal = Vector3(0, 0, 0);
-					vertexData.buffer.Push(normal);
-				}
+					Vector3& position = objModel.positions[index.positionIdx - 1];
+					vertexData.buffer.Push(position);
 
-				if (objModel.texCoords.Size() > 0 && index.texCoordIdx != 0)
-				{
-					Vector2& texCoord = objModel.texCoords[index.texCoordIdx - 1];
-					vertexData.buffer.Push(texCoord);
-				}
-				else
-				{
-					// Generate texCoords
-					Vector2 texCoord = Vector2(0, 0);
-					vertexData.buffer.Push(texCoord);
-				}
+					if (objModel.normals.Size() > 0 && index.normalIdx != 0)
+					{
+						Vector3& normal = objModel.normals[index.normalIdx - 1];
+						vertexData.buffer.Push(normal);
+					}
+					else
+					{
+						// Generate normals
+						Vector3 normal = Vector3(0, 0, 0);
+						vertexData.buffer.Push(normal);
+					}
 
-				indexMap.Put(index, currentIndex);
-				indexData.buffer.Push(currentIndex++);
+					vertexData.buffer.Push(binormal);
+					vertexData.buffer.Push(tangent);
+
+					if (objModel.texCoords.Size() > 0 && index.texCoordIdx != 0)
+					{
+						Vector2& texCoord = objModel.texCoords[index.texCoordIdx - 1];
+						vertexData.buffer.Push(texCoord);
+					}
+					else
+					{
+						// Generate texCoords
+						Vector2 texCoord = Vector2(0, 0);
+						vertexData.buffer.Push(texCoord);
+					}
+
+					indexMap.Put(index, currentIndex);
+					indexData.buffer.Push(currentIndex++);
+				}
 			}
 		}
 

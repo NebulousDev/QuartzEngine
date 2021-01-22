@@ -117,6 +117,9 @@
     <ClInclude Include="src\application\InputAction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\object\Lights.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\event\EventSystem.cpp">

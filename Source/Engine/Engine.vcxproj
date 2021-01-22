@@ -187,6 +187,7 @@
     <ClInclude Include="src\log\Log.h" />
     <ClInclude Include="src\object\Image.h" />
     <ClInclude Include="src\object\ImageLoader.h" />
+    <ClInclude Include="src\object\Lights.h" />
     <ClInclude Include="src\object\Model.h" />
     <ClInclude Include="src\object\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
