@@ -35,6 +35,19 @@
     </Expand>
   </Type>
 
+  <Type Name = "Quartz::StringParserBase&lt;char&gt;">
+    <DisplayString Condition="mSubString.mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>Remaining = {mpHead,[mSubString.mSubLength - ((int)mpHead - (int)mSubString.mpData)]na}</DisplayString>
+    <Expand>
+      <Item Name="[Test]">((int)mpHead - (int)mSubString.mpData)</Item>
+    </Expand>
+  </Type>
+
+  <Type Name = "Quartz::StringParserBase&lt;wchar_t&gt;">
+    <DisplayString Condition="mSubString.mSubLength == 0">[Empty]</DisplayString>
+    <DisplayString>Remaining = {mSubString.mpData,[mSubString.mSubLength]su}</DisplayString>
+  </Type>
+
   <Type Name = "Quartz::Array&lt;*&gt;">
     <DisplayString>Size = {mSize}</DisplayString>
     <Expand>
