@@ -170,6 +170,8 @@ namespace Quartz
 
 						indices.PushBack(index);
 						++indexCount;
+
+						faceLine.AdvanceWhitespace();
 					}
 				}
 			}
@@ -211,7 +213,7 @@ namespace Quartz
 		Map<OBJIndex, UInt32> indexMap{};
 		indexMap.Reserve(objModel.indices.Size());
 
-		for (UInt32 i = 0; i < objModel.indices.Size(); i += 3)
+		for (UInt32 i = 0; i < (objModel.indices.Size() - 2); i += 3)
 		{
 			const OBJIndex& index0 = objModel.indices[i];
 			const OBJIndex& index1 = objModel.indices[i + 1];
@@ -221,7 +223,9 @@ namespace Quartz
 			Vector3 tangent = Vector3(0, 0, 0);
 
 			if (objModel.texCoords.Size() > 0 && 
-				index0.texCoordIdx != 0 && index1.texCoordIdx != 0 && index2.texCoordIdx != 0)
+				index0.texCoordIdx != 0 && 
+				index1.texCoordIdx != 0 && 
+				index2.texCoordIdx != 0)
 			{
 				// Generate tangents/binormals *per-face*
 

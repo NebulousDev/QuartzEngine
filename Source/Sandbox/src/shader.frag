@@ -155,5 +155,5 @@ void main()
 
     fragOut = texture(diffuseTexSampler, fragIn.texCoord) * vec4(diffuseResult, 1.0);
 
-	//fragOut = vec4(surfaceSpecular, 0, 0, 1.0);
+	//fragOut = vec4(surfaceNormal, 1.0);
 }

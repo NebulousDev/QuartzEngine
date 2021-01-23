@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
 
 	mvp.model.SetTranslation({ 0.0f, 0.0f, 0.0f });
 	mvp.view.SetTranslation({ 0.0f, 0.0f, 5.0f });
-	mvp.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.0001f, 1000.0f);
+	mvp.proj.SetPerspective(ToRadians(80.0f), (Float32)DEFAULT_WIDTH / (Float32)DEFAULT_HEIGHT, 0.001f, 1000.0f);
 
 	struct Lights
 	{
