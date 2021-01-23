@@ -10,10 +10,10 @@ namespace Quartz
 	constexpr CharType NEW_LINE = '\n';
 
 	template<typename CharType>
-	constexpr CharType CARRIAGE_RETURN = '\r';
+	constexpr CharType END_OF_STRING = '\0';
 
 	template<typename CharType>
-	constexpr CharType END_OF_STRING = '\0';
+	constexpr CharType CARRIAGE_RETURN = '\r';
 
 	template<typename CharType>
 	constexpr CharType TAB_SYMBOL = '\t';
@@ -81,13 +81,7 @@ namespace Quartz
 
 		SubStringType ReadLine()
 		{
-			CharType* mpRead = mpHead;
-			for (; !(*mpRead == NEW_LINE<CharType> || *mpRead == CARRIAGE_RETURN<CharType>) 
-				&& !IsEnd(mpRead); ++mpRead);
-
-			SubStringType result(mSubString, IndexOf(mpHead), IndexOf(mpRead));
-
-			mpHead = mpRead;
+			SubStringType result = ReadToChar(NEW_LINE<CharType>);
 
 			// Skip '\n'
 			AdvanceChar();
@@ -135,7 +129,9 @@ namespace Quartz
 
 		void AdvanceWhitespace()
 		{
-			for (; (*mpHead == SPACE_SYMBOL<CharType> || *mpHead == TAB_SYMBOL<CharType>) && !IsEnd(); ++mpHead);
+			for (; (*mpHead == SPACE_SYMBOL<CharType> || 
+					*mpHead == TAB_SYMBOL<CharType> || 
+					*mpHead == CARRIAGE_RETURN<CharType>) && !IsEnd(); ++mpHead);
 		}
 
 		Bool8 IsEnd()
