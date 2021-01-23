@@ -271,7 +271,7 @@ namespace Quartz
 		using CharType = typename _CharType;
 
 	protected:
-		USize	mSubLength;
+		USize mSubLength;
 		Byte* mpData;
 
 		// By keeping a copy of the original,
