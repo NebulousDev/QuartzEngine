@@ -175,7 +175,6 @@
     <ClInclude Include="src\graphics\GFXResource.h" />
     <ClInclude Include="src\graphics\GFXUtil.h" />
     <ClInclude Include="src\application\Window.h" />
-    <ClInclude Include="src\graphics\Mesh.h" />
     <ClInclude Include="src\graphics\VGFXContext.h" />
     <ClInclude Include="src\graphics\system\Camera.h" />
     <ClInclude Include="src\graphics\system\CameraManager.h" />
@@ -186,10 +185,10 @@
     <ClInclude Include="src\input\InputState.h" />
     <ClInclude Include="src\log\Log.h" />
     <ClInclude Include="src\object\Image.h" />
-    <ClInclude Include="src\object\ImageLoader.h" />
+    <ClInclude Include="src\loaders\ImageLoader.h" />
     <ClInclude Include="src\object\Lights.h" />
     <ClInclude Include="src\object\Model.h" />
-    <ClInclude Include="src\object\OBJLoader.h" />
+    <ClInclude Include="src\loaders\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
     <ClInclude Include="src\platform\VPPlatform.h" />
     <ClInclude Include="src\platform\VPDebugConsole.h" />
@@ -205,11 +204,9 @@
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
     <ClCompile Include="src\graphics\GFXUtil.cpp" />
-    <ClCompile Include="src\graphics\Renderer.cpp" />
-    <ClCompile Include="src\graphics\Renderer.h" />
     <ClCompile Include="src\log\Log.cpp" />
-    <ClCompile Include="src\object\ImageLoader.cpp" />
-    <ClCompile Include="src\object\OBJLoader.cpp" />
+    <ClCompile Include="src\loaders\ImageLoader.cpp" />
+    <ClCompile Include="src\loaders\OBJLoader.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

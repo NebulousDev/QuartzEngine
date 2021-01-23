@@ -54,16 +54,10 @@
     <ClInclude Include="src\input\InputState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\object\OBJLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\object\UniformData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\object\Image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\object\ImageLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\object\Model.h">
@@ -99,9 +93,6 @@
     <ClInclude Include="src\platform\VPPlatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\platform\VPDebugConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -120,6 +111,12 @@
     <ClInclude Include="src\object\Lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\loaders\ImageLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\OBJLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\event\EventSystem.cpp">
@@ -129,9 +126,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\GFXUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\object\OBJLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\object\UniformData.cpp">
@@ -149,12 +143,6 @@
     <ClCompile Include="src\application\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Renderer.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\application\InputBindings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -164,7 +152,10 @@
     <ClCompile Include="src\application\InputState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\object\ImageLoader.cpp">
+    <ClCompile Include="src\loaders\ImageLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\OBJLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -39,9 +39,6 @@
     <ClInclude Include="src\util\Intrinsics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\memory\Memory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\debug\Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -49,15 +46,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util\Singleton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math2\Matrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math2\Quaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math2\Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\math\Defines.h">
@@ -120,9 +108,6 @@
     <ClInclude Include="src\util\Castable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\math2\MathUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\math\Bounds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -156,14 +141,6 @@
     <ClInclude Include="src\util\Set.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\Core.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\memory\Memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="src\util\_Util.natvis" />

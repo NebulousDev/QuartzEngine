@@ -15,8 +15,8 @@
 #include "application/WindowManager.h"
 #include "application/Input.h"
 
-#include "object/OBJLoader.h"
-#include "object/ImageLoader.h"
+#include "loaders/OBJLoader.h"
+#include "loaders/ImageLoader.h"
 
 #include "object/Lights.h"
 

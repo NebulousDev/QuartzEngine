@@ -1,7 +1,7 @@
 #pragma once
 
 #include "util/String.h"
-#include "Image.h"
+#include "../object/Image.h"
 
 namespace Quartz
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Model.h"
+#include "../object/Model.h"
 #include "util\String.h"
 #include "util\StringParser.h"
 #include "util\Array.h"
