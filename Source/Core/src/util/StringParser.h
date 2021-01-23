@@ -2,10 +2,15 @@
 
 #include "String.h"
 
+#include <string>
+
 namespace Quartz
 {
 	template<typename CharType>
-	constexpr CharType END_OF_LINE = '\n';
+	constexpr CharType NEW_LINE = '\n';
+
+	template<typename CharType>
+	constexpr CharType CARRIAGE_RETURN = '\r';
 
 	template<typename CharType>
 	constexpr CharType END_OF_STRING = '\0';
@@ -76,7 +81,13 @@ namespace Quartz
 
 		SubStringType ReadLine()
 		{
-			SubStringType result = ReadToChar(END_OF_LINE<CharType>);
+			CharType* mpRead = mpHead;
+			for (; !(*mpRead == NEW_LINE<CharType> || *mpRead == CARRIAGE_RETURN<CharType>) 
+				&& !IsEnd(mpRead); ++mpRead);
+
+			SubStringType result(mSubString, IndexOf(mpHead), IndexOf(mpRead));
+
+			mpHead = mpRead;
 
 			// Skip '\n'
 			AdvanceChar();
@@ -133,8 +144,8 @@ namespace Quartz
 		}
 	};
 
-	template<> constexpr char END_OF_LINE<char> = '\n';
-	template<> constexpr wchar_t END_OF_LINE<wchar_t> = L'\n';
+	template<> constexpr char NEW_LINE<char> = '\n';
+	template<> constexpr wchar_t NEW_LINE<wchar_t> = L'\n';
 
 	template<> constexpr char END_OF_STRING<char> = '\0';
 	template<> constexpr wchar_t END_OF_STRING<wchar_t> = L'\0';
