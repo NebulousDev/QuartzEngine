@@ -45,7 +45,7 @@ namespace Quartz
 	{
 	private:
 		VulkanDevice*							mpParentDevice;
-		Array<VulkanDeviceMemoryAllocation>		mDeviceHeapAllocations;
+		Array<VulkanDeviceMemoryAllocation*>	mDeviceHeapAllocations;
 		Map<VulkanDeviceMemoryHandle, UInt32>	mAllocationIndexMap;
 		UInt64									mTotalAllocatedSize;
 

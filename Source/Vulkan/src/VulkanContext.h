@@ -285,6 +285,8 @@ namespace Quartz
 
 		void UnmapBuffer(HGFXBuffer buffer) override;
 
+		void CopyBuffer(HGFXBuffer source, HGFXBuffer dest) override;
+
 		void CopyBufferToImage(HGFXBuffer buffer, HGFXImage image) override;
 
 		void TransitionImage(HGFXImage image, GFXImageLayout oldLayout, GFXImageLayout newLayout) override;

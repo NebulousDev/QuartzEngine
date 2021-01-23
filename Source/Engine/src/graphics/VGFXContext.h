@@ -491,6 +491,8 @@ namespace Quartz
 
 		virtual void UnmapBuffer(HGFXBuffer buffer) = 0;
 
+		virtual void CopyBuffer(HGFXBuffer source, HGFXBuffer dest) = 0;
+
 		virtual void CopyBufferToImage(HGFXBuffer buffer, HGFXImage image) = 0;
 
 		virtual void TransitionImage(HGFXImage image, GFXImageLayout oldLayout, GFXImageLayout newLayout) = 0;

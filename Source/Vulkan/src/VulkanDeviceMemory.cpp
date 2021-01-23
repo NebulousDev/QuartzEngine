@@ -88,13 +88,15 @@ namespace Quartz
 			return nullptr;
 		}
 
-		VulkanDeviceMemoryAllocation allocation(mpParentDevice->GetDeviceHandle(), deviceMemory, memoryProperties, memoryTypeBits, sizeBytes);
-		VulkanDeviceMemoryAllocation* pStoredAllocation = mDeviceHeapAllocations.PushBack(allocation);
-		mAllocationIndexMap.Put((VulkanDeviceMemoryHandle)pStoredAllocation, mDeviceHeapAllocations.Size() - 1);
+		VulkanDeviceMemoryAllocation* pAllocation = new VulkanDeviceMemoryAllocation(mpParentDevice->GetDeviceHandle(), 
+			deviceMemory, memoryProperties, memoryTypeBits, sizeBytes);
+
+		mDeviceHeapAllocations.PushBack(pAllocation);
+		mAllocationIndexMap.Put((VulkanDeviceMemoryHandle)pAllocation, mDeviceHeapAllocations.Size() - 1);
 
 		mTotalAllocatedSize += sizeBytes;
 
-		return pStoredAllocation;
+		return pAllocation;
 	}
 
 	void VulkanDeviceMemoryAllocator::Free(VulkanDeviceMemoryAllocation* deviceAllocation)

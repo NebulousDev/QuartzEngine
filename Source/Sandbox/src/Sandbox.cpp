@@ -42,7 +42,7 @@ namespace Quartz
 		SCENE RESOURCES
 	=====================================*/
 
-	#define MODEL_PATH "models/testscene.obj"
+	#define MODEL_PATH "models/sponza2.obj"
 	#define DIFFUSE_PATH "textures/stone.png"
 	#define NORMAL_PATH "textures/stone_normal.png"
 	#define SPECULAR_PATH "textures/stone_specular.png"
@@ -400,17 +400,28 @@ int main(int argc, char* argv[])
 		BUFFERS
 	=====================================*/
 
-	HGFXBuffer vertexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+	HGFXBuffer vertexStagingBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT, 
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.vertexData.buffer.Size());
-	void* pVertexData = pVulkanContext->MapBuffer(vertexBuffer);
+	void* pVertexData = pVulkanContext->MapBuffer(vertexStagingBuffer);
 	memcpy(pVertexData, mModel.vertexData.buffer.Data(), mModel.vertexData.buffer.Size());
-	pVulkanContext->UnmapBuffer(vertexBuffer);
+	pVulkanContext->UnmapBuffer(vertexStagingBuffer);
 
-	HGFXBuffer indexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_INDEX_BUFFER_BIT,
+	HGFXBuffer indexStagingBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_INDEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.indexData.buffer.Size());
-	void* pIndexData = pVulkanContext->MapBuffer(indexBuffer);
+	void* pIndexData = pVulkanContext->MapBuffer(indexStagingBuffer);
 	memcpy(pIndexData, mModel.indexData.buffer.Data(), mModel.indexData.buffer.Size());
-	pVulkanContext->UnmapBuffer(indexBuffer);
+	pVulkanContext->UnmapBuffer(indexStagingBuffer);
+
+	HGFXBuffer vertexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_DEST_BIT,
+		GFX_BUFFER_ACCESS_DEVICE_LOCAL_BIT, mModel.vertexData.buffer.Size());
+
+	HGFXBuffer indexBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_INDEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_DEST_BIT,
+		GFX_BUFFER_ACCESS_DEVICE_LOCAL_BIT, mModel.vertexData.buffer.Size());
+
+	pVulkanContext->CopyBuffer(vertexStagingBuffer, vertexBuffer);
+	pVulkanContext->CopyBuffer(indexStagingBuffer, indexBuffer);
+
+	//pVulkanContext.DestroyBuffer();
 
 	/*=====================================
 		TEXTURES
@@ -476,7 +487,7 @@ int main(int argc, char* argv[])
 		GFX_IMAGE_VIEW_TYPE_2D, GFX_IMAGE_USAGE_SAMPLED_TEXTURE, 0, 1, 0, 1);
 
 	HGFXSampler textureSampler = pVulkanContext->CreateSampler(GFX_SAMPLER_FILTER_LINEAR, 
-		GFX_SAMPLER_FILTER_LINEAR, GFX_SAMPLER_MODE_REPEAT, 16);
+		GFX_SAMPLER_FILTER_LINEAR, GFX_SAMPLER_MODE_REPEAT, 8);
 
 	/*=====================================
 		GENERATE COMMAND BUFFERS
