@@ -5,17 +5,32 @@
 
 namespace Quartz
 {
-    Image LoadImageSTB(const String& filepath)
-    {
-        Int32 width, height, channels;
-        stbi_uc* pPixels = stbi_load(filepath.Str(), &width, &height, &channels, STBI_rgb_alpha);
+	Image* LoadImageFunc(const String& path)
+	{
+		Int32 width, height, channels;
 
-        Image image;
-        image.width = width;
-        image.height = height;
-        image.pData = pPixels;
+		stbi_uc* pPixels = stbi_load(path.Str(), &width, &height, &channels, STBI_rgb_alpha);//STBI_default);
 
-        return image;
-    }
+		if (pPixels == nullptr)
+		{
+			return nullptr;
+		}
+
+		Image* pImage = new Image(width, height, 4/*channels*/, 8, pPixels);
+
+		return pImage;
+	}
+
+	Bool8 UnloadImageFunc(Image* pImage)
+	{
+		if (pImage != nullptr)
+		{
+			stbi_image_free(pImage->GetData());
+			delete pImage;
+			return true;
+		}
+
+		return false;
+	}
 }
 

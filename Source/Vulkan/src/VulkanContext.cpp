@@ -1258,6 +1258,17 @@ namespace Quartz
 		return HGFXBuffer(pVulkanBuffer);
 	}
 
+	void VPLVulkanContext::DestroyBuffer(HGFXBuffer buffer)
+	{
+		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+		VulkanDeviceMemoryAllocator& allocator = mpDevice->GetDeviceMemoryAllocator();
+		
+		vkDestroyBuffer(mpDevice->GetDeviceHandle(), pVulkanBuffer->vkBuffer, VK_NULL_HANDLE);
+		allocator.Free(pVulkanBuffer->pMemory);
+
+		//TODO: return error?
+	}
+
 	HGFXUniform VPLVulkanContext::CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset)
 	{
 		// Unfinished

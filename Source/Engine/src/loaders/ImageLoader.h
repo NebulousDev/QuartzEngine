@@ -5,5 +5,7 @@
 
 namespace Quartz
 {
-	QUARTZ_API Image LoadImageSTB(const String& filepath);
+	QUARTZ_API Image* LoadImageFunc(const String& path);
+
+	QUARTZ_API Bool8 UnloadImageFunc(Image* pImage);
 }

@@ -33,6 +33,11 @@ namespace Quartz
 		}
 	};
 
+	struct OBJMaterial
+	{
+
+	};
+
 	struct OBJModel
 	{
 		Array<Vector3> positions;

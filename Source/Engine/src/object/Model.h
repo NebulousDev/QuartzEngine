@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Common.h"
-#include "util\Buffer.h"
+#include "util/Buffer.h"
+#include "util/String.h"
+#include "util/Array.h"
 
 namespace Quartz
 {
@@ -56,7 +58,7 @@ namespace Quartz
 		ByteBuffer buffer;
 	};
 
-	enum IndexDataFormat
+	enum IndexFormat
 	{
 		INDEX_FORMAT_INT8,
 		INDEX_FORMAT_UINT8,
@@ -68,13 +70,23 @@ namespace Quartz
 
 	struct IndexData
 	{
-		IndexDataFormat format;
+		IndexFormat format;
 		ByteBuffer buffer;
+	};
+
+	struct SubModel
+	{
+		UInt32 indexStart;
+		UInt32 indexEnd;
+		String diffuseTexture;
+		String normalTexture;
+		String specularTexture;
 	};
 
 	struct Model
 	{
 		VertexData vertexData;
 		IndexData indexData;
+		Array<SubModel> objects;
 	};
 }

@@ -1,5 +1,5 @@
-%VULKAN_SDK%/Bin32/glslc.exe shader.vert -o shaders/vert.spv
-%VULKAN_SDK%/Bin32/glslc.exe shader.frag -o shaders/frag.spv
+%VULKAN_SDK%/Bin32/glslc.exe shader.vert -o assets/shaders/vert.spv
+%VULKAN_SDK%/Bin32/glslc.exe shader.frag -o assets/shaders/frag.spv
 
 @echo off
 

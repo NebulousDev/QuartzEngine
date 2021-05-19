@@ -15,7 +15,7 @@ namespace Quartz
 		ArrayStack() {}
 
 		ArrayStack(const ArrayStackType& stack)
-			: ArrayType(static_cast<ArrayType&>(stack)) {}
+			: ArrayType(static_cast<ArrayType>(stack)) {}
 
 		ArrayStack(const ArrayType& array)
 			: ArrayType(array) {}

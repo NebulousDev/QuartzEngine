@@ -99,6 +99,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -113,6 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Source/Core/src;$(SolutionDir)Source/Platform/src;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>QUARTZ_DEBUG;QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -131,6 +133,7 @@
       <PreprocessorDefinitions>QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -151,6 +154,7 @@
       <PreprocessorDefinitions>QUARTZ_64;QUARTZ_API_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -166,15 +170,24 @@
     <ClInclude Include="src\application\InputState.h" />
     <ClInclude Include="src\application\WindowManager.h" />
     <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\entity\Entity.h" />
+    <ClInclude Include="src\entity\EntityView.h" />
+    <ClInclude Include="src\entity\System.h" />
+    <ClInclude Include="src\entity\SystemBase.h" />
+    <ClInclude Include="src\entity\World.h" />
     <ClInclude Include="src\event\Event.h" />
     <ClInclude Include="src\event\EventBuffer.h" />
     <ClInclude Include="src\event\EventDispatcher.h" />
     <ClInclude Include="src\event\EventSystem.h" />
+    <ClInclude Include="src\graphics\Components.h" />
+    <ClInclude Include="src\graphics\Framebuffer.h" />
     <ClInclude Include="src\graphics\GFXDevice.h" />
     <ClInclude Include="src\graphics\GFXPhysicalDevice.h" />
     <ClInclude Include="src\graphics\GFXResource.h" />
     <ClInclude Include="src\graphics\GFXUtil.h" />
     <ClInclude Include="src\application\Window.h" />
+    <ClInclude Include="src\graphics\Renderer.h" />
+    <ClInclude Include="src\graphics\RenderPass.h" />
     <ClInclude Include="src\graphics\VGFXContext.h" />
     <ClInclude Include="src\graphics\system\Camera.h" />
     <ClInclude Include="src\graphics\system\CameraManager.h" />
@@ -193,6 +206,7 @@
     <ClInclude Include="src\platform\VPPlatform.h" />
     <ClInclude Include="src\platform\VPDebugConsole.h" />
     <ClInclude Include="src\platform\Time.h" />
+    <ClInclude Include="src\resource\ResourceManager.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>
   <ItemGroup>
@@ -203,11 +217,16 @@
     <ClCompile Include="src\application\WindowManager.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
+    <ClCompile Include="src\graphics\Framebuffer.cpp" />
     <ClCompile Include="src\graphics\GFXUtil.cpp" />
+    <ClCompile Include="src\graphics\Renderer.cpp" />
+    <ClCompile Include="src\graphics\RenderPass.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\loaders\ImageLoader.cpp" />
     <ClCompile Include="src\loaders\OBJLoader.cpp" />
+    <ClCompile Include="src\object\Image.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
+    <ClCompile Include="src\resource\ResourceManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

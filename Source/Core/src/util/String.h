@@ -129,6 +129,9 @@ namespace Quartz
 			reinterpret_cast<CharType*>(mpData + metaSize)[length] = 0;
 		}
 
+		StringBase(const SubStringType& substring)
+			: StringBase(substring.Str(), substring.Length()) { }
+
 		~StringBase()
 		{
 			if (--mpMeta->count == 0)
@@ -265,6 +268,9 @@ namespace Quartz
 	template<typename _CharType>
 	class SubStringBase
 	{
+	public:
+		friend class StringBase<_CharType>;
+
 	public:
 		using StringType = StringBase<_CharType>;
 		using SubStringType = SubStringBase<_CharType>;

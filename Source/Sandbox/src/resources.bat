@@ -1,10 +1,5 @@
-xcopy models "..\..\..\Debug\models\" /s /e /y /d
-xcopy shaders "..\..\..\Debug\shaders\" /s /e /y /d
-xcopy textures "..\..\..\Debug\textures\" /s /y /e /d
-
-xcopy models "..\..\..\Release\models\" /s /e /y /d
-xcopy shaders "..\..\..\Release\shaders\" /s /e /y /d
-xcopy textures "..\..\..\Release\textures\" /s /y /e /d
+xcopy assets "..\..\..\Debug\assets\" /s /e /y /d
+xcopy assets "..\..\..\Release\assets\" /s /e /y /d
 
 @echo off
 

@@ -20,6 +20,14 @@
 
 #include "object/Lights.h"
 
+#include "entity/World.h"
+
+#include "resource/ResourceManager.h"
+
+#include "graphics/Renderer.h"
+#include "graphics/RenderPass.h"
+#include "graphics/Framebuffer.h"
+
 #include <iostream>
 #include <fstream>
 
@@ -33,19 +41,19 @@ namespace Quartz
 		WINDOW/GRAPHICS PROPERITES
 	=====================================*/
 
-	#define DEFAULT_WIDTH 1920//1280
-	#define DEFAULT_HEIGHT 1080//720
-	#define SWAPCHAIN_IMAGE_COUNT 3
-	#define FRAME_RESOURCE_COUNT 3
+#define DEFAULT_WIDTH 1920//1280
+#define DEFAULT_HEIGHT 1080//720
+#define SWAPCHAIN_IMAGE_COUNT 3
+#define FRAME_RESOURCE_COUNT 3
 
 	/*=====================================
 		SCENE RESOURCES
 	=====================================*/
 
-	#define MODEL_PATH "models/sponza2.obj"
-	#define DIFFUSE_PATH "textures/stone.png"
-	#define NORMAL_PATH "textures/stone_normal.png"
-	#define SPECULAR_PATH "textures/stone_specular.png"
+#define MODEL_PATH "assets/models/testScene.obj"
+#define DIFFUSE_PATH "assets/textures/stone.png"
+#define NORMAL_PATH "assets/textures/stone_normal.png"
+#define SPECULAR_PATH "assets/textures/stone_specular.png"
 
 	/*=====================================
 		TEMP FILE READER
@@ -93,8 +101,8 @@ namespace Quartz
 		{
 			Vector3 globalUp = Vector3(0, 1, 0);
 			Vector3 right = cameraOrientation * Vector3(1, 0, 0);
-			cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Double64) - rx * deltaTime * 4.0);
-			cameraOrientation *= Quaternion().SetAxisAngle(right, (Double64) - ry * deltaTime * 4.0);
+			cameraOrientation *= Quaternion().SetAxisAngle(globalUp, (Double64)-rx * deltaTime * 4.0);
+			cameraOrientation *= Quaternion().SetAxisAngle(right, (Double64)-ry * deltaTime * 4.0);
 		}
 	}
 
@@ -208,11 +216,25 @@ int main(int argc, char* argv[])
 	gpWindow	= pWindow;
 
 	/*=====================================
+		ENTITY INITIALIZATION
+	=====================================*/
+
+	EntityWorld world;
+
+	TransformComponent transform;
+	MeshComponent mesh;
+
+	Entity entity0 = world.CreateEntity(transform, mesh);
+	Entity entity1 = world.CreateEntity(transform, mesh);
+	Entity entity2 = world.CreateEntity(transform);
+	Entity entity3 = world.CreateEntity(mesh);
+
+	/*=====================================
 		GRAPHICS INITIALIZATION
 	=====================================*/
 
 	Win32VulkanContext* pVulkanContext = &win32VulkanContext;
-
+	
 	GFXRenderAttachment colorAttachment;
 	colorAttachment.format			= GFX_IMAGE_FORMAT_BGRA8_UNORM;
 	colorAttachment.initalLayout	= GFX_IMAGE_LAYOUT_UNDEFINED;
@@ -221,6 +243,7 @@ int main(int argc, char* argv[])
 	colorAttachment.stencilStoreOp	= GFX_STORE_OP_DONT_CARE;
 	colorAttachment.loadOp			= GFX_LOAD_OP_CLEAR;
 	colorAttachment.storeOp			= GFX_STORE_OP_STORE;
+	colorAttachment.isSwapchain		= true;
 
 	GFXRenderAttachment depthAttachment;
 	depthAttachment.format			= GFX_IMAGE_FORMAT_DEPTH24_UNORM_STENCIL8_UINT;
@@ -230,6 +253,7 @@ int main(int argc, char* argv[])
 	depthAttachment.stencilStoreOp	= GFX_STORE_OP_DONT_CARE;
 	depthAttachment.loadOp			= GFX_LOAD_OP_CLEAR;
 	depthAttachment.storeOp			= GFX_STORE_OP_DONT_CARE;
+	depthAttachment.isSwapchain		= false;
 
 	GFXRenderPassInfo renderPassInfo =
 	{
@@ -260,14 +284,46 @@ int main(int argc, char* argv[])
 		}
 	};
 
+
+
+	// ------------------- //
+
+
+	FrameInfo frameInfo;
+	frameInfo.bufferCount = 3;
+
+	Renderpass colorpass
+	(
+		"Color-Pass", 
+
+		{
+			{ "Swapchain",		ATTACHMENT_SWAPCHAIN,		IMAGE_FORMAT_BGRA },
+			{ "Depth-Stencil",	ATTACHMENT_DEPTH_STENCIL,	IMAGE_FORMAT_DEPTH_24_STENCIL_8 }
+		},
+
+		{
+			{ "Color-Subpass", { 0, 1 } }
+		}
+	);
+
+	FramebufferCollection framebuffer(DEFAULT_WIDTH, DEFAULT_HEIGHT, colorpass, SWAPCHAIN_IMAGE_COUNT);
+
+	ClassicRenderer renderer;
+	renderer.SetupRenderer(pVulkanContext, frameInfo);
+
+
+	// ------------------- //
+
+
+
 	HGFXRenderPass renderPass = pVulkanContext->CreateRenderPass(renderPassInfo);
 
 	GFXGraphicsPipelineInfo pipelineInfo = {};
 	{
 		Bounds2f renderBounds(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-		pipelineInfo.vertexShader		= pVulkanContext->CreateShader(GFX_SHADER_STAGE_VERTEX, ReadFile("shaders/vert.spv"), "main");
-		pipelineInfo.pixelShader		= pVulkanContext->CreateShader(GFX_SHADER_STAGE_PIXEL, ReadFile("shaders/frag.spv"), "main");
+		pipelineInfo.vertexShader		= pVulkanContext->CreateShader(GFX_SHADER_STAGE_VERTEX, ReadFile("assets/shaders/vert.spv"), "main");
+		pipelineInfo.pixelShader		= pVulkanContext->CreateShader(GFX_SHADER_STAGE_PIXEL, ReadFile("assets/shaders/frag.spv"), "main");
 		
 		pipelineInfo.viewport.bounds	= renderBounds;
 		pipelineInfo.viewport.minDepth	= 0.0f;
@@ -342,17 +398,6 @@ int main(int argc, char* argv[])
 	/*=====================================
 		UNIFORMS
 	=====================================*/
-
-	String modelPath = MODEL_PATH;
-
-	if (argc > 1)
-	{
-		modelPath = argv[1];
-	}
-
-	Array<Byte> modelFileData = ReadFile(modelPath);
-	String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
-	Model mModel = LoadOBJ(modelDataString);
 	
 	struct UBO
 	{
@@ -397,8 +442,19 @@ int main(int argc, char* argv[])
 	lights.pointCount = 3;
 
 	/*=====================================
-		BUFFERS
+		Meshes
 	=====================================*/
+
+	String modelPath = MODEL_PATH;
+
+	if (argc > 1)
+	{
+		modelPath = argv[1];
+	}
+
+	Array<Byte> modelFileData = ReadFile(modelPath);
+	String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
+	Model mModel = LoadOBJ(modelDataString);
 
 	HGFXBuffer vertexStagingBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT, 
 		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, mModel.vertexData.buffer.Size());
@@ -421,48 +477,52 @@ int main(int argc, char* argv[])
 	pVulkanContext->CopyBuffer(vertexStagingBuffer, vertexBuffer);
 	pVulkanContext->CopyBuffer(indexStagingBuffer, indexBuffer);
 
-	//pVulkanContext.DestroyBuffer();
+	pVulkanContext->DestroyBuffer(vertexStagingBuffer);
+	pVulkanContext->DestroyBuffer(indexStagingBuffer);
 
 	/*=====================================
 		TEXTURES
 	=====================================*/
 
-	Image diffuseImage = LoadImageSTB(DIFFUSE_PATH);
-	Image normalImage = LoadImageSTB(NORMAL_PATH);
-	Image specularImage = LoadImageSTB(SPECULAR_PATH);
+	AssetManager::GetInstance().RegisterAssetLoaders("png", LoadImageFunc, UnloadImageFunc);
 
-	UInt32 diffuseSizeBytes = diffuseImage.width * diffuseImage.height * 4;
-	UInt32 normalSizeBytes = normalImage.width * normalImage.height * 4;
-	UInt32 specularSizeBytes = specularImage.width * specularImage.height * 4;
+	Asset<Image> diffuseImageAsset = AssetManager::GetInstance().GetAsset<Image>(DIFFUSE_PATH);
+	Asset<Image> normalImageAsset = AssetManager::GetInstance().GetAsset<Image>(NORMAL_PATH);
+	Asset<Image> specularImageAsset = AssetManager::GetInstance().GetAsset<Image>(SPECULAR_PATH);
+
+	// temp
+	Image diffuseImage = *diffuseImageAsset.GetAsset();
+	Image normalImage = *normalImageAsset.GetAsset();
+	Image specularImage = *specularImageAsset.GetAsset();
 
 	HGFXImage diffuseTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
 		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
-		GFX_IMAGE_FORMAT_RGBA8_UNORM, diffuseImage.width, diffuseImage.height, 1, 1, 1);
+		GFX_IMAGE_FORMAT_RGBA8_UNORM, diffuseImage.GetWidth(), diffuseImage.GetHeight(), 1, 1, 1);
 
 	HGFXImage normalTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
 		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
-		GFX_IMAGE_FORMAT_RGBA8_UNORM, normalImage.width, normalImage.height, 1, 1, 1);
+		GFX_IMAGE_FORMAT_RGBA8_UNORM, normalImage.GetWidth(), normalImage.GetHeight(), 1, 1, 1);
 
 	HGFXImage specularTextureImage = pVulkanContext->CreateImage(GFX_IMAGE_TYPE_2D,
 		GFX_IMAGE_USAGE_SAMPLED_TEXTURE | GFX_IMAGE_USAGE_TRANSFER_DST_BIT,
-		GFX_IMAGE_FORMAT_RGBA8_UNORM, specularImage.width, specularImage.height, 1, 1, 1);
+		GFX_IMAGE_FORMAT_RGBA8_UNORM, specularImage.GetWidth(), specularImage.GetHeight(), 1, 1, 1);
 
 	HGFXBuffer diffuseTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, diffuseSizeBytes);
+		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, diffuseImage.GetSizeBytes());
 	void* pDiffusePixelBufferData = pVulkanContext->MapBuffer(diffuseTextureBuffer);
-	memcpy(pDiffusePixelBufferData, diffuseImage.pData, diffuseSizeBytes);
+	memcpy(pDiffusePixelBufferData, diffuseImage.GetData(), diffuseImage.GetSizeBytes());
 	pVulkanContext->UnmapBuffer(diffuseTextureBuffer);
 
 	HGFXBuffer normalTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, normalSizeBytes);
+		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, normalImage.GetSizeBytes());
 	void* pNormalPixelBufferData = pVulkanContext->MapBuffer(normalTextureBuffer);
-	memcpy(pNormalPixelBufferData, normalImage.pData, normalSizeBytes);
+	memcpy(pNormalPixelBufferData, normalImage.GetData(), normalImage.GetSizeBytes());
 	pVulkanContext->UnmapBuffer(normalTextureBuffer);
 
 	HGFXBuffer specularTextureBuffer = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_VERTEX_BUFFER_BIT | GFX_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, specularSizeBytes);
+		GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, specularImage.GetSizeBytes());
 	void* pSpecularPixelBufferData = pVulkanContext->MapBuffer(specularTextureBuffer);
-	memcpy(pSpecularPixelBufferData, specularImage.pData, specularSizeBytes);
+	memcpy(pSpecularPixelBufferData, specularImage.GetData(), specularImage.GetSizeBytes());
 	pVulkanContext->UnmapBuffer(specularTextureBuffer);
 
 	pVulkanContext->TransitionImage(diffuseTextureImage, GFX_IMAGE_LAYOUT_UNDEFINED, GFX_IMAGE_LAYOUT_TRANSFER_DESTINATION);
@@ -489,6 +549,10 @@ int main(int argc, char* argv[])
 	HGFXSampler textureSampler = pVulkanContext->CreateSampler(GFX_SAMPLER_FILTER_LINEAR, 
 		GFX_SAMPLER_FILTER_LINEAR, GFX_SAMPLER_MODE_REPEAT, 8);
 
+	pVulkanContext->DestroyBuffer(diffuseTextureBuffer);
+	pVulkanContext->DestroyBuffer(normalTextureBuffer);
+	pVulkanContext->DestroyBuffer(specularTextureBuffer);
+
 	/*=====================================
 		GENERATE COMMAND BUFFERS
 	=====================================*/
@@ -501,13 +565,13 @@ int main(int argc, char* argv[])
 	for (UInt32 i = 0; i < SWAPCHAIN_IMAGE_COUNT; i++)
 	{
 		mvpUniformBuffers[i] = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, sizeof(UBO));
+			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_DEVICE_LOCAL_BIT, sizeof(UBO));	// @NOTE: Host visible, device local (wont work on everything)
 		void* pUniformData = pVulkanContext->MapBuffer(mvpUniformBuffers[i]);
 		memcpy(pUniformData, &mvp, sizeof(UBO));
 		pVulkanContext->UnmapBuffer(mvpUniformBuffers[i]);
 
 		lightsUniformBuffers[i] = pVulkanContext->CreateBuffer(GFX_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_HOST_COHERENT_BIT, sizeof(Lights));
+			GFX_BUFFER_ACCESS_HOST_VISIBLE_BIT | GFX_BUFFER_ACCESS_DEVICE_LOCAL_BIT, sizeof(Lights));
 		void* pLightsData = pVulkanContext->MapBuffer(lightsUniformBuffers[i]);
 		memcpy(pLightsData, &lights, sizeof(Lights));
 		pVulkanContext->UnmapBuffer(lightsUniformBuffers[i]);
@@ -543,6 +607,15 @@ int main(int argc, char* argv[])
 		pVulkanContext->EndRenderPass(commandBuffers[i]);
 		pVulkanContext->EndCommandBuffer(commandBuffers[i]);
 	}
+
+	/*=====================================
+		RENDERER
+	=====================================*/
+
+	//FrameInfo info;
+
+	//ClassicRenderer renderer;
+	//renderer.SetupRenderer(pVulkanContext, info);
 
 	/*=====================================
 		GAME LOOP

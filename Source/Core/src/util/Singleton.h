@@ -11,7 +11,7 @@ namespace Quartz
 		static ClassType smInstance;
 
 	public:
-		static ClassType& GetInstanceHandle()
+		static ClassType& GetInstance()
 		{
 			return smInstance;
 		}

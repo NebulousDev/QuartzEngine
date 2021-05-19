@@ -276,6 +276,7 @@ namespace Quartz
 		HGFXShader CreateShader(GFXShaderStage shaderStage, const Array<Byte>& shaderData, const char* entryPoint) override;
 	
 		HGFXBuffer CreateBuffer(GFXBufferUsages usages, GFXBufferAccess access, UInt32 sizeBytes) override;
+		void DestroyBuffer(HGFXBuffer buffer) override;
 
 		HGFXUniform CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset) override;
 

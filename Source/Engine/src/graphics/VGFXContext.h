@@ -239,6 +239,7 @@ namespace Quartz
 		GFXStoreOperation stencilStoreOp;
 		GFXImageLayout initalLayout;
 		GFXImageLayout finalLayout;
+		Bool8 isSwapchain;
 	};
 
 	struct GFXRenderSubpassAttachment
@@ -482,6 +483,7 @@ namespace Quartz
 		virtual HGFXShader CreateShader(GFXShaderStage shaderStage, const Array<Byte>& shaderData, const char* entryPoint) = 0;
 	
 		virtual HGFXBuffer CreateBuffer(GFXBufferUsages usages, GFXBufferAccess access, UInt32 sizeBytes) = 0;
+		virtual void DestroyBuffer(HGFXBuffer buffer) = 0;
 
 		virtual HGFXUniform CreateUniform(GFXUniformType uniformType, HGFXBuffer buffer, UInt32 offset) = 0;
 
