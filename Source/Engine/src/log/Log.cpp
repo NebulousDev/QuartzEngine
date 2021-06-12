@@ -11,7 +11,7 @@
 
 namespace Quartz
 {
-	VPDebugConsole* DebugLogger::pDebugConsole = nullptr;
+	DebugConsole* DebugLogger::pDebugConsole = nullptr;
 
 	String FormatMessage(const char* format, va_list args)
 	{
@@ -41,9 +41,9 @@ namespace Quartz
 		return "[" + String(currentTime) + "]";
 	}
 
-	void DebugLogger::SetDebugConsole(VPDebugConsole& console)
+	void DebugLogger::SetDebugConsole(DebugConsole* console)
 	{
-		DebugLogger::pDebugConsole = &console;
+		DebugLogger::pDebugConsole = console;
 	}
 
 	void DebugLogger::Print(const char* format, ...)
@@ -53,7 +53,7 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatMessage(format, args));
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
 
 		//wprintf_s(message.Str());
@@ -66,9 +66,9 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatTime() + "[DEBUG] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -80,9 +80,9 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatTime() + "[INFO] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_BLUE, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_BLUE, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -94,9 +94,9 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatTime() + "[GENERAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_WHITE, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -108,9 +108,9 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatTime() + "[WARNING] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_YELLOW, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_YELLOW, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -122,9 +122,9 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatTime() + "[ERROR] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_RED, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_RED, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -136,9 +136,9 @@ namespace Quartz
 		StringW message = StringAToStringW(FormatTime() + "[CRITICAL] " + FormatMessage(format, args) + "\n");
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_RED);
+		pDebugConsole->SetColor(TEXT_COLOR_WHITE, TEXT_COLOR_RED);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -177,7 +177,7 @@ namespace Quartz
 		StringW message = FormatMessageW(format, args);
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_DEFAULT, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
 
 		//wprintf_s(message.Str());
@@ -190,9 +190,9 @@ namespace Quartz
 		StringW message = FormatTimeW() + L"[DEBUG] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -204,9 +204,9 @@ namespace Quartz
 		StringW message = FormatTimeW() + L"[INFO] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_BLUE, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_BLUE, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -218,9 +218,9 @@ namespace Quartz
 		StringW message = FormatTimeW() + L"[GENERAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_WHITE, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -232,9 +232,9 @@ namespace Quartz
 		StringW message = FormatTimeW() + L"[WARNING] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_YELLOW, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_YELLOW, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -246,9 +246,9 @@ namespace Quartz
 		StringW message = FormatTimeW() + L"[ERROR] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_RED, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_RED, TEXT_COLOR_DEFAULT);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}
@@ -260,9 +260,9 @@ namespace Quartz
 		StringW message = FormatTimeW() + L"[CRITICAL] " + FormatMessageW(format, args) + L"\n";
 		va_end(args);
 
-		pDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_RED);
+		pDebugConsole->SetColor(TEXT_COLOR_WHITE, TEXT_COLOR_RED);
 		pDebugConsole->Print(message.Str());
-		pDebugConsole->SetColor(CONSOLE_COLOR_LIGHT_GRAY, CONSOLE_COLOR_DEFAULT);
+		pDebugConsole->SetColor(TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_DEFAULT);
 
 		//wprintf_s(message.Str());
 	}

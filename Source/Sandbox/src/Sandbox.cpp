@@ -346,7 +346,7 @@ int main(int argc, char* argv[])
 		vertexBufferAttachment.binding	= 0;
 		vertexBufferAttachment.stride	= 14 * sizeof(Float32);
 
-		pipelineInfo.bufferAttachemnts.PushBack(vertexBufferAttachment);
+		pipelineInfo.bufferAttachments.PushBack(vertexBufferAttachment);
 
 		GFXVertexAttribute positionAttrib;
 		positionAttrib.binding	= 0;

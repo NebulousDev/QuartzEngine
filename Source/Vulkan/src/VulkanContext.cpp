@@ -84,7 +84,7 @@ namespace Quartz
 			{
 				if (layerName == layerProp.layerName)
 				{
-					mEnabledLayerNames.PushBack(layerName.Str());
+					mEnabledValidationLayerNames.PushBack(layerName.Str());
 					goto layerFound;
 				}
 			}
@@ -137,8 +137,8 @@ namespace Quartz
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
-		createInfo.enabledLayerCount = mEnabledLayerNames.Size();
-		createInfo.ppEnabledLayerNames = mEnabledLayerNames.Data();
+		createInfo.enabledLayerCount = mEnabledValidationLayerNames.Size();
+		createInfo.ppEnabledLayerNames = mEnabledValidationLayerNames.Data();
 		createInfo.enabledExtensionCount = mEnabledExtensionNames.Size();
 		createInfo.ppEnabledExtensionNames = mEnabledExtensionNames.Data();
 		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugMessengerInfo;
@@ -221,7 +221,7 @@ namespace Quartz
 		mAvailableLayers(),
 		mAvailableExtensions(),
 		mAvailablePhysicalDevices(),
-		mEnabledLayerNames(),
+		mEnabledValidationLayerNames(),
 		mEnabledExtensionNames()
 	{
 		// Nothing
@@ -653,7 +653,7 @@ namespace Quartz
 
 		VkImageType vkImageType = ImageTypeToVkImageType(type);
 		VkImageUsageFlags vkUsage = ImageUsagesToVkImageUsage(usages);
-		VkFormat vkFormat = ImageFormatToVkFormat(imageFormat);
+		VkFormat vkFormat = VkFormatToImageFormat(imageFormat);
 
 		CreateImageImpl(&vkImage, pMemory, vkImageType, vkUsage, vkFormat, width, height, depth, mipLevels, layers);
 
@@ -766,7 +766,7 @@ namespace Quartz
 				{
 					VkAttachmentDescription vkAttachmentDescription;
 					vkAttachmentDescription.flags = 0;
-					vkAttachmentDescription.format = ImageFormatToVkFormat(pAttachment->format);
+					vkAttachmentDescription.format = VkFormatToImageFormat(pAttachment->format);
 					vkAttachmentDescription.loadOp = LoadOperationToVkAttachmentLoadOp(pAttachment->loadOp);
 					vkAttachmentDescription.storeOp = StoreOperationToVkAttachmentStoreOp(pAttachment->storeOp);
 					vkAttachmentDescription.stencilLoadOp = LoadOperationToVkAttachmentLoadOp(pAttachment->stencilLoadOp);
@@ -963,7 +963,7 @@ namespace Quartz
 		Array<String> validationLayers;
 		validationLayers.PushBack("VK_LAYER_KHRONOS_validation");
 
-		InitInstance(Engine::GetInstance().GetGameInfo().name, extensions, validationLayers);
+		InitInstance(Engine::GetInstance()->GetGameInfo().name, extensions, validationLayers);
 		InitDevices();
 	}
 
@@ -1034,7 +1034,7 @@ namespace Quartz
 		pipelineInfo.enableColorBlendLogicOp = false;
 		pipelineInfo.colorBlendLogicOp = VK_LOGIC_OP_COPY;
 
-		for (GFXBufferAttachent bufferAttachment : info.bufferAttachemnts)
+		for (GFXBufferAttachent bufferAttachment : info.bufferAttachments)
 		{
 			VulkanVertexBinding bufferBinding;
 			bufferBinding.binding = bufferAttachment.binding;

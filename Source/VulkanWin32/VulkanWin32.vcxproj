@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Win32Vulkan.cpp" />
+    <ClCompile Include="src\Win32VulkanGraphics.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Win32Vulkan.h" />
+    <ClInclude Include="src\Win32VulkanGraphics.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

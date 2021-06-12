@@ -119,7 +119,7 @@ namespace Quartz
 
 	void WindowManager::Initialize()
 	{
-		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		Platform& platform = Engine::GetInstance().GetPlatform();
 		platform.SetWindowMovedCallback(BindingWindowMovedCallback);
 		platform.SetWindowResizedCallback(BindingWindowResizedCallback);
 		platform.SetWindowFocusCallback(BindingWindowFocusCallback);

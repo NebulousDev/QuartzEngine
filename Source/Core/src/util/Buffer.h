@@ -10,11 +10,11 @@
 namespace Quartz
 {
 	template<typename _Type>
-	class Buffer
+	class DataBuffer
 	{
 	public:
 		using Type			= _Type;
-		using BufferType	= Buffer<Type>;
+		using BufferType	= DataBuffer<Type>;
 
 	private:
 		Type* mpData;
@@ -36,10 +36,10 @@ namespace Quartz
 		}
 
 	public:
-		Buffer()
+		DataBuffer()
 			: mpData(nullptr), mSize(0), mCapacity(0) {}
 
-		Buffer(USize capacity)
+		DataBuffer(USize capacity)
 			: mSize(0), mCapacity(capacity)
 		{
 			mpData = static_cast<Type*>(malloc(mCapacity * sizeof(Type)));
@@ -51,7 +51,7 @@ namespace Quartz
 			}
 		}
 
-		Buffer(const BufferType& buffer)
+		DataBuffer(const BufferType& buffer)
 			: mSize(buffer.mSize), mCapacity(buffer.mCapacity)
 		{
 			mpData = static_cast<Type*>(malloc(buffer.mCapacity * sizeof(Type)));
@@ -63,13 +63,13 @@ namespace Quartz
 			}
 		}
 
-		Buffer(BufferType&& buffer) noexcept
+		DataBuffer(BufferType&& buffer) noexcept
 			: BufferType()
 		{
 			Swap(*this, buffer);
 		}
 
-		~Buffer()
+		~DataBuffer()
 		{
 			for (USize i = 0; i < mSize; i++)
 			{
@@ -147,8 +147,8 @@ namespace Quartz
 		}
 	};
 
-	typedef Buffer<Byte> ByteBuffer;
-	typedef Buffer<Int32> IntBuffer;
-	typedef Buffer<UInt32> UIntBuffer;
-	typedef Buffer<Float32> FloatBuffer;
+	typedef DataBuffer<Byte> ByteBuffer;
+	typedef DataBuffer<Int32> IntBuffer;
+	typedef DataBuffer<UInt32> UIntBuffer;
+	typedef DataBuffer<Float32> FloatBuffer;
 }

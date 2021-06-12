@@ -622,6 +622,8 @@ namespace Quartz
 					SpirvObject memberObject = reflection.objects[memberId];
 					size += SpirvObjectSize(memberObject, reflection);
 				}
+
+				return size;
 			}
 			case SPIRV_TYPE_OPAQUE:
 			{

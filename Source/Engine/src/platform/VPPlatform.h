@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Common.h"
-#include "util/Array.h"
-#include "util/String.h"
-#include "math/Bounds.h"
+#include "Window.h"
+#include "Application.h"
+
+#include "util/Singleton.h"
 
 #include "VPDebugConsole.h"
 
@@ -28,7 +28,7 @@ namespace Quartz
 
 	/* Null Handles */
 
-#define VP_NULL_HANDLE nullptr
+	#define VP_NULL_HANDLE nullptr
 
 	/* Enums */
 
@@ -51,15 +51,23 @@ namespace Quartz
 	typedef void (*VPMouseButtonCallbackFunc)(HVPInputMouse mouse, UInt32 button, ButtonState state);
 	typedef void (*VPKeyboardKeyCallbackFunc)(HVPInputKeyboard keyboard, UInt32 scancode, ButtonState state);
 
-	class QUARTZ_API VPPlatform
+	/* Virtual Platform */
+
+	class QUARTZ_API Platform : public Singleton<Platform, Platform*>
 	{
+		friend class Singleton<Platform, Platform*>;
+
+	private:
+		virtual Platform* CreateInstanceImpl(Platform* pVirtualPlatform) override;
+
 	public:
-		virtual void PreInitialize() = 0;
-		virtual void Initialize() = 0;
+		virtual DebugConsole* CreateDebugConsole() { return nullptr; };
+		virtual void DestroyDebugConsole(DebugConsole* pDebugConsole) { };
 
-		virtual VPDebugConsole* CreateDebugConsole() = 0;
-		virtual void DestroyDebugConsole(VPDebugConsole* pDebugConsole) = 0;
+		virtual Application* CreateApplication(const ApplicationInfo& info) { return nullptr; };
+		virtual Bool8 DestroyApplication(Application* application) { return false; };
 
+		/*
 		virtual HVPWindow CreateWindow(UInt32 posX, UInt32 posY,
 			UInt32 clientWidth, UInt32 clientHeight, const StringW& title) = 0;
 		virtual void DestroyWindow(HVPWindow window) = 0;
@@ -96,10 +104,11 @@ namespace Quartz
 		virtual Bool8 IsMouseInsideWindow(HVPWindow window) = 0;
 		virtual Bool8 IsMouseInsideWindowClient(HVPWindow window) = 0;
 
+
 		virtual void PollConnections() = 0;
 		virtual void PollInput() = 0;
-
 		virtual void PollEvents() = 0;
+		*/
 	};
 
 	template<>

@@ -1,23 +1,30 @@
 #pragma once
 
 #include "Win32.h"
-#include "platform/VPPlatform.h"
-#include "math/Bounds.h"
+#include "platform/Window.h"
 
 namespace Quartz
 {
-	struct QUARTZ_API Win32Window : public VPWindow
+	struct Win32WindowInfo
 	{
-		HWND		hwnd;
-		StringW		title;
-		Bounds2i	bounds;
-		Bounds2i	clientBounds;
-		Bool8		maximized : 1;
-		Bool8		minimized : 1;
-		Bool8		fullscreen : 1;
-		Bool8		visible : 1;
-		Bool8		mouseInside : 1;
-		Bool8		focused : 1;
-		Bool8		capturingMouse : 1;
+		HWND	hwnd;
+		DWORD	dwStyle;
+	};
+
+	class QUARTZ_API Win32Window : public Window
+	{
+	private:
+		Win32WindowInfo mWin32Info;
+
+	public:
+		Win32Window(const WindowInfo& info, const Win32WindowInfo& win32Info);
+
+		void Move(UInt32 x, UInt32 y) override;
+		void Resize(UInt32 width, UInt32 height) override;
+		void Focus(Bool8 focus) override;
+		void Show(Bool8 show) override;
+
+		FORCE_INLINE HWND	GetHWND() { return mWin32Info.hwnd; }
+		FORCE_INLINE DWORD	GetStyle() { return mWin32Info.dwStyle; }
 	};
 }

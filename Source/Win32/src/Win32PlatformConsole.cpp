@@ -1,4 +1,5 @@
 #include "Win32PlatformConsole.h"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <io.h>
@@ -28,129 +29,53 @@ namespace Quartz
 		/* WIN32_COLOR_BLACK */			0x0
 	};
 
-	void Win32Console::Create()
+	Win32DebugConsole::Win32DebugConsole(const Win32DebugConsoleInfo& win32ConsoleInfo)
+		: mWin32ConsoleInfo(win32ConsoleInfo)
 	{
-		AllocConsole();
-
-		mConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-		mCrtHandle = _open_osfhandle((UInt64)mConsoleHandle, _O_TEXT);
-		mpOutputStream = _fdopen(mCrtHandle, "w");
-		setvbuf(mpOutputStream, NULL, _IONBF, 1);
-		_setmode(_fileno(mpOutputStream), _O_U16TEXT);
-
-		CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-		GetConsoleScreenBufferInfo(mConsoleHandle, &consoleInfo);
-		mDefaultColor = consoleInfo.wAttributes;
-
-		mConsoleWindow = GetConsoleWindow();
-		//ShowWindow(mConsoleWindow, false);
-
-		// https://support.microsoft.com/en-us/help/190351/how-to-spawn-console-processes-with-redirected-standard-handles
-
-		/*
-		STARTUPINFO startInfo = {};
-		startInfo.cb = sizeof(STARTUPINFO);
-		startInfo.wShowWindow = SW_HIDE;
-		startInfo.dwFlags = STARTF_USESHOWWINDOW;
-
-		SECURITY_ATTRIBUTES securityAttribs = {};
-		securityAttribs.nLength = sizeof(SECURITY_ATTRIBUTES);
-		securityAttribs.lpSecurityDescriptor = NULL;
-		securityAttribs.bInheritHandle = TRUE;
-
-		HANDLE tempOutputRead, outputRead, outputWrite;
-		HANDLE tempInputWrite, inputRead, inputWrite;
-		HANDLE errorWrite;
-		HANDLE thread;
-		DWORD thredID;
-
-		if (!CreatePipe(&tempOutputRead, &outputWrite, &securityAttribs, 0))
-			printf("Failed to create outputWrite pipe!");
-
-		if (!DuplicateHandle(GetCurrentProcess(), outputWrite,
-			GetCurrentProcess(), &errorWrite, 0, TRUE, DUPLICATE_SAME_ACCESS))
-			printf("Failed to create errorWrite pipe!");
-
-		if (!CreatePipe(&inputRead, &tempInputWrite, &securityAttribs, 0))
-			printf("Failed to create inputRead pipe!");
-
-		if (!DuplicateHandle(GetCurrentProcess(), tempOutputRead,
-			GetCurrentProcess(), &outputRead, 0, FALSE, DUPLICATE_SAME_ACCESS))
-			printf("Failed to create outputRead pipe!");
-
-		if (!DuplicateHandle(GetCurrentProcess(), tempInputWrite,
-			GetCurrentProcess(), &inputWrite, 0, FALSE, DUPLICATE_SAME_ACCESS))
-			printf("Failed to create inputWrite pipe!");
-
-		if (!CloseHandle(tempOutputRead)) 
-			printf("Failed to close tempOutputRead pipe!");
-
-		if (!CloseHandle(tempInputWrite))
-			printf("Failed to close tempInputWrite pipe!");
-
-		PROCESS_INFORMATION processInfo = {};
-
-		BOOL result = CreateProcess(
-			NULL,
-			"-i",
-			NULL,
-			NULL,
-			TRUE,
-			CREATE_NEW_CONSOLE,
-			NULL,
-			NULL,
-			&startInfo,
-			&processInfo);
-		*/
+		// Nothing
 	}
 
-	void Win32Console::Destroy()
+	void Win32DebugConsole::Show()
 	{
-		//CloseHandle((HANDLE)mCrtHandle);
-		//FreeConsole();
+		ShowWindow(mWin32ConsoleInfo.hwnd, SW_SHOW);
 	}
 
-	void Win32Console::Show()
+	void Win32DebugConsole::Hide()
 	{
-		ShowWindow(mConsoleWindow, SW_SHOW);
+		ShowWindow(mWin32ConsoleInfo.hwnd, SW_HIDE);
 	}
 
-	void Win32Console::Hide()
-	{
-		ShowWindow(mConsoleWindow, SW_HIDE);
-	}
-
-	void Win32Console::SetTitle(const wchar_t* title)
+	void Win32DebugConsole::SetTitle(const wchar_t* title)
 	{
 		SetConsoleTitleW(title);
 	}
 
-	void Win32Console::SetColor(const ConsoleColor foreground, const ConsoleColor background)
+	void Win32DebugConsole::SetColor(const TextColor foreground, const TextColor background)
 	{
-		WORD forgroundColor = !foreground ? mDefaultColor & 0x0F : sWin32Colors[foreground];
-		WORD backgroundColor = !foreground ? mDefaultColor & 0xF0 : (sWin32Colors[background] << 4) & 0xF0;
-		SetConsoleTextAttribute(mConsoleHandle, forgroundColor | backgroundColor);
+		WORD forgroundColor = !foreground ? mWin32ConsoleInfo.defaultColor & 0x0F : sWin32Colors[foreground];
+		WORD backgroundColor = !foreground ? mWin32ConsoleInfo.defaultColor & 0xF0 : (sWin32Colors[background] << 4) & 0xF0;
+		SetConsoleTextAttribute(mWin32ConsoleInfo.handle, forgroundColor | backgroundColor);
 	}
 
-	void Win32Console::Print(const wchar_t* text)
+	void Win32DebugConsole::Print(const wchar_t* text)
 	{
-		fwprintf_s(mpOutputStream, text);
+		fwprintf_s(mWin32ConsoleInfo.pOutputStream, text);
 	}
 
-	void Win32Console::SetCursor(const Int16 posX, const Int16 posY)
+	void Win32DebugConsole::SetCursor(const Int16 posX, const Int16 posY)
 	{
-		SetConsoleCursorPosition(mConsoleHandle, { posX, posY });
+		SetConsoleCursorPosition(mWin32ConsoleInfo.handle, { posX, posY });
 	}
 
-	void Win32Console::Clear()
+	void Win32DebugConsole::Clear()
 	{
 		CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-		GetConsoleScreenBufferInfo(mConsoleHandle, &consoleInfo);
+		GetConsoleScreenBufferInfo(mWin32ConsoleInfo.handle, &consoleInfo);
 		UInt32 consoleLength = consoleInfo.dwSize.X * consoleInfo.dwSize.Y;
 		DWORD filled = 0;
 
-		FillConsoleOutputCharacter(mConsoleHandle, ' ', consoleLength, { 0, 0 }, &filled);
-		FillConsoleOutputAttribute(mConsoleHandle, mDefaultColor, consoleLength, { 0, 0 }, &filled);
+		FillConsoleOutputCharacter(mWin32ConsoleInfo.handle, ' ', consoleLength, { 0, 0 }, &filled);
+		FillConsoleOutputAttribute(mWin32ConsoleInfo.handle, mWin32ConsoleInfo.defaultColor, consoleLength, { 0, 0 }, &filled);
 
 		SetCursor(0, 0);
 	}

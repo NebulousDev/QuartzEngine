@@ -1,7 +1,59 @@
 #include "Win32Window.h"
+#include "Win32Window.h"
+#include "Win32Window.h"
+#include "Win32Window.h"
+#include "Win32Window.h"
 
 namespace Quartz
 {
+	Win32Window::Win32Window(const WindowInfo& info, const Win32WindowInfo& win32Info)
+		: Window(info), mWin32Info(win32Info)
+	{
+		// Nothing
+	}
+
+	void Win32Window::Move(UInt32 x, UInt32 y)
+	{
+		RECT windowSize = { x, y, 0, 0 };
+		AdjustWindowRect(&windowSize, mWin32Info.dwStyle, FALSE);
+		SetWindowPos(mWin32Info.hwnd, HWND_TOP, windowSize.left, windowSize.top, 
+			0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+	}
+
+	void Win32Window::Resize(UInt32 width, UInt32 height)
+	{
+		RECT windowSize = { 0, 0, width, height };
+		AdjustWindowRect(&windowSize, mWin32Info.dwStyle, FALSE);
+		SetWindowPos(mWin32Info.hwnd, HWND_TOP, 0, 0, 
+			windowSize.right - windowSize.left, windowSize.bottom - windowSize.top, 
+			SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+	}
+
+	void Win32Window::Focus(Bool8 focus)
+	{
+		if (focus)
+		{
+			SetFocus(mWin32Info.hwnd);
+		}
+		else
+		{
+			SetFocus(NULL);
+		}
+	}
+
+	void Win32Window::Show(Bool8 show)
+	{
+		if (show)
+		{
+			ShowWindow(mWin32Info.hwnd, SW_SHOWNOACTIVATE);
+		}
+		else
+		{
+			ShowWindow(mWin32Info.hwnd, SW_HIDE);
+		}
+	}
+
+	/*
 	void Win32Window::SetPosition(Int32 x, Int32 y)
 	{
 		SetWindowPos(mHWND, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
@@ -146,5 +198,6 @@ namespace Quartz
 	{
 		return mVisible;
 	}
+	*/
 }
 

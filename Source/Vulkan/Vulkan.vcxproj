@@ -161,21 +161,45 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\VulkanBuffer.h" />
+    <ClInclude Include="src\VulkanFrameState.h" />
+    <ClInclude Include="src\VulkanPipeline.h" />
+    <ClInclude Include="src\VulkanShader.h" />
     <ClInclude Include="src\SPIRVUtil.h" />
-    <ClInclude Include="src\VulkanContext.h" />
+    <ClInclude Include="src\VulkanFramebuffer.h" />
+    <ClInclude Include="src\VulkanGraphics.h" />
+    <ClInclude Include="src\VulkanImage.h" />
+    <ClInclude Include="src\VulkanRenderpass.h" />
+    <ClInclude Include="src\VulkanSurface.h" />
+    <ClInclude Include="src\VulkanSwapchain.h" />
     <ClInclude Include="src\VulkanUtil.h" />
     <ClInclude Include="src\VulkanDevice.h" />
     <ClInclude Include="src\VulkanDeviceMemory.h" />
     <ClInclude Include="src\VulkanPhysicalDevice.h" />
     <ClInclude Include="src\VulkanQueue.h" />
+    <ClInclude Include="src\VulkanUtil2.h" />
+    <ClInclude Include="src\VulkanViewport.h" />
+    <ClInclude Include="src\VulkanCommandBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SPIRVUtil.cpp" />
-    <ClCompile Include="src\VulkanContext.cpp" />
+    <ClCompile Include="src\VulkanBuffer.cpp" />
     <ClCompile Include="src\VulkanDevice.cpp" />
     <ClCompile Include="src\VulkanDeviceMemory.cpp" />
+    <ClCompile Include="src\VulkanFramebuffer.cpp" />
+    <ClCompile Include="src\VulkanFrameState.cpp" />
+    <ClCompile Include="src\VulkanGraphics.cpp" />
+    <ClCompile Include="src\VulkanImage.cpp" />
     <ClCompile Include="src\VulkanPhysicalDevice.cpp" />
+    <ClCompile Include="src\VulkanPipeline.cpp" />
     <ClCompile Include="src\VulkanQueue.cpp" />
+    <ClCompile Include="src\VulkanRenderpass.cpp" />
+    <ClCompile Include="src\VulkanShader.cpp" />
+    <ClCompile Include="src\VulkanSurface.cpp" />
+    <ClCompile Include="src\VulkanSwapchain.cpp" />
+    <ClCompile Include="src\VulkanUtil2.cpp" />
+    <ClCompile Include="src\VulkanViewport.cpp" />
+    <ClCompile Include="src\VulkanCommandBuffer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

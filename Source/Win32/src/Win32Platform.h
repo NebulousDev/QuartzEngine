@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/VPPlatform.h"
+#include "graphics2/Surface.h"
 #include "Win32PlatformConsole.h"
 #include "Win32Window.h"
 
@@ -40,29 +41,29 @@ namespace Quartz
 
 	typedef StringW DeviceId;
 
-	class QUARTZ_API Win32Platform : public VPPlatform
+	class QUARTZ_API Win32Platform : public Platform
 	{
 	private:
 		HINSTANCE mInstance;
 
-		VPWindowMovedCallback mWindowMovedCallback;
-		VPWindowResizedCallback mWindowResizedCallback;
-		VPWindowFocusCallback mWindowFocusCallback;
-		VPWindowMouseEnteredCallback mWindowMouseEnteredCallback;
+		VPWindowMovedCallback			mWindowMovedCallback;
+		VPWindowResizedCallback			mWindowResizedCallback;
+		VPWindowFocusCallback			mWindowFocusCallback;
+		VPWindowMouseEnteredCallback	mWindowMouseEnteredCallback;
 
-		VPMouseMoveCallbackFunc mVPMouseMoveCallbackFunc;
-		VPMouseButtonCallbackFunc mVPMouseButtonCallbackFunc;
-		VPKeyboardKeyCallbackFunc mVPKeyboardKeyCallbackFunc;
+		VPMouseMoveCallbackFunc			mVPMouseMoveCallbackFunc;
+		VPMouseButtonCallbackFunc		mVPMouseButtonCallbackFunc;
+		VPKeyboardKeyCallbackFunc		mVPKeyboardKeyCallbackFunc;
 
 		// @Note: I cannot use HWND here as I would like
 		//	because void* cannot be used in a hash function
 		//	for whatever reason...
-		Map<Handle64, Win32Window*> mHWNDMap;
-		Map<Handle64, DeviceId> mDeviceIds;
+		Map<Handle64, Win32Window*>		mHWNDMap;
+		Map<Handle64, DeviceId>			mDeviceIds;
 
-		Map<DeviceId, Win32InputMouse*> mMice;
-		Map<DeviceId, Win32InputKeyboard*> mKeyboards;
-		Map<DeviceId, Win32InputController*> mControllers;
+		Map<DeviceId, Win32InputMouse*>			mMice;
+		Map<DeviceId, Win32InputKeyboard*>		mKeyboards;
+		Map<DeviceId, Win32InputController*>	mControllers;
 
 		Win32Window* mCapturingWindow;
 
@@ -70,12 +71,13 @@ namespace Quartz
 		friend LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	public:
-		void PreInitialize() override;
-		void Initialize() override;
+		DebugConsole* CreateDebugConsole() override;
+		void DestroyDebugConsole(DebugConsole* pDebugConsole) override;
 
-		VPDebugConsole* CreateDebugConsole() override;
-		void DestroyDebugConsole(VPDebugConsole* pDebugConsole) override;
+		Application* CreateApplication(const ApplicationInfo& info) override;
+		Bool8 DestroyApplication(Application* application) override;
 
+		/*
 		HVPWindow CreateWindow(UInt32 posX, UInt32 posY,
 			UInt32 clientWidth, UInt32 clientHeight, const StringW& title) override;
 		void DestroyWindow(HVPWindow window) override;
@@ -112,8 +114,10 @@ namespace Quartz
 		Bool8 IsMouseInsideWindow(HVPWindow window) override;
 		Bool8 IsMouseInsideWindowClient(HVPWindow window) override;
 
+
 		void PollConnections() override;
 		void PollInput() override;
 		void PollEvents() override;
+		*/
 	};
 }

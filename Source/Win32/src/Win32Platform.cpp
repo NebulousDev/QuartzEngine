@@ -1,40 +1,80 @@
 #include "Win32Platform.h"
 #include "Win32Window.h"
 
+#include "Win32Application.h"
+
+#include "Win32Util.h"
 #include "log/Log.h"
+
+#include <fcntl.h>
+#include <stdio.h>
+#include <io.h>
 
 namespace Quartz
 {
-	void Win32Platform::PreInitialize()
+	DebugConsole* Win32Platform::CreateDebugConsole()
 	{
-		Log::Debug("Pre-initializing Windows platform...");
+		AllocConsole();
+
+		HANDLE	std		= GetStdHandle(STD_OUTPUT_HANDLE);
+		Int32	crt		= _open_osfhandle((intptr_t)std, _O_TEXT);
+		FILE*	pStream = _fdopen(crt, "w");
+
+		setvbuf(pStream, NULL, _IONBF, 1);
+		_setmode(_fileno(pStream), _O_U16TEXT);
+
+		CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+		GetConsoleScreenBufferInfo(std, &consoleInfo);
+
+		WORD defaultColor = consoleInfo.wAttributes;
+
+		HWND hwnd = GetConsoleWindow();
+
+		Win32DebugConsoleInfo win32ConsoleInfo;
+		win32ConsoleInfo.hwnd			= hwnd;
+		win32ConsoleInfo.handle			= std;
+		win32ConsoleInfo.crt			= crt;
+		win32ConsoleInfo.pOutputStream	= pStream;
+		win32ConsoleInfo.defaultColor	= defaultColor;
+
+		return new Win32DebugConsole(win32ConsoleInfo);
 	}
 
-	void Win32Platform::Initialize()
+	void Win32Platform::DestroyDebugConsole(DebugConsole* pDebugConsole)
 	{
-		Log::Debug("Initializing Windows platform...");
-
-		mInstance = GetModuleHandle(NULL);
-		mWindowMovedCallback = nullptr;
-		mWindowResizedCallback = nullptr;
-		mWindowFocusCallback = nullptr;
-		mWindowMouseEnteredCallback = nullptr;
-		mCapturingWindow = nullptr;
-
-		PollConnections();
-		PollEvents();
-	}
-
-	VPDebugConsole* Win32Platform::CreateDebugConsole()
-	{
-		return new Win32Console();
-	}
-
-	void Win32Platform::DestroyDebugConsole(VPDebugConsole* pDebugConsole)
-	{
+		FreeConsole();
 		delete pDebugConsole;
 	}
 
+	Application* Win32Platform::CreateApplication(const ApplicationInfo& info)
+	{
+		WNDCLASSW wndClass = {};
+		wndClass.lpfnWndProc	= Win32Application::WindowProc;
+		wndClass.hInstance		= GetModuleHandle(NULL);
+		wndClass.lpszClassName	= info.name.Str();
+
+		ATOM result = RegisterClassW(&wndClass);
+
+		if (result == 0)
+		{
+			Log::Critical(L"Unable to create application '%s'! RegisterClass() failed.", info.name.Str());
+			PrintLastError();
+			return nullptr;
+		}
+
+		Win32ApplicationInfo win32info;
+		win32info.hInstance = GetModuleHandle(NULL);
+		win32info.wndClass	= wndClass;
+
+		return new Win32Application(info, win32info);
+	}
+
+	Bool8 Win32Platform::DestroyApplication(Application* application)
+	{
+		return Bool8();
+	}
+
+	/*
 	LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Win32Platform* pPlatform = (Win32Platform*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
@@ -173,33 +213,7 @@ namespace Quartz
 
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
-
-	static void PrintLastError()
-	{
-		DWORD error = GetLastError();
-
-		LPWSTR pErrorMessage = nullptr;
-
-		FormatMessageW(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			error,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPWSTR)&pErrorMessage,
-			0, NULL);
-
-		if (pErrorMessage == nullptr)
-		{
-			// No error
-			return;
-		}
-
-		Log::Error(pErrorMessage);
-
-		LocalFree(pErrorMessage);
-	}
+	
 
 	HVPWindow Win32Platform::CreateWindow(UInt32 posX, UInt32 posY, UInt32 clientWidth, UInt32 clientHeight, const StringW& title)
 	{
@@ -383,5 +397,6 @@ namespace Quartz
 			DispatchMessageW(&msg);
 		}
 	}
+	*/
 }
 

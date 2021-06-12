@@ -1,6 +1,5 @@
 #pragma once
 
-#include "graphics\GFXDevice.h"
 #include "VulkanPhysicalDevice.h"
 #include "VulkanQueue.h"
 #include "VulkanDeviceMemory.h"
@@ -12,27 +11,27 @@
 
 namespace Quartz
 {
-	class QUARTZ_API VulkanDevice final : public GFXDevice
+	class QUARTZ_API VulkanDevice
 	{
 	private:
-		VkDevice				mDevice;
-		VulkanPhysicalDevice*	mpPhysicalDevice;
+		VkDevice							mDevice;
+		VulkanPhysicalDevice*				mpPhysicalDevice;
 
-		Array<VkLayerProperties>		mAvailableLayerProperties;
-		Array<VkExtensionProperties>	mAvailableExtensionProperties;
-		Array<const char*>				mEnabledLayerNames;
-		Array<const char*>				mEnabledExtensionNames;
+		Array<VkLayerProperties>			mAvailableLayerProperties;
+		Array<VkExtensionProperties>		mAvailableExtensionProperties;
+		Array<const char*>					mEnabledValidationLayerNames;
+		Array<const char*>					mEnabledExtensionNames;
 
-		VulkanDeviceMemoryAllocator		mDeviceMemoryAllocator;
-		VkDescriptorPool				mDescriptorPool;
-		VkCommandPool					mGraphicsCommandPool;
-		VkCommandPool					mComputeCommandPool;
-		VkCommandPool					mTransferCommandPool;
+		VulkanDeviceMemoryAllocator			mDeviceMemoryAllocator;
+		VkDescriptorPool					mDescriptorPool;
+		VkCommandPool						mGraphicsCommandPool;
+		VkCommandPool						mComputeCommandPool;
+		VkCommandPool						mTransferCommandPool;
 
-		VulkanQueue* mpGraphicsQueue;
-		VulkanQueue* mpComputeQueue;
-		VulkanQueue* mpTransferQueue;
-		VulkanQueue* mpPresentQueue;
+		VulkanQueue*						mpGraphicsQueue;
+		VulkanQueue*						mpComputeQueue;
+		VulkanQueue*						mpTransferQueue;
+		VulkanQueue*						mpPresentQueue;
 
 		PFN_vkSetDebugUtilsObjectTagEXT		vkSetDebugUtilsObjectTag;
 		PFN_vkSetDebugUtilsObjectNameEXT	vkSetDebugUtilsObjectName;
@@ -59,11 +58,11 @@ namespace Quartz
 
 		void SetDebugName(Handle64 object, VkObjectType type, const String& debugName);
 
-		const VkDevice& GetDeviceHandle() const { return mDevice; }
-		const VulkanPhysicalDevice& GetPhysicalDevice() { return *mpPhysicalDevice; }
+		VkDevice&						GetDeviceHandle() { return mDevice; }
+		VulkanPhysicalDevice&			GetPhysicalDevice() { return *mpPhysicalDevice; }
 
-		VulkanDeviceMemoryAllocator& GetDeviceMemoryAllocator() { return mDeviceMemoryAllocator; }
-		VkDescriptorPool& GetDescriptorPool() { return mDescriptorPool; }
+		VulkanDeviceMemoryAllocator&	GetDeviceMemoryAllocator() { return mDeviceMemoryAllocator; }
+		VkDescriptorPool&				GetDescriptorPool() { return mDescriptorPool; }
 
 		VulkanQueue& GetGraphicsQueue() { return *mpGraphicsQueue; }
 		VulkanQueue& GetTransferQueue() { return *mpTransferQueue; }

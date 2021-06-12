@@ -104,7 +104,7 @@ namespace Quartz
 				//return false;
 			}
 
-			mEnabledLayerNames.PushBack(layer.layerName);
+			mEnabledValidationLayerNames.PushBack(layer.layerName);
 
 			for (const VkExtensionProperties& extension : availableLayerExtensionProperties)
 			{
@@ -214,8 +214,8 @@ namespace Quartz
 		deviceInfo.sType					= VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount		= queueCreateInfos.Size();
 		deviceInfo.pQueueCreateInfos		= queueCreateInfos.Data();
-		deviceInfo.enabledLayerCount		= mEnabledLayerNames.Size();
-		deviceInfo.ppEnabledLayerNames		= mEnabledLayerNames.Data();
+		deviceInfo.enabledLayerCount		= mEnabledValidationLayerNames.Size();
+		deviceInfo.ppEnabledLayerNames		= mEnabledValidationLayerNames.Data();
 		deviceInfo.enabledExtensionCount	= mEnabledExtensionNames.Size();
 		deviceInfo.ppEnabledExtensionNames	= mEnabledExtensionNames.Data();
 		deviceInfo.pEnabledFeatures			= &deviceFeatures;

@@ -221,7 +221,7 @@ namespace Quartz
 		Array<VkLayerProperties>		mAvailableLayers;
 		Array<VkExtensionProperties>	mAvailableExtensions;
 		Array<VkPhysicalDevice>			mAvailablePhysicalDevices;
-		Array<const char*>				mEnabledLayerNames;
+		Array<const char*>				mEnabledValidationLayerNames;
 		Array<const char*>				mEnabledExtensionNames;
 
 		UInt32							mBackbufferCount;

@@ -21,7 +21,7 @@ namespace Quartz
 
 			if (mpAssetReference->count == 0)
 			{
-				AssetManager::GetInstance().MarkForUnload(mpAssetReference);
+				AssetManager::GetInstance()->MarkForUnload(mpAssetReference);
 			}
 		}
 	}

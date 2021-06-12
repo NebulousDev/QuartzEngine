@@ -6,7 +6,7 @@
 
 namespace Quartz
 {
-	FORCE_INLINE VkFormat ImageFormatToVkFormat(GFXImageFormat format)
+	FORCE_INLINE VkFormat VkFormatToImageFormat(GFXImageFormat format)
 	{
 		static VkFormat sFormatTable[] =
 		{

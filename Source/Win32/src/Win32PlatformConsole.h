@@ -7,22 +7,27 @@
 
 namespace Quartz
 {
-	class QUARTZ_API Win32Console : public VPDebugConsole
+	struct Win32DebugConsoleInfo
+	{
+		HANDLE	handle;
+		Int32	crt;
+		HWND	hwnd;
+		FILE*	pOutputStream;
+		WORD	defaultColor;
+	};
+
+	class QUARTZ_API Win32DebugConsole : public DebugConsole
 	{
 	private:
-		HANDLE mConsoleHandle;
-		Int32 mCrtHandle;
-		HWND mConsoleWindow;
-		FILE* mpOutputStream;
-		UInt16 mDefaultColor;
+		Win32DebugConsoleInfo mWin32ConsoleInfo;
 
 	public:
-		void Create() override;
-		void Destroy() override;
+		Win32DebugConsole(const Win32DebugConsoleInfo& win32ConsoleInfo);
+
 		void Show() override;
 		void Hide() override;
 		void SetTitle(const wchar_t* title) override;
-		void SetColor(const ConsoleColor foreground, const ConsoleColor background) override;
+		void SetColor(const TextColor foreground, const TextColor background) override;
 		void Print(const wchar_t* text) override;
 		void SetCursor(const Int16 posX, const Int16 posY) override;
 		void Clear() override;

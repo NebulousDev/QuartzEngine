@@ -4,19 +4,35 @@
 
 namespace Quartz
 {
-	template<typename ClassType>
+	template<typename ClassType, typename... CreateArgs>
 	class Singleton
 	{
+	private:
+		static ClassType* spInstance;
+
 	protected:
-		static ClassType smInstance;
+		virtual ClassType* CreateInstanceImpl(CreateArgs... args) = 0;
 
 	public:
-		static ClassType& GetInstance()
+		static ClassType* CreateInstance(CreateArgs... args)
 		{
-			return smInstance;
+			using SingletonClass = Singleton<ClassType, CreateArgs...>;
+
+			if (spInstance == nullptr)
+			{
+				ClassType dummyInstance;
+				spInstance = dummyInstance.CreateInstanceImpl(args...);
+			}
+
+			return spInstance;
+		}
+
+		static ClassType* GetInstance()
+		{
+			return spInstance;
 		}
 	};
 
-	template<typename ClassType>
-	ClassType Singleton<ClassType>::smInstance;
+	template<typename ClassType, typename... CreateArgs>
+	ClassType* Singleton<ClassType, CreateArgs...>::spInstance = nullptr;
 }

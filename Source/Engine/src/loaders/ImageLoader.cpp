@@ -5,7 +5,7 @@
 
 namespace Quartz
 {
-	Image* LoadImageFunc(const String& path)
+	RawImage* LoadImageFunc(const String& path)
 	{
 		Int32 width, height, channels;
 
@@ -16,12 +16,12 @@ namespace Quartz
 			return nullptr;
 		}
 
-		Image* pImage = new Image(width, height, 4/*channels*/, 8, pPixels);
+		RawImage* pImage = new RawImage(width, height, 4/*channels*/, 8, pPixels);
 
 		return pImage;
 	}
 
-	Bool8 UnloadImageFunc(Image* pImage)
+	Bool8 UnloadImageFunc(RawImage* pImage)
 	{
 		if (pImage != nullptr)
 		{

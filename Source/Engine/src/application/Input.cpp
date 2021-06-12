@@ -34,7 +34,7 @@ namespace Quartz
 	void Input::Initialize()
 	{
 		Engine& engine = Engine::GetInstance();
-		VPPlatform& platform = engine.GetPlatform();
+		Platform& platform = engine.GetPlatform();
 
 		platform.SetMouseMoveCallback(BindingMouseMoveCallback);
 		platform.SetMouseButtonCallback(BindingMouseButtonCallback);
@@ -65,31 +65,31 @@ namespace Quartz
 
 	void Input::ShowCursor(Bool8 shown)
 	{
-		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		Platform& platform = Engine::GetInstance().GetPlatform();
 		platform.ShowCursor(shown);
 	}
 
 	void Input::CaptureCursor(Window& window)
 	{
-		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		Platform& platform = Engine::GetInstance().GetPlatform();
 		platform.CaptureCursor(window.GetNativeWindow());
 	}
 
 	void Input::ReleaseCursor()
 	{
-		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		Platform& platform = Engine::GetInstance().GetPlatform();
 		platform.ReleaseCursor();
 	}
 
 	Point2i Input::GetCursorPosition()
 	{
-		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		Platform& platform = Engine::GetInstance().GetPlatform();
 		return platform.GetCursorPosition();
 	}
 
 	Bool8 Input::IsMouseCaptured()
 	{
-		VPPlatform& platform = Engine::GetInstance().GetPlatform();
+		Platform& platform = Engine::GetInstance().GetPlatform();
 		return platform.GetCapturingWindow() != VP_NULL_HANDLE;
 	}
 

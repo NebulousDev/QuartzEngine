@@ -1,10 +1,13 @@
-#include "Win32Vulkan.h"
+#include "Win32VulkanGraphics.h"
+
+#include "Engine.h"
 
 #include "log/Log.h"
 #include "vulkan/vulkan_win32.h"
 
 namespace Quartz
 {
+	/*
     HGFXSurface Win32VulkanContext::CreateSurface(HVPWindow window, UInt32 width, UInt32 height, Bool8 vSync, Bool8 fullscreen)
     {
         VkSurfaceKHR surface;
@@ -29,6 +32,7 @@ namespace Quartz
 		pSurface->pWindow = pWindow;
 
         return HGFXSurface(pSurface);
+		return nullptr;
     }
 
 	void Win32VulkanContext::DestroySurface(HGFXSurface surface)
@@ -36,18 +40,6 @@ namespace Quartz
 		VulkanSurface* pSurface = static_cast<VulkanSurface*>(surface);
 		vkDestroySurfaceKHR(mVkInstance, pSurface->surface, VK_NULL_HANDLE);
 		delete pSurface;
-	}
-
-	Bool8 EnumerateSurfaceFormats(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, Array<VkSurfaceFormatKHR>& surfaceFormats)
-	{
-		VkResult result;
-		UInt32 formatCount = 0;
-
-		result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
-		surfaceFormats.Resize(formatCount);
-		result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, surfaceFormats.Data());
-
-		return result == VK_SUCCESS;
 	}
 
 	Bool8 EnumeratePresentModes(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, Array<VkPresentModeKHR>& presentModes)
@@ -285,6 +277,80 @@ namespace Quartz
 		vkDestroySwapchainKHR(mpDevice->GetDeviceHandle(), pSwapchain->vkSwapchain, VK_NULL_HANDLE);
 
 		delete pSwapchain;
+	}
+	*/
+
+	static Bool8 CanSupportHDR(const Array<VkSurfaceFormatKHR>& formats)
+	{
+		for (VkSurfaceFormatKHR& format : formats)
+		{
+			if (format.colorSpace == VK_COLOR_SPACE_HDR10_ST2084_EXT)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	static VkResult EnumerateSurfaceFormats(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, Array<VkSurfaceFormatKHR>& surfaceFormats)
+	{
+		VkResult result;
+		UInt32 formatCount = 0;
+
+		result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+		surfaceFormats.Resize(formatCount);
+		result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, surfaceFormats.Data());
+
+		return result;
+	}
+
+	Surface* Win32VulkanGraphics::CreateSurface(Window* pWindow)
+	{
+		VkSurfaceKHR				vkSurface;
+		Array<VkSurfaceFormatKHR>	supportedFormats;
+		VkSurfaceCapabilitiesKHR	surfaceCapibilites;
+
+		Win32Window* pWin32Window	= static_cast<Win32Window*>(pWindow);
+
+		VkWin32SurfaceCreateInfoKHR win32SurfaceInfo = {};
+		win32SurfaceInfo.sType		= VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		win32SurfaceInfo.hinstance	= GetModuleHandle(NULL);
+		win32SurfaceInfo.hwnd		= pWin32Window->GetHWND();
+
+		VkResult result = vkCreateWin32SurfaceKHR(mvkInstance, &win32SurfaceInfo, nullptr, &vkSurface);
+
+		if (result != VK_SUCCESS)
+		{
+			Log::Critical("vkCreateWin32SurfaceKHR failed to create surface!");
+			return nullptr;
+		}
+
+		// @TODO: update legacy device syntax
+		VulkanPhysicalDevice& physicalDevice = static_cast<VulkanPhysicalDevice&>(mpDevice->GetPhysicalDevice());
+
+		if (EnumerateSurfaceFormats(physicalDevice.GetPhysicalDeviceHandle(), vkSurface, supportedFormats) != VK_SUCCESS)
+		{
+			Log::Critical("Failed to enumerate win32 vulkan surface formats!");
+			vkDestroySurfaceKHR(mvkInstance, vkSurface, VK_NULL_HANDLE);
+			return nullptr;
+		}
+
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.GetPhysicalDeviceHandle(), vkSurface, &surfaceCapibilites);
+		
+		const UInt32 width	= surfaceCapibilites.maxImageExtent.width;
+		const UInt32 height = surfaceCapibilites.maxImageExtent.height;
+
+		const Bool8 supportsHDR = CanSupportHDR(supportedFormats);
+
+		return new VulkanSurface(vkSurface, width, height, supportedFormats, surfaceCapibilites, supportsHDR);
+	}
+
+	void Win32VulkanGraphics::DestroySurface(Surface* pSurface)
+	{
+		VulkanSurface* pVulkanSurface = static_cast<VulkanSurface*>(pSurface);
+		vkDestroySurfaceKHR(mvkInstance, pVulkanSurface->GetVkSurface(), VK_NULL_HANDLE);
+		delete(pVulkanSurface);
 	}
 }
 

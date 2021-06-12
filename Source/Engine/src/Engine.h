@@ -1,59 +1,66 @@
 #pragma once
 
-#include "platform/VPPlatform.h"
-#include "graphics/VGFXContext.h"
+#include "Common.h"
 
-#include "application/Input.h"
-#include "application/WindowManager.h"
+#include "Module.h"
+#include "application/ApplicationModule.h"
+#include "graphics2/GraphicsModule.h"
+#include "graphics2/SceneSystem.h"
+
+#include "util/Singleton.h"
+#include "util/Array.h"
+#include "util/String.h"
+
 
 namespace Quartz
 {
+	/* Game Information */
+
 	struct GameInfo
 	{
-		StringW name;
-		StringW version;
+		StringW		name;
+		StringW		version;
 	};
+
+	/* Engine Information */
 
 	struct EngineInfo
 	{
-		GameInfo gameInfo;
-		VPPlatform* pPlatform;
-		VGFXContext* pGraphics;
-		UInt32 showDebugConsole;
+		GameInfo	gameInfo;
+		Graphics*	pGraphicsModule;
 	};
+
+	/* Engine */
 
 	class QUARTZ_API Engine
 	{
 	private:
-		static Engine* sInstance;
+		GameInfo			mGameInfo;
+		Bool8				mRunning;
+		ApplicationManager*	mpApplicationManager;
+		SceneManager*		mpSceneManager;
+		Graphics*			mpGraphics;
+		Array<Module*>		mModules;
 
 	private:
-		GameInfo		mGameInfo;
-		VPPlatform*		mpPlatform;
-		VGFXContext*	mpGraphics;
-		Input*			mpInput;
-		WindowManager*	mpWindowManager;
-		VPDebugConsole* mpDebugConsole;
-
-	private:
-		void Setup(const EngineInfo& info);
-		void SetupDebugConsole(Bool8 showConsole);
-		void SetupDebugLogging();
-
-		void PrintSplash();
+		Engine() = default;
 
 	public:
-		static Engine& GetInstance();
+		void Initialize(const EngineInfo& info);
 
-		static Engine& CreateInstance(const EngineInfo& info);
-		void Start();
+		Bool8 AddModule(Module* pModule);
 
-		const GameInfo& GetGameInfo();
+		Bool8 Start();
 
-		VPPlatform& GetPlatform();
-		VGFXContext& GetGraphics();
-		Input& GetInput();
-		WindowManager& GetWindowManager();
+		void Tick();
+		
+		FORCE_INLINE const GameInfo&	GetGameInfo() { return mGameInfo; };
+		FORCE_INLINE Bool8				IsRunning() { return mRunning; };
+
+		FORCE_INLINE ApplicationManager*	GetApplicationManager() { return mpApplicationManager; }
+		FORCE_INLINE SceneManager*			GetSceneManager() { return mpSceneManager; }
+		FORCE_INLINE Graphics*				GetGraphics() { return mpGraphics; }
+
+		static Engine* GetInstance();
 	};
-
 }

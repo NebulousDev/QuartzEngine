@@ -332,7 +332,7 @@ namespace Quartz
 		HGFXShader	pixelShader;
 		HGFXShader	geometryShader;
 
-		Array<GFXBufferAttachent> bufferAttachemnts;
+		Array<GFXBufferAttachent> bufferAttachments;
 		Array<GFXVertexAttribute> vertexAttributes;
 		//Array<GFXDescriptorAttachment> descriptorAttachents;
 		Array<GFXBlendAttachment> blendAttachments;

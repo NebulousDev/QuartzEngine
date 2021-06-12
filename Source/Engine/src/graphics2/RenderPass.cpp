@@ -17,12 +17,6 @@ namespace Quartz
 	Renderpass::Renderpass(const String& name, const Array<Attachment>& attachments, const Array<Subpass>& subpasses)
 		: mName(name), mAttachments(attachments), mSubpasses(subpasses)
 	{
-		RegenerateHash();
-	}
-
-	UInt64 Renderpass::RegenerateHash()
-	{
-		UInt64 hash = mName.Hash();
-		return hash;
+		// Nothing
 	}
 }

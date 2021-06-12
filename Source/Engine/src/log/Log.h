@@ -4,15 +4,15 @@
 
 namespace Quartz
 {
-	class VPDebugConsole;
+	class DebugConsole;
 
 	class QUARTZ_API DebugLogger
 	{
 	private:
-		static VPDebugConsole* pDebugConsole;
+		static DebugConsole* pDebugConsole;
 
 	public:
-		static void SetDebugConsole(VPDebugConsole& console);
+		static void SetDebugConsole(DebugConsole* console);
 
 		static void Print(const char* format, ...);
 		static void Debug(const char* format, ...);

@@ -1,23 +1,11 @@
 #pragma once
 
 #include "util/Array.h"
-#include "VGFXContext.h"
 #include "util/String.h"
-#include "../object/Image.h"
+#include "../object/RawImage.h"
 
 namespace Quartz
 {
-	class ManagedResource
-	{
-	private:
-		UInt64 mHash;
-
-	public:
-		virtual UInt64 RegenerateHash() = 0;
-
-		FORCE_INLINE UInt64 GetHash() const { return mHash; }
-	};
-
 	enum AttachmentType
 	{
 		ATTACHMENT_SWAPCHAIN,
@@ -30,43 +18,44 @@ namespace Quartz
 	class QUARTZ_API Attachment
 	{
 	private:
-		String mName;
-		AttachmentType mType;
-		ImageFormat mFormat;
+		String			mName;
+		AttachmentType	mType;
+		ImageFormat		mFormat;
 
 	public:
+		Attachment() = default;
 		Attachment(const String& name, AttachmentType type, ImageFormat format);
 
-		FORCE_INLINE String GetName() const { return mName; }
+		FORCE_INLINE String			GetName() const { return mName; }
 		FORCE_INLINE AttachmentType GetType() const { return mType; }
-		FORCE_INLINE ImageFormat GetFormat() const { return mFormat; }
+		FORCE_INLINE ImageFormat	GetFormat() const { return mFormat; }
 	};
 
 	class QUARTZ_API Subpass
 	{
 	private:
-		String mName;
-		Array<UInt32> mAttachments;
+		String			mName;
+		Array<UInt32>	mAttachments;
 
 	public:
+		Subpass() = default;
 		Subpass(const String& name, const Array<UInt32>& attachmentIndices);
 
 		FORCE_INLINE String GetName() const { return mName; }
 		FORCE_INLINE const Array<UInt32>& GetAttachments() const { return mAttachments; }
 	};
 
-	class QUARTZ_API Renderpass : public ManagedResource
+	class QUARTZ_API Renderpass
 	{
 	private:
-		String mName;
-		Array<Attachment> mAttachments;
-		Array<Subpass> mSubpasses;
+		String				mName;
+		Array<Attachment>	mAttachments;
+		Array<Subpass>		mSubpasses;
 
-	public:
+	protected:
 		Renderpass(const String& name, const Array<Attachment>& attachments, const Array<Subpass>& subpasses);
-
-		UInt64 RegenerateHash() override;
-
+	
+	public:
 		FORCE_INLINE String GetName() const { return mName; }
 		FORCE_INLINE const Array<Attachment>& GetAttachments() const { return mAttachments; }
 		FORCE_INLINE const Array<Subpass>& GetSubpasses() const { return mSubpasses; }

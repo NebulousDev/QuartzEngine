@@ -4,115 +4,113 @@
 
 namespace Quartz
 {
-	Engine* Engine::sInstance;
-
-	void Engine::Setup(const EngineInfo& info)
+	void Engine::Initialize(const EngineInfo& info)
 	{
 		mGameInfo = info.gameInfo;
-
-		mpPlatform = info.pPlatform;
-		mpGraphics = info.pGraphics;
-
-		mpInput = new Input();
-		mpWindowManager = new WindowManager();
-
-		SetupDebugConsole(info.showDebugConsole);
-		SetupDebugLogging();
-
-		PrintSplash();
-		Log::General(L"Game Version: %s %s", mGameInfo.name.Str(), mGameInfo.version.Str());
-		Log::Info("Engine is starting...");
-
-		mpPlatform->PreInitialize();
-		mpGraphics->PreInitialize();
-		mpWindowManager->PreInitialize();
-		mpInput->PreInitialize();
-
-		mpPlatform->Initialize();
-		mpGraphics->Initialize();
-		mpWindowManager->Initialize();
-		mpInput->Initialize();
+		mpGraphics = info.pGraphicsModule;
 	}
 
-	void Engine::SetupDebugConsole(Bool8 showConsole)
+	Bool8 Engine::AddModule(Module* pModule)
 	{
-		mpDebugConsole = mpPlatform->CreateDebugConsole();
-		mpDebugConsole->Create();
-
-		StringW consoleTitle = mGameInfo.name + L" - Debug Console";
-
-		mpDebugConsole->SetTitle(consoleTitle.Str());
-
-		if (showConsole)
+		if (mRunning)
 		{
-			mpDebugConsole->Show();
+			Log::Error(L"Attempted to add new module '%s' while engine was running.", pModule->GetModuleName().Str());
+			return false;
+		}
+
+		mModules.PushBack(pModule);
+		return true;
+	}
+
+	Bool8 Engine::Start()
+	{
+		if (mRunning)
+		{
+			Log::Warning("Attempted to call Start() while engine was running.");
+			return false;
+		}
+
+		/* Setup Internal Modules */
+
+		mpApplicationManager	= new ApplicationManager();
+		mpSceneManager			= new SceneManager();
+
+		// mpGraphics is set in constructor
+
+		AddModule(mpApplicationManager);
+		AddModule(mpSceneManager);
+		AddModule(mpGraphics);
+
+		/* Pre-Init */
+
+		Log::General("Pre-initializing engine modules...");
+
+		for (Module* pModule : mModules)
+		{
+			if (pModule->PreInit())
+			{
+				Log::Info(L"Module '%s' pre-initialized.", pModule->GetModuleName().Str());
+			}
+			else
+			{
+				Log::Critical(L"Module '%s' pre-initialization failed! Exiting.", pModule->GetModuleName().Str());
+				return false;
+			}
+		}
+
+		/* Init */
+
+		Log::General("Initializing engine modules...");
+
+		for (Module* pModule : mModules)
+		{
+			if (pModule->Init())
+			{
+				Log::Info(L"Module '%s' initialized.", pModule->GetModuleName().Str());
+			}
+			else
+			{
+				Log::Critical(L"Module '%s' initialization failed! Exiting.", pModule->GetModuleName().Str());
+				return false;
+			}
+		}
+
+		/* Post-Init */
+
+		Log::General("Post-initializing engine modules...");
+
+		for (Module* pModule : mModules)
+		{
+			if (pModule->PostInit())
+			{
+				Log::Info(L"Module '%s' post-initialized.", pModule->GetModuleName().Str());
+			}
+			else
+			{
+				Log::Critical(L"Module '%s' post-initialization failed! Exiting.", pModule->GetModuleName().Str());
+				return false;
+			}
+		}
+
+		/* Run */
+
+		Log::General("Running engine...");
+
+		mRunning = true;
+	}
+
+	void Engine::Tick()
+	{
+		for (Module* pModule : mModules)
+		{
+			pModule->Tick();
 		}
 	}
 
-	void Engine::SetupDebugLogging()
+	Engine* Engine::GetInstance()
 	{
-		DebugLogger::SetDebugConsole(*mpDebugConsole);
-	}
-
-	void Engine::PrintSplash()
-	{
-		mpDebugConsole->SetColor(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_DEFAULT);
-		mpDebugConsole->Print(L"-------------------------------------------------------\n");
-		mpDebugConsole->Print(L"|                    Nebulous Games                   |\n");
-		mpDebugConsole->Print(L"|                 QUARTZ ENGINE v0.3.0                |\n");
-		mpDebugConsole->Print(L"-------------------------------------------------------\n");
-		mpDebugConsole->Print(L" ~ Copyright © Ben Ratcliff (NebulousDev) 2019-2021 ~\n\n");
-		mpDebugConsole->SetColor(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
-	}
-
-	Engine& Engine::GetInstance()
-	{
-		return *sInstance;
-	}
-
-	Engine& Engine::CreateInstance(const EngineInfo& info)
-	{
-		if (!sInstance)
-		{
-			sInstance = new Engine();
-			sInstance->Setup(info);
-		}
-		else
-		{
-			Log::Warning("Attempted to create a new instance of Engine when one already exists.");
-		}
-
-		return *sInstance;
-	}
-
-	void Engine::Start()
-	{
-		Log::Info("Engine Started.");
-	}
-
-	const GameInfo& Engine::GetGameInfo()
-	{
-		return mGameInfo;
-	}
-
-	VPPlatform& Engine::GetPlatform()
-	{
-		return *mpPlatform;
-	}
-
-	VGFXContext& Engine::GetGraphics()
-	{
-		return *mpGraphics;
-	}
-
-	Input& Engine::GetInput()
-	{
-		return *mpInput;
-	}
-
-	WindowManager& Engine::GetWindowManager()
-	{
-		return *mpWindowManager;
+		static Engine* spInstance = new Engine();
+		return spInstance;
 	}
 }
 
