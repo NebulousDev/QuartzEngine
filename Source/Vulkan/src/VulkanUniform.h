@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/Uniform.h"
+#include "graphics/Uniform.h"
 #include "VulkanBuffer.h"
 
 #include "util/Array.h"

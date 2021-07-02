@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/Framebuffer.h"
+#include "graphics/Framebuffer.h"
 
 #include <vulkan/vulkan.h>
 

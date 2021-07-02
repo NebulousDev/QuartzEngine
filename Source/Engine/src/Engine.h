@@ -4,8 +4,8 @@
 
 #include "Module.h"
 #include "application/ApplicationModule.h"
-#include "graphics2/GraphicsModule.h"
-#include "graphics2/SceneSystem.h"
+#include "graphics/GraphicsModule.h"
+#include "graphics/SceneSystem.h"
 
 #include "util/Singleton.h"
 #include "util/Array.h"

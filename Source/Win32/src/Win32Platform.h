@@ -1,7 +1,7 @@
 #pragma once
 
 #include "platform/VPPlatform.h"
-#include "graphics2/Surface.h"
+#include "graphics/Surface.h"
 #include "Win32PlatformConsole.h"
 #include "Win32Window.h"
 

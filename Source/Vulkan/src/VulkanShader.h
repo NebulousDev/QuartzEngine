@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/Shader.h"
+#include "graphics/Shader.h"
 #include "SPIRVUtil.h"
 
 namespace Quartz

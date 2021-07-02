@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/CommandBuffer.h"
+#include "graphics/CommandBuffer.h"
 
 #include "VulkanRenderpass.h"
 #include "VulkanFramebuffer.h"

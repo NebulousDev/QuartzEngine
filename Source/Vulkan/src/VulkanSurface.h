@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/Surface.h"
+#include "graphics/Surface.h"
 
 #include "util/Array.h"
 

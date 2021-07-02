@@ -173,12 +173,11 @@
     <ClInclude Include="src\VulkanSurface.h" />
     <ClInclude Include="src\VulkanSwapchain.h" />
     <ClInclude Include="src\VulkanUniform.h" />
-    <ClInclude Include="src\VulkanUtil.h" />
     <ClInclude Include="src\VulkanDevice.h" />
     <ClInclude Include="src\VulkanDeviceMemory.h" />
     <ClInclude Include="src\VulkanPhysicalDevice.h" />
     <ClInclude Include="src\VulkanQueue.h" />
-    <ClInclude Include="src\VulkanUtil2.h" />
+    <ClInclude Include="src\VulkanUtil.h" />
     <ClInclude Include="src\VulkanViewport.h" />
     <ClInclude Include="src\VulkanCommandBuffer.h" />
   </ItemGroup>
@@ -199,7 +198,7 @@
     <ClCompile Include="src\VulkanSurface.cpp" />
     <ClCompile Include="src\VulkanSwapchain.cpp" />
     <ClCompile Include="src\VulkanUniform.cpp" />
-    <ClCompile Include="src\VulkanUtil2.cpp" />
+    <ClCompile Include="src\VulkanUtil.cpp" />
     <ClCompile Include="src\VulkanViewport.cpp" />
     <ClCompile Include="src\VulkanCommandBuffer.cpp" />
   </ItemGroup>

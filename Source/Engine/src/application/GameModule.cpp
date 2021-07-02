@@ -1,7 +1,7 @@
 #include "GameModule.h"
 
 #include "../Engine.h"
-#include "../graphics2/renderers/SimpleRenderer.h"
+#include "../graphics/renderers/SimpleRenderer.h"
 #include "../log/Log.h"
 
 namespace Quartz

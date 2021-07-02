@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/RenderPass.h"
+#include "graphics/RenderPass.h"
 
 #include <vulkan/vulkan.h>
 

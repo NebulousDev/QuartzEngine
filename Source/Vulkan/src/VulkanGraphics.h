@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/GraphicsModule.h"
+#include "graphics/GraphicsModule.h"
 
 #include "VulkanSwapchain.h"
 #include "VulkanSurface.h"

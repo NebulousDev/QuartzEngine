@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics2/Image.h"
+#include "graphics/Image.h"
 
 #include <vulkan/vulkan.h>
 

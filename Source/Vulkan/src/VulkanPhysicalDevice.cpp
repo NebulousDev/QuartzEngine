@@ -1,6 +1,6 @@
 #include "VulkanPhysicalDevice.h"
 
-#include "graphics/GFXUtil.h"
+#include "VulkanUtil.h"
 
 namespace Quartz
 {
@@ -12,7 +12,7 @@ namespace Quartz
 		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &mPhysicalDeviceMemoryProperties);
 
 		mDeviceName = mPhysicalDeviceProperties.deviceName;
-		mVendorName = DeviceVendorNameById(mPhysicalDeviceProperties.vendorID);
+		mVendorName = VulkanUtil::VendorNameFromID(mPhysicalDeviceProperties.vendorID);
 
 		mIsDescreteGPU = mPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 		mIsIntegratedGPU = mPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
