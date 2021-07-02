@@ -458,7 +458,7 @@ namespace Quartz
 
 		vkPipelineInfo.pTessellationState = nullptr;
 
-		/* Viewport State */
+		/* Context State */
 
 		VkPipelineViewportStateCreateInfo vkViewportInfo = {};
 		vkViewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

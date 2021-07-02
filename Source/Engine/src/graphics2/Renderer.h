@@ -11,9 +11,9 @@ namespace Quartz
 		Renderer();
 
 	public:
-		virtual void Setup(Viewport* pViewport) = 0;
-		virtual void Render(Viewport* pViewport, Scene* pScene) = 0;
-		virtual void Rebuild(Viewport* pViewport) = 0;
+		virtual void Setup(Context* pViewport) = 0;
+		virtual void Render(Context* pViewport, Scene* pScene) = 0;
+		virtual void Rebuild(Context* pViewport) = 0;
 		virtual void Destroy() = 0;
 	};
 }

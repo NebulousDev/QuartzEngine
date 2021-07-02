@@ -5,13 +5,18 @@ layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoord;
 
-layout(binding = 0) uniform UBO
+layout(set = 0, binding = 0) uniform PerFrameUBO
 {
-	mat4 model;
 	mat4 view;
 	mat4 projection;
 }
-mvp;
+perFrame;
+
+layout(set = 1, binding = 0) uniform PerObjectUBO
+{
+	mat4 model;
+}
+perObject;
 
 layout(location = 0) out struct
 {
@@ -21,6 +26,6 @@ vertOut;
 
 void main()
 {
-    gl_Position = (mvp.projection * mvp.view * mvp.model) * vec4(inPosition, 1.0);
-	vertOut.fragPos = inPosition;
+    gl_Position = (perFrame.projection * perFrame.view * perObject.model) * vec4(inPosition, 1.0);
+	vertOut.fragPos = inNormal;
 }

@@ -162,6 +162,6 @@ namespace Quartz
 
 	public:
 
-		// void SetDynamicViewport(Viewport);
+		// void SetDynamicViewport(Context);
 	};
 }

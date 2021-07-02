@@ -55,11 +55,11 @@ namespace Quartz
 
 		pGameScene = pSceneManager->CreateScene("TestScene");
 
-		/* Create Rendered Viewport */
+		/* Create Rendered Context */
 
 		Surface*	pSurface		= pGraphics->CreateSurface(pGameWindow);
 		Renderer*	pRenderer		= new SimpleRenderer();
-		Viewport*	pGameViewport	= pGraphics->CreateViewport(pSurface, pGameScene, pRenderer);
+		Context*	pGameViewport	= pGraphics->CreateContext(pSurface, pGameScene, pRenderer, MULTIBUFFER_TRIPPLE);
 
         return true;
     }

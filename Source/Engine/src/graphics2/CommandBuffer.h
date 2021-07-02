@@ -4,18 +4,25 @@
 #include "Pipeline.h"
 #include "RenderPass.h"
 #include "Framebuffer.h"
+#include "Uniform.h"
 
 #include "util/Array.h"
 
 namespace Quartz
 {
+	enum CommandBufferType
+	{
+		COMMAND_BUFFER_STATIC,
+		COMMAND_BUFFER_DYNAMIC
+	};
+
 	class QUARTZ_API CommandBuffer
 	{
-	private:
-		Bool8 mRecording;
+	protected:
+		CommandBufferType mType;
 
 	protected:
-		CommandBuffer();
+		CommandBuffer(CommandBufferType type);
 
 	public:
 		virtual void BeginRecording() = 0;
@@ -29,10 +36,10 @@ namespace Quartz
 		virtual void SetVertexBuffers(const Array<Buffer*>& buffers) = 0;
 		virtual void SetIndexBuffer(Buffer* pBuffer) = 0;
 
-		virtual void BindUniform(UInt32 set, UInt32 binding, Buffer* pBuffer) = 0;
+		virtual void BindUniform(UInt32 set, UInt32 binding, Uniform* pUniform, UInt32 element) = 0;
 
 		virtual void DrawIndexed(UInt32 count, UInt32 start) = 0;
 
-		FORCE_INLINE Bool8 IsRecording() const { return mRecording; }
+		FORCE_INLINE CommandBufferType GetType() const { return mType; }
 	};
 }

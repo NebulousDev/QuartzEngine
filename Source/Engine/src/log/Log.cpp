@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "util/String.h"
-#include "../platform/VPDebugConsole.h"
+#include "../platform/DebugConsole.h"
 
 #define USE_MESSAGE_LOOP 0
 

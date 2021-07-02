@@ -75,9 +75,6 @@
     <ClInclude Include="src\platform\VPPlatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\VPDebugConsole.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\object\Lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -165,6 +162,12 @@
     <ClInclude Include="src\graphics2\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics2\Uniform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\DebugConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\event\EventSystem.cpp">
@@ -249,6 +252,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics2\CommandBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics2\Uniform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

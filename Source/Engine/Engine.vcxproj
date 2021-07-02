@@ -176,6 +176,7 @@
     <ClInclude Include="src\graphics2\SceneSystem.h" />
     <ClInclude Include="src\graphics2\Shader.h" />
     <ClInclude Include="src\graphics2\Surface.h" />
+    <ClInclude Include="src\graphics2\Uniform.h" />
     <ClInclude Include="src\graphics2\Viewport.h" />
     <ClInclude Include="src\Module.h" />
     <ClInclude Include="src\Engine.h" />
@@ -210,7 +211,7 @@
     <ClInclude Include="src\object\UniformData.h" />
     <ClInclude Include="src\platform\Application.h" />
     <ClInclude Include="src\platform\VPPlatform.h" />
-    <ClInclude Include="src\platform\VPDebugConsole.h" />
+    <ClInclude Include="src\platform\DebugConsole.h" />
     <ClInclude Include="src\platform\Time.h" />
     <ClInclude Include="src\platform\Window.h" />
     <ClInclude Include="src\system\System.h" />
@@ -230,6 +231,7 @@
     <ClCompile Include="src\graphics2\SceneSystem.cpp" />
     <ClCompile Include="src\graphics2\Shader.cpp" />
     <ClCompile Include="src\graphics2\Surface.cpp" />
+    <ClCompile Include="src\graphics2\Uniform.cpp" />
     <ClCompile Include="src\graphics2\Viewport.cpp" />
     <ClCompile Include="src\graphics2\Framebuffer.cpp" />
     <ClCompile Include="src\graphics\GFXUtil.cpp" />

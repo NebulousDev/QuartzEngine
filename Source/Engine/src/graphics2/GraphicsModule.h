@@ -5,6 +5,8 @@
 #include "Surface.h"
 #include "Viewport.h"
 #include "Image.h"
+#include "Buffer.h"
+#include "Uniform.h"
 #include "Renderer.h"
 #include "RenderPass.h"
 #include "Framebuffer.h"
@@ -19,7 +21,7 @@ namespace Quartz
 	class QUARTZ_API Graphics : public Module
 	{
 	protected:
-		Array<Viewport*> mViewports;
+		Array<Context*> mViewports;
 
 	protected:
 		Graphics(const ModuleInfo& info);
@@ -28,8 +30,8 @@ namespace Quartz
 		virtual Surface*		CreateSurface(Window* pWindow) = 0;
 		virtual void			DestroySurface(Surface* pSurface) = 0;
 
-		virtual Viewport*		CreateViewport(Surface* pSurface, Scene* pScene, Renderer* pRenderer) = 0;
-		virtual void			DestroyViewport(Viewport* pViewport) = 0;
+		virtual Context*		CreateContext(Surface* pSurface, Scene* pScene, Renderer* pRenderer, MultibufferType multibuffer) = 0;
+		virtual void			DestroyContext(Context* pContext) = 0;
 
 		virtual Image*			CreateImage(ImageType type, UInt32 width, UInt32 height, UInt32 depth, 
 									UInt32 layers, UInt32 mips, ImageFormat format, ImageUsages usages) = 0;
@@ -43,11 +45,14 @@ namespace Quartz
 		virtual Buffer*			CreateBuffer(UInt32 sizeBytes, BufferUsages usages, BufferAccess access) = 0;
 		virtual void			DestroyBuffer(Buffer* pBuffer) = 0;
 
+		virtual Uniform*		CreateUniform(UniformType type, UInt32 elementSize, UInt32 elementCount, UniformFlags flags) = 0;
+		virtual void			DestroyUniform(Uniform* pUniform) = 0;
+
 		virtual Renderpass*		CreateRenderpass(const String& name, 
 									const Array<Attachment>& attachments, const Array<Subpass>& subpasses) = 0;
 		virtual void			DestroyRenderpass(Renderpass* pRenderpass) = 0;
 
-		virtual Framebuffer*	CreateFramebuffer(Renderpass* pRenderpass, Viewport* pViewport, UInt32 width, UInt32 height) = 0;
+		virtual Framebuffer*	CreateFramebuffer(Renderpass* pRenderpass, Context* pViewport, UInt32 width, UInt32 height) = 0;
 		virtual void			DestroyFramebuffer(Framebuffer* pFramebuffer) = 0;
 
 		virtual Shader*			CreateShader(const String& name, const Array<Byte>& binary) = 0;
@@ -56,13 +61,13 @@ namespace Quartz
 		virtual GraphicsPipeline*	CreateGraphicsPipeline(const GraphicsPipelineInfo& info, UInt32 subpass) = 0;
 		virtual void				DestroyGraphicsPipeline(GraphicsPipeline* pPipeline) = 0;
 
-		virtual CommandBuffer*	CreateCommandBuffer() = 0;
+		virtual CommandBuffer*	CreateCommandBuffer(CommandBufferType type) = 0;
 		virtual void			DestroyCommandBuffer(CommandBuffer* pCommandBuffer) = 0;
 
 		virtual void			CopyBuffer(Buffer* pSource, Buffer* pDest) = 0;
 
 		virtual void			BindUniformBuffer(Pipeline* pPipeline, UInt32 set, UInt32 buffer, Buffer* pBuffer) = 0;
 
-		virtual void			Submit(Viewport* pViewport, CommandBuffer* pCommandBuffer) = 0;
+		virtual void			Submit(Context* pViewport, CommandBuffer* pCommandBuffer) = 0;
 	};
 }

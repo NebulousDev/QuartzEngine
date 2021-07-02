@@ -2,14 +2,15 @@
 
 namespace Quartz
 {
-	VulkanViewport::VulkanViewport(VulkanSwapchain* pSwapchain, Surface* pSurface, Scene* pScene, Renderer* pRenderer)
+	VulkanContext::VulkanContext(VulkanSwapchain* pSwapchain, 
+		Surface* pSurface, Scene* pScene, Renderer* pRenderer, MultibufferType multibuffer)
 		: mpSwapchain(pSwapchain),
-		Viewport(pSurface, pScene, pRenderer)
+		Context(pSurface, pScene, pRenderer, multibuffer)
 	{
 		// Nothing
 	}
 
-	void VulkanViewport::Rebuild()
+	void VulkanContext::Rebuild()
 	{
 		//mSwapchain.Rebuild();
 	}

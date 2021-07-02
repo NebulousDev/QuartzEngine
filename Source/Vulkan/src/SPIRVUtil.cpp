@@ -516,7 +516,7 @@ namespace Quartz
 				uniform.set = object.decoration.set;
 				uniform.binding = object.decoration.binding;
 				uniform.sizeBytes = SpirvObjectSize(valueObject, reflection);
-				uniform.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				uniform.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC; // TODO: NOTE DYNAMIC!!
 				uniform.shaderStage = reflection.shaderStage;
 
 				uniforms.PushBack(uniform);

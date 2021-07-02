@@ -6,6 +6,7 @@
 #include "VulkanShader.h"
 #include "VulkanPipeline.h"
 #include "VulkanBuffer.h"
+#include "VulkanUniform.h"
 
 #include "VulkanUtil2.h"
 
@@ -411,24 +412,30 @@ namespace Quartz
 		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetGraphicsCommandPoolHandle(), 1, &commandBuffer);
 	}
 
-	Viewport* VulkanGraphics::CreateViewport(Surface* pSurface, Scene* pScene, Renderer* pRenderer)
+	Context* VulkanGraphics::CreateContext(Surface* pSurface, Scene* pScene, Renderer* pRenderer, MultibufferType multibuffer)
 	{
-		constexpr UInt32 tempBackbufferCount = 3;
+		VulkanSurface* pVulkanSurface = static_cast<VulkanSurface*>(pSurface);
 
-		VulkanSurface*		pVulkanSurface = static_cast<VulkanSurface*>(pSurface);
-		VulkanSwapchain*	pSwapchain = CreateSwapchain(pVulkanSurface, tempBackbufferCount);
-		Viewport*			pViewport = new VulkanViewport(pSwapchain, pSurface, pScene, pRenderer);
+		const UInt32 multibufferCount = (UInt32)multibuffer + 1;
+		VulkanSwapchain* pSwapchain = CreateSwapchain(pVulkanSurface, multibufferCount);
+		
+		if (pSwapchain->GetBackbufferCount() != multibufferCount)
+		{
+			multibuffer = MultibufferType(pSwapchain->GetBackbufferCount() - 1);
+		}
+		
+		Context* pContext = new VulkanContext(pSwapchain, pSurface, pScene, pRenderer, multibuffer);
 
-		pRenderer->Setup(pViewport);
+		pRenderer->Setup(pContext);
 
-		mViewports.PushBack(pViewport);
+		mViewports.PushBack(pContext);
 
-		return pViewport;
+		return pContext;
 	}
 
-	void VulkanGraphics::DestroyViewport(Viewport* pViewport)
+	void VulkanGraphics::DestroyContext(Context* pContext)
 	{
-		// @TODO: DestroyViewport()
+		// @TODO: DestroyContext()
 	}
 
 	Image* VulkanGraphics::CreateImage(ImageType type, UInt32 width, UInt32 height, UInt32 depth, 
@@ -628,6 +635,18 @@ namespace Quartz
 		vkFreeMemory(mpDevice->GetDeviceHandle(), pVulkanBuffer->GetVkMemory(), VK_NULL_HANDLE);
 	}
 
+	Uniform* VulkanGraphics::CreateUniform(UniformType type, UInt32 elementSize, UInt32 elementCount, UniformFlags flags)
+	{
+		VulkanUniform* pUniform = new VulkanUniform(mpDevice, type, elementSize, elementCount, flags);
+		pUniform->BuildBuffers(3); // TODO: HARDCODED
+		return pUniform;
+	}
+
+	void VulkanGraphics::DestroyUniform(Uniform* pUniform)
+	{
+
+	}
+
 	Renderpass* VulkanGraphics::CreateRenderpass(const String& name, const Array<Attachment>& attachments, const Array<Subpass>& subpasses)
 	{
 		VkRenderPass vkRenderPass;
@@ -652,7 +671,7 @@ namespace Quartz
 
 			if (attachment.GetType() == ATTACHMENT_SWAPCHAIN)
 			{
-				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_CLEAR;
 				vkAttachmentDescription.storeOp			= VK_ATTACHMENT_STORE_OP_STORE;
 				vkAttachmentDescription.stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				vkAttachmentDescription.stencilStoreOp	= VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -661,7 +680,7 @@ namespace Quartz
 			}
 			else if (attachment.GetType() == ATTACHMENT_DEPTH)
 			{
-				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_CLEAR;
 				vkAttachmentDescription.storeOp			= VK_ATTACHMENT_STORE_OP_STORE;
 				vkAttachmentDescription.stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				vkAttachmentDescription.stencilStoreOp	= VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -670,7 +689,7 @@ namespace Quartz
 			}
 			else if (attachment.GetType() == ATTACHMENT_DEPTH_STENCIL)
 			{
-				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_CLEAR;
 				vkAttachmentDescription.storeOp			= VK_ATTACHMENT_STORE_OP_STORE;
 				vkAttachmentDescription.stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				vkAttachmentDescription.stencilStoreOp	= VK_ATTACHMENT_STORE_OP_STORE;
@@ -688,7 +707,7 @@ namespace Quartz
 			}
 			else
 			{
-				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkAttachmentDescription.loadOp			= VK_ATTACHMENT_LOAD_OP_CLEAR;
 				vkAttachmentDescription.storeOp			= VK_ATTACHMENT_STORE_OP_STORE;
 				vkAttachmentDescription.stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				vkAttachmentDescription.stencilStoreOp	= VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -802,10 +821,10 @@ namespace Quartz
 		delete pVulkanRenderpass;
 	}
 
-	Framebuffer* VulkanGraphics::CreateFramebuffer(Renderpass* pRenderpass, Viewport* pViewport, UInt32 width, UInt32 height)
+	Framebuffer* VulkanGraphics::CreateFramebuffer(Renderpass* pRenderpass, Context* pContext, UInt32 width, UInt32 height)
 	{
 		VulkanRenderpass*	pVulkanRenderpass	= static_cast<VulkanRenderpass*>(pRenderpass);
-		VulkanViewport*		pVulkanViewport		= static_cast<VulkanViewport*>(pViewport);
+		VulkanContext*		pVulkanContext		= static_cast<VulkanContext*>(pContext);
 
 		Array<VkFramebuffer>	vkFramebuffers;
 		Array<Image*>			images;
@@ -879,11 +898,12 @@ namespace Quartz
 		framebufferInfo.height			= height;
 		framebufferInfo.layers			= 1;
 
-		vkFramebuffers.Resize(pVulkanViewport->GetSwapchain()->GetBackbufferCount());
+		//TODO: this should not be decieded here
+		vkFramebuffers.Resize(pVulkanContext->GetMultibufferCount());
 
-		for (UInt32 i = 0; i < pVulkanViewport->GetSwapchain()->GetBackbufferCount(); i++)
+		for (UInt32 i = 0; i < pVulkanContext->GetMultibufferCount(); i++)
 		{
-			vkImageViews[swapchainIndex] = pVulkanViewport->GetSwapchain()->GetImageViews()[i]->GetVkImageView();
+			vkImageViews[swapchainIndex] = pVulkanContext->GetSwapchain()->GetImageViews()[i]->GetVkImageView();
 
 			if (vkCreateFramebuffer(mpDevice->GetDeviceHandle(), &framebufferInfo, VK_NULL_HANDLE, &vkFramebuffers[i]) != VK_SUCCESS)
 			{
@@ -1093,7 +1113,7 @@ namespace Quartz
 
 		VkViewport vkViewport;
 		vkViewport.x		= info.viewport.x;
-		vkViewport.y		= info.viewport.y;
+		vkViewport.y		= info.viewport.height - info.viewport.y;
 		vkViewport.width	= info.viewport.width;
 		vkViewport.height	= -info.viewport.height;
 		vkViewport.minDepth = info.viewport.minDepth;
@@ -1324,9 +1344,9 @@ namespace Quartz
 			VkPipelineColorBlendAttachmentState vkBlendAttachmentState = {};
 			vkBlendAttachmentState.blendEnable			= VK_TRUE;
 			vkBlendAttachmentState.srcColorBlendFactor	= VK_BLEND_FACTOR_SRC_ALPHA;
-			vkBlendAttachmentState.dstColorBlendFactor	= VK_BLEND_FACTOR_ONE;
+			vkBlendAttachmentState.dstColorBlendFactor	= VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 			vkBlendAttachmentState.colorBlendOp			= VK_BLEND_OP_ADD;
-			vkBlendAttachmentState.srcAlphaBlendFactor	= VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			vkBlendAttachmentState.srcAlphaBlendFactor	= VK_BLEND_FACTOR_ONE;
 			vkBlendAttachmentState.dstAlphaBlendFactor	= VK_BLEND_FACTOR_ZERO;
 			vkBlendAttachmentState.alphaBlendOp			= VK_BLEND_OP_ADD;
 			vkBlendAttachmentState.colorWriteMask		= VK_COLOR_COMPONENT_R_BIT | 
@@ -1417,7 +1437,7 @@ namespace Quartz
 
 		VulkanGraphicsPipeline* pPipeline = new VulkanGraphicsPipeline(vkPipeline, mpDevice, descriptorSetInfos, vkPipelineInfo, info);
 
-		pPipeline->SetupUniformStates(3);
+		pPipeline->SetupUniformStates(3); //TEMP
 
 		return pPipeline;
 	}
@@ -1427,9 +1447,9 @@ namespace Quartz
 
 	}
 
-	CommandBuffer* VulkanGraphics::CreateCommandBuffer()
+	CommandBuffer* VulkanGraphics::CreateCommandBuffer(CommandBufferType type)
 	{
-		return new VulkanCommandBuffer(mpDevice);
+		return new VulkanCommandBuffer(mpDevice, type);
 	}
 
 	void VulkanGraphics::DestroyCommandBuffer(CommandBuffer* pCommandBuffer)
@@ -1508,11 +1528,11 @@ namespace Quartz
 		*/
 	}
 
-	void VulkanGraphics::Submit(Viewport* pViewport, CommandBuffer* pCommandBuffer)
+	void VulkanGraphics::Submit(Context* pContext, CommandBuffer* pCommandBuffer)
 	{
 		VulkanCommandBuffer*	pVulkanCommandBuffer	= static_cast<VulkanCommandBuffer*>(pCommandBuffer);
-		VulkanViewport*			pVulkanViewport			= static_cast<VulkanViewport*>(pViewport);
-		VulkanSwapchain*		pVulkanSwapchain		= pVulkanViewport->GetSwapchain();
+		VulkanContext*			pVulkanContext			= static_cast<VulkanContext*>(pContext);
+		VulkanSwapchain*		pVulkanSwapchain		= pVulkanContext->GetSwapchain();
 
 		VulkanQueue& graphicsQueue = mpDevice->GetGraphicsQueue(); // @TODO: TEMP!!!
 
@@ -1521,10 +1541,20 @@ namespace Quartz
 		{
 			vkQueueWaitIdle(graphicsQueue.GetQueueHandle());
 
-			pVulkanCommandBuffer->Build(pVulkanSwapchain->GetBackbufferCount());
+			pVulkanCommandBuffer->BuildBuffers(pVulkanSwapchain->GetBackbufferCount());
+
+			if (!pVulkanCommandBuffer->IsDynamic())
+			{
+				pVulkanCommandBuffer->RecordStatic();
+			}
 		}
 
 		UInt32 frameIndex = pVulkanSwapchain->GetFrameIndex();
+
+		if (pVulkanCommandBuffer->IsDynamic())
+		{
+			pVulkanCommandBuffer->RecordDynamic(frameIndex);
+		}
 
 		VkCommandBuffer commandBuffers[]	= { pVulkanCommandBuffer->GetCommandbuffers()[frameIndex] };
 		VkPipelineStageFlags waitStages[]	= { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -1683,13 +1713,13 @@ namespace Quartz
 
 	void VulkanGraphics::Tick()
 	{
-		for (Viewport* pViewport : mViewports)
+		for (Context* pContext : mViewports)
 		{
-			VulkanViewport* pVulkanViewport = static_cast<VulkanViewport*>(pViewport);
-			VulkanSwapchain* pVulkanSwapchain = pVulkanViewport->GetSwapchain();
+			VulkanContext* pVulkanContext = static_cast<VulkanContext*>(pContext);
+			VulkanSwapchain* pVulkanSwapchain = pVulkanContext->GetSwapchain();
 			
 			pVulkanSwapchain->AdvanceFrame();
-			pViewport->GetRenderer()->Render(pViewport, nullptr);
+			pContext->GetRenderer()->Render(pContext, nullptr);
 			pVulkanSwapchain->Present();
 		}
 	}

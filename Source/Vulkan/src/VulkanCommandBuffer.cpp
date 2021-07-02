@@ -9,11 +9,11 @@
 
 namespace Quartz
 {
-	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice* pDevice)
-		: mpDevice(pDevice),
+	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice* pDevice, CommandBufferType type)
+		: CommandBuffer(type),
+		mpDevice(pDevice),
 		mvkCommandPool(VK_NULL_HANDLE),
 		mUsages(0),
-		mIsDynamic(false),
 		mBuilt(false),
 		mState{}
 	{
@@ -22,12 +22,18 @@ namespace Quartz
 
 	void VulkanCommandBuffer::BeginRecording()
 	{
-		mCommandList.PushBack(new VulkanCommandBeginRecording());
+		// TODO: all commands should be allocated from a pool to avoid this
+		for (VulkanCommand* pCommand : mCommandList)
+		{
+			delete pCommand;
+		}
+
+		mCommandList.Clear();
 	}
 
 	void VulkanCommandBuffer::EndRecording()
 	{
-		mCommandList.PushBack(new VulkanCommandEndRecording());
+		
 	}
 
 	void VulkanCommandBuffer::BeginRenderpass(Renderpass* pRenderpass, Framebuffer* pFramebuffer)
@@ -77,12 +83,15 @@ namespace Quartz
 		mCommandList.PushBack(pCommand);
 	}
 
-	void VulkanCommandBuffer::BindUniform(UInt32 set, UInt32 binding, Buffer* pBuffer)
+	void VulkanCommandBuffer::BindUniform(UInt32 set, UInt32 binding, Uniform* pUniform, UInt32 element)
 	{
-		/*
-		vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pGraphicsPipeline->GetVkPipelineInfo().layout, 0, 1, &vkDescriptorSet, 0, nullptr);
-		*/
+		VulkanCommandBindUniformBuffer* pCommand = new VulkanCommandBindUniformBuffer();
+		pCommand->set		= set;
+		pCommand->binding	= binding;
+		pCommand->pUniform	= static_cast<VulkanUniform*>(pUniform);
+		pCommand->element	= element;
+
+		mCommandList.PushBack(pCommand);
 	}
 
 	/*
@@ -116,7 +125,7 @@ namespace Quartz
 		mCommandList.PushBack(pCommand);
 	}
 
-	void VulkanCommandBuffer::Build(UInt32 bufferCount)
+	void VulkanCommandBuffer::BuildBuffers(UInt32 bufferCount)
 	{
 		if (mBuilt)
 		{
@@ -162,39 +171,47 @@ namespace Quartz
 
 		vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, mCommandBuffers.Data());
 
+		mBuilt = true;
+	}
+
+	void VulkanCommandBuffer::RecordStatic()
+	{
+		// TODO: should be a debug assert
+		if (mType != COMMAND_BUFFER_STATIC)
+		{
+			Log::Critical("Called BuildStatic() on a dynamic commandbuffer!!!");
+			return;
+		}
+
+		for (UInt32 i = 0; i < mCommandBuffers.Size(); i++)
+		{
+			RecordDynamic(i);
+		}
+
+		mBuilt = true;
+	}
+
+	void VulkanCommandBuffer::RecordDynamic(UInt32 frameIndex)
+	{
+		// TODO: check index
+		VkCommandBuffer vkCommandBuffer = mCommandBuffers[frameIndex];
+
+		// buffer is implicitly reset with vkBeginCommandBuffer
+		//vkResetCommandBuffer(vkCommandBuffer, VK_NULL_HANDLE);
+
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		if (vkBeginCommandBuffer(vkCommandBuffer, &beginInfo) != VK_SUCCESS)
+		{
+			Log::Error("Failed to begin command buffer recording: vkBeginCommandBuffer failed!");
+			return;
+		}
+
 		for (VulkanCommand* pCommand : mCommandList)
 		{
 			switch (pCommand->type)
 			{
-				case VULKAN_COMMAND_BEGIN_RECORDING:
-				{
-					for (VkCommandBuffer vkCommandBuffer : mCommandBuffers)
-					{
-						VkCommandBufferBeginInfo beginInfo = {};
-						beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-						if (vkBeginCommandBuffer(vkCommandBuffer, &beginInfo) != VK_SUCCESS)
-						{
-							Log::Error("Failed to begin command buffer recording: vkBeginCommandBuffer failed!");
-						}
-					}
-					
-					break;
-				}
-
-				case VULKAN_COMMAND_END_RECORDING:
-				{
-					for (VkCommandBuffer vkCommandBuffer : mCommandBuffers)
-					{
-						if (vkEndCommandBuffer(vkCommandBuffer) != VK_SUCCESS)
-						{
-							Log::Error("Failed to end command buffer recording: vkBeginCommandBuffer failed!");
-						}
-					}
-
-					break;
-				}
-
 				case VULKAN_COMMAND_BEGIN_RENDERPASS:
 				{
 					VulkanCommandBeginRenderpass* pBeginRenderpass = static_cast<VulkanCommandBeginRenderpass*>(pCommand);
@@ -208,29 +225,23 @@ namespace Quartz
 
 					VkClearValue clearValues[] = { clearColor, clearDepth };
 
-					for (UInt32 i = 0; i < mCommandBuffers.Size(); i++)
-					{
-						VkRenderPassBeginInfo renderPassInfo = {};
-						renderPassInfo.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-						renderPassInfo.renderPass			= pVulkanRenderpass->GetVkRenderPass();
-						renderPassInfo.framebuffer			= pVulkanFramebuffer->GetVkFramebuffers()[i];
-						renderPassInfo.renderArea.offset	= { 0, 0 };
-						renderPassInfo.renderArea.extent	= { pVulkanFramebuffer->GetWidth(), pVulkanFramebuffer->GetHeight() };
-						renderPassInfo.clearValueCount		= 2;
-						renderPassInfo.pClearValues			= clearValues;
+					VkRenderPassBeginInfo renderPassInfo = {};
+					renderPassInfo.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+					renderPassInfo.renderPass			= pVulkanRenderpass->GetVkRenderPass();
+					renderPassInfo.framebuffer			= pVulkanFramebuffer->GetVkFramebuffers()[frameIndex];
+					renderPassInfo.renderArea.offset	= { 0, 0 };
+					renderPassInfo.renderArea.extent	= { pVulkanFramebuffer->GetWidth(), pVulkanFramebuffer->GetHeight() };
+					renderPassInfo.clearValueCount		= 2;
+					renderPassInfo.pClearValues			= clearValues;
 
-						vkCmdBeginRenderPass(mCommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-					}
+					vkCmdBeginRenderPass(vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 					break;
 				}
 
 				case VULKAN_COMMAND_END_RENDERPASS:
 				{
-					for (VkCommandBuffer vkCommandBuffer : mCommandBuffers)
-					{
-						vkCmdEndRenderPass(vkCommandBuffer);
-					}
+					vkCmdEndRenderPass(vkCommandBuffer);
 
 					break;
 				}
@@ -239,18 +250,15 @@ namespace Quartz
 				{
 					VulkanCommandSetGraphicsPipeline* pSetGraphicsPipeline = static_cast<VulkanCommandSetGraphicsPipeline*>(pCommand);
 
-					for (UInt32 i = 0; i < mCommandBuffers.Size(); i++)
-					{
-						VkCommandBuffer vkCommandBuffer = mCommandBuffers[i];
-
-						VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pSetGraphicsPipeline->pPipeline);
-						vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pGraphicsPipeline->GetVkPipeline());
-						
-						const Array<VkDescriptorSet>& descriptorSets = pGraphicsPipeline->GetUniformStates()[i].descriptorSets;
-						VkPipelineLayout vkPipelineLayout = pGraphicsPipeline->GetVkPipelineInfo().layout;
-						vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							vkPipelineLayout, 0, descriptorSets.Size(), descriptorSets.Data(), 0, VK_NULL_HANDLE);
-					}
+					VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pSetGraphicsPipeline->pPipeline);
+					vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pGraphicsPipeline->GetVkPipeline());
+					
+					/*
+					const Array<VkDescriptorSet>& descriptorSets = pGraphicsPipeline->GetUniformStates()[frameIndex].descriptorSets;
+					VkPipelineLayout vkPipelineLayout = pGraphicsPipeline->GetVkPipelineInfo().layout;
+					vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+						vkPipelineLayout, 0, descriptorSets.Size(), descriptorSets.Data(), 0, VK_NULL_HANDLE);
+					*/
 
 					mState.pGraphicsPipeline = pSetGraphicsPipeline->pPipeline;
 
@@ -275,10 +283,7 @@ namespace Quartz
 						vkOffsetSizes[i]	= 0;
 					}
 
-					for (VkCommandBuffer vkCommandBuffer : mCommandBuffers)
-					{
-						vkCmdBindVertexBuffers(vkCommandBuffer, 0, pSetVertexBuffers->buffers.Size(), vkBuffers.Data(), vkOffsetSizes.Data());
-					}
+					vkCmdBindVertexBuffers(vkCommandBuffer, 0, pSetVertexBuffers->buffers.Size(), vkBuffers.Data(), vkOffsetSizes.Data());
 
 					break;
 				}
@@ -289,16 +294,33 @@ namespace Quartz
 
 					VulkanBuffer* pIndexBuffer = static_cast<VulkanBuffer*>(pSetIndexBuffer->pBuffer);
 
-					for (VkCommandBuffer vkCommandBuffer : mCommandBuffers)
-					{
-						vkCmdBindIndexBuffer(vkCommandBuffer, pIndexBuffer->GetVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
-					}
+					vkCmdBindIndexBuffer(vkCommandBuffer, pIndexBuffer->GetVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 					break;
 				}
 
 				case VULKAN_COMMAND_BIND_UNIFORM_BUFFER:
 				{
+					VulkanCommandBindUniformBuffer* pBindUniformBuffer = static_cast<VulkanCommandBindUniformBuffer*>(pCommand);
+
+					UniformState&	uniformState	= mState.pGraphicsPipeline->GetUniformState(pBindUniformBuffer->set, pBindUniformBuffer->binding, frameIndex);
+					VulkanUniform*	pUniform		= static_cast<VulkanUniform*>(pBindUniformBuffer->pUniform);
+					UInt32			alignedSize		= pUniform->GetAlignedElementSize();
+					UInt32			set				= pBindUniformBuffer->set;
+
+					if (!uniformState.pBuffer || uniformState.pBuffer->GetVkBuffer() != pUniform->GetUniformBuffers()[frameIndex]->GetVkBuffer())
+					{
+						// This is kinda janky as it only updates one per frame (not the whole backbuffer array)
+						uniformState.UpdateBuffer(mpDevice, pUniform->GetUniformBuffers()[frameIndex], 0, alignedSize);
+					}
+
+					VkDescriptorSet vkDescriptorSet = uniformState.descriptorSet;
+
+					UInt32 offset = alignedSize * pBindUniformBuffer->element;
+
+					vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+						mState.pGraphicsPipeline->GetVkPipelineInfo().layout, set, 1, &vkDescriptorSet, 1, &offset);
+
 					break;
 				}
 
@@ -306,10 +328,7 @@ namespace Quartz
 				{
 					VulkanCommandDrawIndexed* pDrawIndexed = static_cast<VulkanCommandDrawIndexed*>(pCommand);
 
-					for (VkCommandBuffer vkCommandBuffer : mCommandBuffers)
-					{
-						vkCmdDrawIndexed(vkCommandBuffer, pDrawIndexed->count, 1, pDrawIndexed->start, 0, 0);
-					}
+					vkCmdDrawIndexed(vkCommandBuffer, pDrawIndexed->count, 1, pDrawIndexed->start, 0, 0);
 
 					break;
 				}
@@ -322,12 +341,10 @@ namespace Quartz
 			}
 		}
 
-		mBuilt = true;
-	}
-
-	void VulkanCommandBuffer::Reset()
-	{
-
+		if (vkEndCommandBuffer(vkCommandBuffer) != VK_SUCCESS)
+		{
+			Log::Error("Failed to end command buffer recording: vkBeginCommandBuffer failed!");
+		}
 	}
 
 }

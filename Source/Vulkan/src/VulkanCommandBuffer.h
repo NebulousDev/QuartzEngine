@@ -28,8 +28,6 @@ namespace Quartz
 		enum VulkanCommandType
 		{
 			VULKAN_COMMAND_INVALID,
-			VULKAN_COMMAND_BEGIN_RECORDING,
-			VULKAN_COMMAND_END_RECORDING,
 			VULKAN_COMMAND_BEGIN_RENDERPASS,
 			VULKAN_COMMAND_END_RENDERPASS,
 			VULKAN_COMMAND_SET_GRAPHICS_PIPELINE,
@@ -55,12 +53,6 @@ namespace Quartz
 				VulkanCommand::type = Type;
 			};
 		};
-
-		struct VulkanCommandBeginRecording 
-			: public VulkanCommandBase<VULKAN_COMMAND_BEGIN_RECORDING> { };
-
-		struct VulkanCommandEndRecording 
-			: public VulkanCommandBase<VULKAN_COMMAND_END_RECORDING> { };
 
 		struct VulkanCommandBeginRenderpass 
 			: public VulkanCommandBase<VULKAN_COMMAND_BEGIN_RENDERPASS>
@@ -95,7 +87,8 @@ namespace Quartz
 		{
 			UInt32			set;
 			UInt32			binding;
-			VulkanBuffer*	pBuffer;
+			VulkanUniform*	pUniform;
+			UInt32			element;
 		};
 
 		struct VulkanCommandDrawIndexed
@@ -116,13 +109,12 @@ namespace Quartz
 		VkCommandPool				mvkCommandPool;
 		Array<VkCommandBuffer>		mCommandBuffers;
 		CommandBufferUsages			mUsages;
-		Bool8						mIsDynamic;
 		Bool8						mBuilt;
 
 		VulkanCommandBufferState	mState;
 
 	public:
-		VulkanCommandBuffer(VulkanDevice* pDevice);
+		VulkanCommandBuffer(VulkanDevice* pDevice, CommandBufferType type);
 
 		void BeginRecording() override;
 		void EndRecording() override;
@@ -135,17 +127,21 @@ namespace Quartz
 		void SetVertexBuffers(const Array<Buffer*>& buffers) override;
 		void SetIndexBuffer(Buffer* pBuffer) override;
 
-		void BindUniform(UInt32 set, UInt32 binding, Buffer* pBuffer) override;
+		void BindUniform(UInt32 set, UInt32 binding, Uniform* pUniform, UInt32 element) override;
 
 		void DrawIndexed(UInt32 count, UInt32 start) override;
 
-		void Build(UInt32 bufferCount);
+		void BuildBuffers(UInt32 bufferCount);
+
+		void RecordStatic();
+		void RecordDynamic(UInt32 frameIndex);
 
 		void Reset();
 
 		FORCE_INLINE Array<VkCommandBuffer>&	GetCommandbuffers() { return mCommandBuffers; }
 		FORCE_INLINE UInt32						GetCommandBufferCount() { return mCommandBuffers.Size(); }
 		FORCE_INLINE VkCommandPool				GetVkCommandPool() { return mvkCommandPool; }
+		FORCE_INLINE Bool8						IsDynamic() const { return mType == COMMAND_BUFFER_DYNAMIC; }
 		FORCE_INLINE Bool8						IsBuilt() const { return mBuilt; }
 	};
 }

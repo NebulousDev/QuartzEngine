@@ -2,8 +2,8 @@
 
 namespace Quartz
 {
-	CommandBuffer::CommandBuffer()
-		: mRecording(false)
+	CommandBuffer::CommandBuffer(CommandBufferType type)
+		: mType(type)
 	{
 		// Nothing
 	}

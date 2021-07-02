@@ -255,10 +255,11 @@ namespace Quartz
 #define MAX_DESCRIPTOR_POOL_SETS		16
 #define MAX_UNIFORM_DESCRIPTOR_COUNT	16
 
+	// TODO: move this out of device
 	Bool8 VulkanDevice::InitPools()
 	{
 		VkDescriptorPoolSize uniformDescriptorPoolSize = {};
-		uniformDescriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		uniformDescriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 		uniformDescriptorPoolSize.descriptorCount = MAX_UNIFORM_DESCRIPTOR_COUNT;
 
 		VkDescriptorPoolSize poolSizes[] = { uniformDescriptorPoolSize };
@@ -278,6 +279,7 @@ namespace Quartz
 		VkCommandPoolCreateInfo graphicsCommandPoolInfo = {};
 		graphicsCommandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		graphicsCommandPoolInfo.queueFamilyIndex = mpGraphicsQueue->GetFamilyIndex();
+		graphicsCommandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		if (vkCreateCommandPool(mDevice, &graphicsCommandPoolInfo, nullptr, &mGraphicsCommandPool) != VK_SUCCESS)
 		{
@@ -290,6 +292,7 @@ namespace Quartz
 			VkCommandPoolCreateInfo computeCommandPoolInfo = {};
 			computeCommandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 			computeCommandPoolInfo.queueFamilyIndex = mpComputeQueue->GetFamilyIndex();
+			computeCommandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 			if (vkCreateCommandPool(mDevice, &computeCommandPoolInfo, nullptr, &mComputeCommandPool) != VK_SUCCESS)
 			{
@@ -307,6 +310,7 @@ namespace Quartz
 			VkCommandPoolCreateInfo transferCommandPoolInfo = {};
 			transferCommandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 			transferCommandPoolInfo.queueFamilyIndex = mpTransferQueue->GetFamilyIndex();
+			transferCommandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 			if (vkCreateCommandPool(mDevice, &transferCommandPoolInfo, nullptr, &mTransferCommandPool) != VK_SUCCESS)
 			{

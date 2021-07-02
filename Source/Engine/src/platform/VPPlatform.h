@@ -5,7 +5,7 @@
 
 #include "util/Singleton.h"
 
-#include "VPDebugConsole.h"
+#include "DebugConsole.h"
 
 namespace Quartz
 {

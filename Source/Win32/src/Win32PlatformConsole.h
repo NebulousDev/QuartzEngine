@@ -1,6 +1,6 @@
 #pragma once
 
-#include "platform/VPDebugConsole.h"
+#include "platform/DebugConsole.h"
 #include "Win32.h"
 
 #include <stdio.h>

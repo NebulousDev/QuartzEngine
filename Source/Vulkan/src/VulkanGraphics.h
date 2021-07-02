@@ -34,8 +34,8 @@ namespace Quartz
 	public:
 		VulkanGraphics();
 
-		Viewport*		CreateViewport(Surface* pSurface, Scene* pScene, Renderer* pRenderer) override;
-		void			DestroyViewport(Viewport* pViewport) override;
+		Context*		CreateContext(Surface* pSurface, Scene* pScene, Renderer* pRenderer, MultibufferType multibuffer) override;
+		void			DestroyContext(Context* pViewport) override;
 
 		virtual Image*	CreateImage(ImageType type, UInt32 width, UInt32 height, UInt32 depth,
 							UInt32 layers, UInt32 mips, ImageFormat format, ImageUsages usages) override;
@@ -51,11 +51,14 @@ namespace Quartz
 		Buffer*			CreateBuffer(UInt32 sizeBytes, BufferUsages usages, BufferAccess access) override;
 		void			DestroyBuffer(Buffer* pBuffer) override;
 
+		Uniform*		CreateUniform(UniformType type, UInt32 elementSize, UInt32 elementCount, UniformFlags flags) override;
+		void			DestroyUniform(Uniform* pUniform) override;
+
 		Renderpass*		CreateRenderpass(const String& name,
 							const Array<Attachment>& attachments, const Array<Subpass>& subpasses) override;
 		void			DestroyRenderpass(Renderpass* pRenderpass) override;
 
-		Framebuffer*	CreateFramebuffer(Renderpass* pRenderpass, Viewport* pViewport, UInt32 width, UInt32 height) override;
+		Framebuffer*	CreateFramebuffer(Renderpass* pRenderpass, Context* pViewport, UInt32 width, UInt32 height) override;
 		void			DestroyFramebuffer(Framebuffer* pFramebuffer) override;
 
 		Shader*			CreateShader(const String& name, const Array<Byte>& binary) override;
@@ -64,14 +67,14 @@ namespace Quartz
 		GraphicsPipeline*	CreateGraphicsPipeline(const GraphicsPipelineInfo& info, UInt32 subpass) override;
 		void				DestroyGraphicsPipeline(GraphicsPipeline* pPipeline) override;
 
-		CommandBuffer*	CreateCommandBuffer() override;
+		CommandBuffer*	CreateCommandBuffer(CommandBufferType type) override;
 		void			DestroyCommandBuffer(CommandBuffer* pCommandBuffer) override;
 
 		void			CopyBuffer(Buffer* pSource, Buffer* pDest) override;
 
 		void			BindUniformBuffer(Pipeline* pPipeline, UInt32 set, UInt32 buffer, Buffer* pBuffer) override;
 
-		void			Submit(Viewport* pViewport, CommandBuffer* pCommandBuffer) override;
+		void			Submit(Context* pViewport, CommandBuffer* pCommandBuffer) override;
 
 		Bool8 Init() override;
 

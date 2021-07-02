@@ -72,6 +72,9 @@
     <ClInclude Include="src\VulkanFrameState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\VulkanUniform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\VulkanDevice.cpp">
@@ -126,6 +129,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\VulkanFrameState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VulkanUniform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
