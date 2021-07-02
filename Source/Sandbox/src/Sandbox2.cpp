@@ -16,9 +16,11 @@ int main(int argc, char* argv[])
 		ENGINE INITIALIZATION
 	=====================================*/
 
-	/* Setup Platform */
+	/* Setup Modules */
 
-	Platform* pPlatform	= Platform::CreateInstance(new Win32Platform());
+	Platform*	pPlatform	= new Win32Platform();
+	Graphics*	pGraphics	= new Win32VulkanGraphics();
+	Game*		pGame		= new Game();
 
 	/* Setup Logging */
 
@@ -42,19 +44,17 @@ int main(int argc, char* argv[])
 	EngineInfo engineInfo;
 	engineInfo.gameInfo.name	= L"Sandbox";
 	engineInfo.gameInfo.version = L"1.0.0";
-	engineInfo.pGraphicsModule	= new Win32VulkanGraphics();
+	engineInfo.pGraphicsModule	= pGraphics;
+	engineInfo.pPlatformModule	= pPlatform;
+	engineInfo.targetTPS		= 60.0f;
 
 	pEngine->Initialize(engineInfo);
-	pEngine->AddModule(new Game());
-
+	pEngine->AddModule(pGame);
 	pEngine->Start();
 
-	/*=====================================
-		GAME LOOP
-	=====================================*/
+	/* Shutdown */
 
-	while (true)
-	{
-		pEngine->Tick();
-	}
+	delete pPlatform;
+	delete pGraphics;
+	delete pGame;
 }

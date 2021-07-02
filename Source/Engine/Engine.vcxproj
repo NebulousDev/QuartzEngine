@@ -166,6 +166,8 @@
   <ItemGroup>
     <ClInclude Include="src\application\ApplicationModule.h" />
     <ClInclude Include="src\application\GameModule.h" />
+    <ClInclude Include="src\input\InputAction.h" />
+    <ClInclude Include="src\input\InputModule.h" />
     <ClInclude Include="src\graphics\Buffer.h" />
     <ClInclude Include="src\graphics\CommandBuffer.h" />
     <ClInclude Include="src\graphics\GraphicsModule.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="src\graphics\Surface.h" />
     <ClInclude Include="src\graphics\Uniform.h" />
     <ClInclude Include="src\graphics\Viewport.h" />
+    <ClInclude Include="src\input\Peripherals.h" />
     <ClInclude Include="src\Module.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\entity\Entity.h" />
@@ -208,9 +211,9 @@
     <ClInclude Include="src\loaders\OBJLoader.h" />
     <ClInclude Include="src\object\UniformData.h" />
     <ClInclude Include="src\platform\Application.h" />
-    <ClInclude Include="src\platform\VPPlatform.h" />
     <ClInclude Include="src\platform\DebugConsole.h" />
     <ClInclude Include="src\platform\Time.h" />
+    <ClInclude Include="src\platform\Platform.h" />
     <ClInclude Include="src\platform\Window.h" />
     <ClInclude Include="src\system\System.h" />
   </ItemGroup>

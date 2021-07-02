@@ -78,6 +78,6 @@ namespace Quartz
 
 		Bool8 Init() override;
 
-		void Tick() override;
+		void Update(Float32 delta) override;
 	};
 }

@@ -1711,7 +1711,7 @@ namespace Quartz
 		return true;
 	}
 
-	void VulkanGraphics::Tick()
+	void VulkanGraphics::Update(Float32 delta)
 	{
 		for (Context* pContext : mViewports)
 		{

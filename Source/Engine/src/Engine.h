@@ -3,9 +3,11 @@
 #include "Common.h"
 
 #include "Module.h"
+#include "platform/Platform.h"
 #include "application/ApplicationModule.h"
 #include "graphics/GraphicsModule.h"
 #include "graphics/SceneSystem.h"
+#include "event/EventSystem.h"
 
 #include "util/Singleton.h"
 #include "util/Array.h"
@@ -28,6 +30,8 @@ namespace Quartz
 	{
 		GameInfo	gameInfo;
 		Graphics*	pGraphicsModule;
+		Platform*	pPlatformModule;
+		Float32		targetTPS;
 	};
 
 	/* Engine */
@@ -36,14 +40,32 @@ namespace Quartz
 	{
 	private:
 		GameInfo			mGameInfo;
-		Bool8				mRunning;
-		ApplicationManager*	mpApplicationManager;
-		SceneManager*		mpSceneManager;
+		Float32				mTargetTPS;
+
+		Time*				mpTime;
+		Float32				mCurrentTPS;
+		Float32				mCurrentUPS;
+
 		Graphics*			mpGraphics;
+		Platform*			mpPlatform;
+		ApplicationManager*	mpApplicationManager;
+		EventSystem*		mpEventSystem;
+		SceneManager*		mpSceneManager;
+
 		Array<Module*>		mModules;
+
+		Bool8				mRunning;
+		Bool8				mShutdownRequested;
 
 	private:
 		Engine() = default;
+
+		void Update(Float32 delta);
+		void Tick(UInt32 tick);
+
+		void Shutdown();
+
+		void RunEngineLoop();
 
 	public:
 		void Initialize(const EngineInfo& info);
@@ -51,15 +73,17 @@ namespace Quartz
 		Bool8 AddModule(Module* pModule);
 
 		Bool8 Start();
-
-		void Tick();
 		
+		void RequestShutdown();
+
 		FORCE_INLINE const GameInfo&	GetGameInfo() { return mGameInfo; };
 		FORCE_INLINE Bool8				IsRunning() { return mRunning; };
 
 		FORCE_INLINE ApplicationManager*	GetApplicationManager() { return mpApplicationManager; }
+		FORCE_INLINE EventSystem*			GetEventSystem() { return mpEventSystem; }
 		FORCE_INLINE SceneManager*			GetSceneManager() { return mpSceneManager; }
 		FORCE_INLINE Graphics*				GetGraphics() { return mpGraphics; }
+		FORCE_INLINE Platform*				GetPlatform() { return mpPlatform; }
 
 		static Engine* GetInstance();
 	};

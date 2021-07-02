@@ -64,7 +64,12 @@ namespace Quartz
         return true;
     }
 
-    void Game::Tick()
+	void Game::Update(Float32 delta)
+	{
+
+	}
+
+    void Game::Tick(UInt32 ticks)
     {
 		
     }

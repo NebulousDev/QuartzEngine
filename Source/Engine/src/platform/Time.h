@@ -4,7 +4,7 @@
 
 namespace Quartz
 {
-	class QUARTZ_API PlatformTime
+	class QUARTZ_API Time
 	{
 	public:
 

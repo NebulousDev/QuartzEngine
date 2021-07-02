@@ -63,9 +63,6 @@
     <ClInclude Include="src\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\VPPlatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\object\Lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -162,6 +159,18 @@
     <ClInclude Include="src\graphics\Viewport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\input\InputModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\input\Peripherals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\input\InputAction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\Platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\event\EventSystem.cpp">
@@ -195,9 +204,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\application\ApplicationModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\platform\Platform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\application\GameModule.cpp">
@@ -246,6 +252,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\Viewport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\Platform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

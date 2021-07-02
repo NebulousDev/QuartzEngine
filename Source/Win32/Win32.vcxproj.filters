@@ -33,6 +33,9 @@
     <ClInclude Include="src\Win32Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Win32Time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Win32PlatformConsole.cpp">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Win32Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Win32Time.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

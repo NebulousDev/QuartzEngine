@@ -1,6 +1,6 @@
 #include "ApplicationModule.h"
 
-#include "../platform/VPPlatform.h"
+#include "../Engine.h"
 
 namespace Quartz
 {
@@ -12,7 +12,7 @@ namespace Quartz
 
     Application* ApplicationManager::CreateManagedApplication(const ApplicationInfo& info)
     {
-        Application* pApplication = Platform::GetInstance()->CreateApplication(info);
+        Application* pApplication = Engine::GetInstance()->GetPlatform()->CreateApplication(info);
 
         if (!pApplication)
         {
@@ -24,7 +24,7 @@ namespace Quartz
         return pApplication;
     }
 
-    void ApplicationManager::Tick()
+    void ApplicationManager::Update(Float32 delta)
     {
         for (Application* pApp : mApps)
         {

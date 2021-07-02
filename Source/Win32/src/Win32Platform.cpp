@@ -12,6 +12,12 @@
 
 namespace Quartz
 {
+	Win32Platform::Win32Platform()
+		: Platform({ L"Windows Platform" })
+	{
+		// Nothing
+	}
+
 	DebugConsole* Win32Platform::CreateDebugConsole()
 	{
 		AllocConsole();
@@ -72,6 +78,11 @@ namespace Quartz
 	Bool8 Win32Platform::DestroyApplication(Application* application)
 	{
 		return Bool8();
+	}
+
+	Time* Win32Platform::GetTime()
+	{
+		return &mTime;
 	}
 
 	/*

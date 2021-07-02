@@ -4,7 +4,7 @@
 
 namespace Quartz
 {
-	class QUARTZ_API Win32PlatformTime : public PlatformTime
+	class QUARTZ_API Win32Time : public Time
 	{
 	private:
 		Double64 mFrequency;
@@ -14,7 +14,7 @@ namespace Quartz
 		Double64 mSecondDivisor;
 
 	public:
-		Win32PlatformTime();
+		Win32Time();
 
 		/** Get system time in nanoseconds */
 		Time64 GetTimeNanoseconds() override;

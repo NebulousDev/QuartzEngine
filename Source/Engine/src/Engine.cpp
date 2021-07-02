@@ -6,8 +6,11 @@ namespace Quartz
 {
 	void Engine::Initialize(const EngineInfo& info)
 	{
-		mGameInfo = info.gameInfo;
-		mpGraphics = info.pGraphicsModule;
+		mGameInfo	= info.gameInfo;
+		mpGraphics	= info.pGraphicsModule;
+		mpPlatform	= info.pPlatformModule;
+		mpTime		= info.pPlatformModule->GetTime();
+		mTargetTPS	= info.targetTPS;
 	}
 
 	Bool8 Engine::AddModule(Module* pModule)
@@ -33,13 +36,16 @@ namespace Quartz
 		/* Setup Internal Modules */
 
 		mpApplicationManager	= new ApplicationManager();
+		mpEventSystem			= new EventSystem();
 		mpSceneManager			= new SceneManager();
 
 		// mpGraphics is set in constructor
 
 		AddModule(mpApplicationManager);
+		AddModule(mpEventSystem);
 		AddModule(mpSceneManager);
 		AddModule(mpGraphics);
+		AddModule(mpPlatform);
 
 		/* Pre-Init */
 
@@ -97,14 +103,99 @@ namespace Quartz
 		Log::General("Running engine...");
 
 		mRunning = true;
+
+		RunEngineLoop();
 	}
 
-	void Engine::Tick()
+	void Engine::RequestShutdown()
+	{
+		mShutdownRequested = true;
+	}
+
+	void Engine::RunEngineLoop()
+	{
+		Time64 currentTime			= 0;
+		Time64 lastTime				= 0;
+		Time64 deltaTime			= 0;
+		Time64 accumulatedTime		= 0;
+		Time64 accumulatedTickTime	= 0;
+		UInt32 accumulatedUpdates	= 0;
+		UInt32 accumulatedTicks		= 0;
+
+		currentTime = mpTime->GetTimeNanoseconds();
+		lastTime = currentTime;
+
+		while (!mShutdownRequested)
+		{
+			accumulatedUpdates++;
+
+			currentTime			= mpTime->GetTimeNanoseconds();
+			deltaTime			= currentTime - lastTime;
+			lastTime			= currentTime;
+
+			accumulatedTime		+= deltaTime;
+			accumulatedTickTime += deltaTime;
+
+			if (accumulatedTime >= 1.0)
+			{
+				mCurrentUPS = accumulatedUpdates;
+				mCurrentTPS = accumulatedTicks;
+
+				accumulatedUpdates = 0;
+				accumulatedTicks = 0;
+				accumulatedTime = 0;
+
+				//Log::Debug("UPS: %.2f, TPS: %.2f / %.2f", mCurrentUPS, mCurrentTPS, mTargetTPS);
+			}
+
+			if (accumulatedTickTime >= (1.0 / mTargetTPS))
+			{
+				accumulatedTicks++;
+
+				Tick(accumulatedTicks);
+
+				accumulatedTickTime = 0;
+			}
+
+			Update(deltaTime);
+		}
+
+		Shutdown();
+	}
+
+	void Engine::Update(Float32 delta)
 	{
 		for (Module* pModule : mModules)
 		{
-			pModule->Tick();
+			pModule->Update(delta);
 		}
+	}
+
+	void Engine::Tick(UInt32 tick)
+	{
+		for (Module* pModule : mModules)
+		{
+			pModule->Tick(tick);
+		}
+	}
+
+	void Engine::Shutdown()
+	{
+		mRunning = false;
+		
+		for (Module* pModule : mModules)
+		{
+			pModule->PreShutdown();
+		}
+
+		for (Module* pModule : mModules)
+		{
+			pModule->Shutdown();
+		}
+
+		delete mpApplicationManager;
+		delete mpEventSystem;
+		delete mpSceneManager;
 	}
 
 	Engine* Engine::GetInstance()

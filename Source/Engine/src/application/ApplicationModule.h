@@ -16,6 +16,6 @@ namespace Quartz
 
 		Application* CreateManagedApplication(const ApplicationInfo& info);
 
-		void Tick() override;
+		void Update(Float32 delta) override;
 	};
 }

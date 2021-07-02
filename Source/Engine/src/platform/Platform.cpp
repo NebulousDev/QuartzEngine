@@ -1,20 +1,11 @@
-
-#include "VPPlatform.h"
-#include "../log/Log.h"
+#include "Platform.h"
 
 namespace Quartz
 {
-	Platform* Platform::CreateInstanceImpl(Platform* pVirtualPlatform)
+	Platform::Platform(const ModuleInfo& info)
+		: Module(info)
 	{
-		if (!GetInstance())
-		{
-			return pVirtualPlatform;
-		}
-		else
-		{
-			Log::Warning("Attempted to create a new platform instance when one already exists.");
-		}
-
-		return nullptr;
+		// Nothing
 	}
 }
+

@@ -23,7 +23,8 @@ namespace Quartz
 		virtual Bool8 Init() { return true; };
 		virtual Bool8 PostInit() { return true; };
 
-		virtual void Tick() {};
+		virtual void Update(Float32 delta) {};
+		virtual void Tick(UInt32 ticks) {};
 
 		virtual void PreShutdown() {};
 		virtual void Shutdown() {};

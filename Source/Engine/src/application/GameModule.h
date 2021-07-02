@@ -19,7 +19,8 @@ namespace Quartz
 		Game();
 
 		Bool8 PostInit() override;
-		void Tick() override;
+		void Update(Float32 delta) override;
+		void Tick(UInt32 ticks) override;
 		void Shutdown() override;
 	};
 }
