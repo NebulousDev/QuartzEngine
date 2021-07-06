@@ -37,12 +37,14 @@ namespace Quartz
 
 		mpApplicationManager	= new ApplicationManager();
 		mpEventSystem			= new EventSystem();
+		mpInputSystem			= new InputSystem();
 		mpSceneManager			= new SceneManager();
 
 		// mpGraphics is set in constructor
 
 		AddModule(mpApplicationManager);
 		AddModule(mpEventSystem);
+		AddModule(mpInputSystem);
 		AddModule(mpSceneManager);
 		AddModule(mpGraphics);
 		AddModule(mpPlatform);

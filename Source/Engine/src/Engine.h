@@ -8,6 +8,7 @@
 #include "graphics/GraphicsModule.h"
 #include "graphics/SceneSystem.h"
 #include "event/EventSystem.h"
+#include "input/InputModule.h"
 
 #include "util/Singleton.h"
 #include "util/Array.h"
@@ -50,6 +51,7 @@ namespace Quartz
 		Platform*			mpPlatform;
 		ApplicationManager*	mpApplicationManager;
 		EventSystem*		mpEventSystem;
+		InputSystem*		mpInputSystem;
 		SceneManager*		mpSceneManager;
 
 		Array<Module*>		mModules;
@@ -81,6 +83,7 @@ namespace Quartz
 
 		FORCE_INLINE ApplicationManager*	GetApplicationManager() { return mpApplicationManager; }
 		FORCE_INLINE EventSystem*			GetEventSystem() { return mpEventSystem; }
+		FORCE_INLINE InputSystem*			GetInputSystem() { return mpInputSystem; }
 		FORCE_INLINE SceneManager*			GetSceneManager() { return mpSceneManager; }
 		FORCE_INLINE Graphics*				GetGraphics() { return mpGraphics; }
 		FORCE_INLINE Platform*				GetPlatform() { return mpPlatform; }
