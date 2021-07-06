@@ -6,23 +6,8 @@
 #include "Win32Window.h"
 #include "Win32Time.h"
 
-#include "util/Map.h"
-
 namespace Quartz
 {
-	// TODO: TEMP, REMOVE
-	struct Win32InputDeviceInfo
-	{
-		StringW id;
-		StringW parentId;
-		StringW name;
-		StringW vendor;
-		StringW type;
-		StringW fullPath;
-		UInt32 usagePage;
-		UInt32 usage;
-	};
-
 	class QUARTZ_API Win32Platform : public Platform
 	{
 	private:
@@ -31,6 +16,12 @@ namespace Quartz
 
 	public:
 		Win32Platform();
+
+		Bool8 Init() override;
+		Bool8 PostInit() override;
+		void Shutdown() override;
+
+		void Update(Float32 delta) override;
 
 		DebugConsole* CreateDebugConsole() override;
 		void DestroyDebugConsole(DebugConsole* pDebugConsole) override;

@@ -24,11 +24,12 @@ namespace Quartz
 		{
 			for (UInt32 i = 0; i < mEventQueue.Size(); i++)
 			{
-				EventBucket& bucket = mEventQueue[i];
-				EventTypeId typeId = bucket.pEvent->GetEventTypeId();
+				const EventBucket& bucket = mEventQueue[i];
+				EventBase*	pEvent = bucket.pEventBuffer->GetEvent(bucket.index);
+				EventTypeId typeId = bucket.typeId;
 
 				EventDispatcherBase* pDispatcherBase = mDispatchers[typeId]; // shouldn't be nullptr?
-				pDispatcherBase->Dispatch(bucket.pEvent);
+				pDispatcherBase->Dispatch(pEvent);
 			}
 
 			mEventQueue.Clear();

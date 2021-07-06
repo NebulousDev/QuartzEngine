@@ -10,7 +10,7 @@ namespace Quartz
 	class QUARTZ_API InputState
 	{
 	public:
-		friend class Input;
+		friend class InputSystem;
 
 	private:
 		struct MouseMoveState
@@ -41,8 +41,8 @@ namespace Quartz
 	private:
 		Float32 GetMouseRelXFromState(MouseMoveState& state);
 		Float32 GetMouseRelYFromState(MouseMoveState& state);
-		InputActions GetMouseButtonActionFromState(MouseButtonState& state);
-		InputActions GetKeyActionFromState(KeyState& state);
+		ButtonActions GetMouseButtonActionFromState(MouseButtonState& state);
+		ButtonActions GetKeyActionFromState(KeyState& state);
 
 	public:
 		void UpdateMouseMoveState(HVPInputMouse mouse, Float32 relX, Float32 relY);
@@ -53,7 +53,7 @@ namespace Quartz
 		
 		Float32 GetMouseRelX(HVPInputMouse mouse);
 		Float32 GetMouseRelY(HVPInputMouse mouse);
-		InputActions GetMouseButtonAction(HVPInputMouse mouse, UInt32 button);
-		InputActions GetKeyAction(HVPInputKeyboard keyboard, UInt32 key);
+		ButtonActions GetMouseButtonAction(HVPInputMouse mouse, UInt32 button);
+		ButtonActions GetKeyAction(HVPInputKeyboard keyboard, UInt32 key);
 	};
 }

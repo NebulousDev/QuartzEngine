@@ -165,6 +165,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Win32Application.h" />
+    <ClInclude Include="src\Win32PeripheralController.h" />
     <ClInclude Include="src\Win32Platform.h" />
     <ClInclude Include="src\Win32.h" />
     <ClInclude Include="src\Win32PlatformConsole.h" />
@@ -174,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Win32Application.cpp" />
+    <ClCompile Include="src\Win32PeripheralController.cpp" />
     <ClCompile Include="src\Win32Platform.cpp" />
     <ClCompile Include="src\Win32PlatformConsole.cpp" />
     <ClCompile Include="src\Win32Time.cpp" />

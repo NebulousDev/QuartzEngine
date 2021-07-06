@@ -4,6 +4,7 @@
 
 #include "Window.h"
 #include "Application.h"
+#include "PeripheralController.h"
 #include "Time.h"
 
 #include "DebugConsole.h"
@@ -12,6 +13,9 @@ namespace Quartz
 {
 	class QUARTZ_API Platform : public Module
 	{
+	protected:
+		PeripheralController* mpPeripheralController;
+
 	public:
 		Platform(const ModuleInfo& info);
 
@@ -22,5 +26,7 @@ namespace Quartz
 		virtual Bool8 DestroyApplication(Application* application) = 0;
 
 		virtual Time* GetTime() = 0;
+
+		FORCE_INLINE PeripheralController* GetPeripheralController() { return mpPeripheralController; }
 	};
 }

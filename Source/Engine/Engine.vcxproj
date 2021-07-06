@@ -166,7 +166,10 @@
   <ItemGroup>
     <ClInclude Include="src\application\ApplicationModule.h" />
     <ClInclude Include="src\application\GameModule.h" />
+    <ClInclude Include="src\entity\basic\Transform.h" />
+    <ClInclude Include="src\graphics\component\MeshComponent.h" />
     <ClInclude Include="src\input\InputAction.h" />
+    <ClInclude Include="src\input\InputEvents.h" />
     <ClInclude Include="src\input\InputModule.h" />
     <ClInclude Include="src\graphics\Buffer.h" />
     <ClInclude Include="src\graphics\CommandBuffer.h" />
@@ -212,6 +215,9 @@
     <ClInclude Include="src\object\UniformData.h" />
     <ClInclude Include="src\platform\Application.h" />
     <ClInclude Include="src\platform\DebugConsole.h" />
+    <ClInclude Include="src\platform\Peripheral.h" />
+    <ClInclude Include="src\platform\PeripheralController.h" />
+    <ClInclude Include="src\platform\PeripheralEvent.h" />
     <ClInclude Include="src\platform\Time.h" />
     <ClInclude Include="src\platform\Platform.h" />
     <ClInclude Include="src\platform\Window.h" />
@@ -221,6 +227,7 @@
     <ClCompile Include="src\application\ApplicationModule.cpp" />
     <ClCompile Include="src\application\GameModule.cpp" />
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\entity\basic\Transform.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
     <ClCompile Include="src\graphics\Buffer.cpp" />
     <ClCompile Include="src\graphics\CommandBuffer.cpp" />
@@ -236,6 +243,7 @@
     <ClCompile Include="src\graphics\Viewport.cpp" />
     <ClCompile Include="src\graphics\Framebuffer.cpp" />
     <ClCompile Include="src\graphics\RenderPass.cpp" />
+    <ClCompile Include="src\input\InputModule.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\loaders\ImageLoader.cpp" />
     <ClCompile Include="src\loaders\OBJLoader.cpp" />

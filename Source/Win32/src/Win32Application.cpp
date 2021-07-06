@@ -4,6 +4,10 @@
 #include "Win32Util.h"
 #include "log/Log.h"
 
+#include "Engine.h"
+
+#include "Dbt.h"
+
 namespace Quartz
 {
 	Win32Application::Win32Application(const ApplicationInfo& info, const Win32ApplicationInfo& win32info)
@@ -42,6 +46,7 @@ namespace Quartz
 	LRESULT CALLBACK Win32Application::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Win32Application* pApp = (Win32Application*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+		Engine* pEngine = Engine::GetInstance();
 
 		if (pApp != nullptr)
 		{
@@ -51,6 +56,16 @@ namespace Quartz
 			{
 				switch (uMsg)
 				{
+				case WM_DEVICECHANGE:
+				{
+					if (wParam == DBT_DEVNODES_CHANGED)
+					{
+						pEngine->GetPlatform()->GetPeripheralController()->RescanPeripherals();
+					}
+
+					break;
+				}
+
 				case WM_KILLFOCUS:
 				{
 					/*
@@ -175,6 +190,14 @@ namespace Quartz
 
 					break;
 				}
+				case WM_CLOSE:
+				{
+					WindowCloseEvent closeEvent;
+					closeEvent.pWindow = pWindow;
+					pEngine->GetEventSystem()->Publish(closeEvent, EVENT_PRIORITY_IMMEDIATE);
+					break;
+				}
+
 				case WM_DESTROY:
 				{
 					//pApp->ReleaseCursor();

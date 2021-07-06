@@ -33,8 +33,16 @@ namespace Quartz
 			EventDispatchFunc<EventType, Scope> mDispatchFunc;
 
 		public:
-			EventDispatch(Scope* pInstance, EventDispatchFunc<EventType, Scope> dispatch);
-			Bool8 operator() (const EventType& event) override;
+			EventDispatch(Scope* pInstance, EventDispatchFunc<EventType, Scope> dispatch)
+			{
+				mpInstance = pInstance;
+				mDispatchFunc = dispatch;
+			}
+
+			Bool8 operator() (const EventType& event) override
+			{
+				return (mpInstance->*mDispatchFunc)(event);
+			}
 		};
 
 		struct DispatchBucket
@@ -43,7 +51,10 @@ namespace Quartz
 			IEventDispatch*	pDispatch;
 		};
 
-		void Dispatch(const EventBase* pEvent) override;
+		void Dispatch(const EventBase* pEvent) override
+		{
+			this->Dispatch(static_cast<const EventType&>(*pEvent));
+		}
 
 	private:
 		Array<IEventDispatch> mDispatchBuffer;
@@ -51,57 +62,27 @@ namespace Quartz
 
 	public:
 		template<typename Scope>
-		void Subscribe(UInt32 priority, Scope* pInstance, EventDispatchFunc<EventType, Scope>& dispatchFunc);
-
-		void Dispatch(const EventType& event);
-	};
-
-	template<typename EventType>
-	template<typename Scope>
-	EventDispatcher<EventType>::EventDispatch<Scope>::
-		EventDispatch(Scope* pInstance, EventDispatchFunc<EventType, Scope> dispatch)
-	{
-		mpInstance = pInstance;
-		mDispatchFunc = dispatch;
-	}
-
-	template<typename EventType>
-	template<typename Scope>
-	Bool8 EventDispatcher<EventType>::EventDispatch<Scope>::
-		operator() (const EventType& event)
-	{
-		return (mpInstance->*mDispatchFunc)(event);
-	}
-
-	template<typename EventType>
-	void EventDispatcher<EventType>::Dispatch(const EventBase* pEvent)
-	{
-		this->Dispatch(static_cast<const EventType&>(*pEvent));
-	}
-
-	template<typename EventType>
-	template<typename Scope>
-	void EventDispatcher<EventType>::Subscribe(UInt32 priority, Scope* pInstance, EventDispatchFunc<EventType, Scope>& dispatchFunc)
-	{
-		EventDispatch<Scope>* pEventDispatch = new EventDispatch<Scope>(pInstance, dispatchFunc); // Allocate in buffer
-		mDispatchQueue.PushBack(DispatchBucket{ priority, pEventDispatch });
-	}
-
-	template<typename EventType>
-	void EventDispatcher<EventType>::Dispatch(const EventType& event)
-	{
-		for (UInt32 i = 0; i < mDispatchQueue.Size(); i++)
+		void Subscribe(Scope* pInstance, EventDispatchFunc<EventType, Scope>& dispatchFunc, UInt32 priority)
 		{
-			IEventDispatch* pDispatch = mDispatchQueue[i].pDispatch;
+			EventDispatch<Scope>* pEventDispatch = new EventDispatch<Scope>(pInstance, dispatchFunc); // Allocate in buffer
+			mDispatchQueue.PushBack(DispatchBucket{ priority, pEventDispatch });
+		}
 
-			if (!(*pDispatch)(event))
+		void Dispatch(const EventType& event)
+		{
+			for (UInt32 i = 0; i < mDispatchQueue.Size(); i++)
 			{
-				// dispatch returned false
-				// do not send message to any other system
-				break;
+				IEventDispatch* pDispatch = mDispatchQueue[i].pDispatch;
+
+				if (!(*pDispatch)(event))
+				{
+					// dispatch returned false
+					// do not send message to any other system
+					break;
+				}
 			}
 		}
-	}
+	};
 }
 
 

@@ -26,8 +26,10 @@ namespace Quartz
 	private:
 		struct EventBucket
 		{
-			UInt32 priority;
-			const EventBase* pEvent;
+			UInt32				priority;
+			EventTypeId			typeId;
+			EventBufferBase*	pEventBuffer;
+			UInt32				index;
 		};
 
 	private:
@@ -44,7 +46,7 @@ namespace Quartz
 		void Update(Float32 delta) override;
 
 		template<typename EventType>
-		void Publish(UInt32 priority, const EventType& event)
+		void Publish(const EventType& event, UInt32 priority = EVENT_PRIORITY_MEDIUM)
 		{
 			const EventTypeId typeId = EventType::GetStaticEventTypeId();
 			EventDispatcherBase** ppDispatcherBase = mDispatchers.Get(typeId);
@@ -77,14 +79,14 @@ namespace Quartz
 				}
 
 				EventBuffer<EventType>* pEventBuffer = static_cast<EventBuffer<EventType>*>(pEventBufferBase);
-				const EventBase* pStoredEvent = static_cast<const EventBase*>(pEventBuffer->Store(event));
+				UInt32 index = pEventBuffer->Store(event);
 
-				mEventQueue.PushBack(EventBucket{ priority, pStoredEvent });
+				mEventQueue.PushBack(EventBucket{ priority, typeId, pEventBuffer, index });
 			}
 		}
 
 		template<typename EventType, typename Scope /* Implicit */>
-		void Subscribe(UInt32 priority, Scope* pInstance, EventDispatchFunc<EventType, Scope> dispatchFunc)
+		void Subscribe(Scope* pInstance, EventDispatchFunc<EventType, Scope> dispatchFunc, UInt32 priority = SUBSCTIPTION_PRIORITY_MEDIUM)
 		{
 			const EventTypeId typeId = EventType::GetStaticEventTypeId();
 			EventDispatcherBase** ppDispatcherBase = mDispatchers.Get(typeId);
@@ -101,7 +103,7 @@ namespace Quartz
 			}
 
 			EventDispatcher<EventType>* pDispatcher = static_cast<EventDispatcher<EventType>*>(pDispatcherBase);
-			pDispatcher->Subscribe(priority, pInstance, dispatchFunc);
+			pDispatcher->Subscribe(pInstance, dispatchFunc, priority);
 		}
 
 		void DispatchEvents();

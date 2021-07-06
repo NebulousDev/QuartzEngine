@@ -1,19 +1,36 @@
 #pragma once
 
 #include "../Module.h"
+#include "../platform/Application.h"
+
+#include "../input/InputEvents.h"
+#include "../platform/PeripheralEvent.h"
 
 namespace Quartz
 {
 	class Application;
 	class Window;
 	class Scene;
+	class Surface;
+	class Renderer;
+	class Context;
 
 	class QUARTZ_API Game : public Module
 	{
 	private:
-		Application*	pGameApp;
-		Window*			pGameWindow;
-		Scene*			pGameScene;
+		Application*	mpGameApp;
+		Window*			mpGameWindow;
+		Scene*			mpGameScene;
+		Surface*		mpSurface;
+		Renderer*		mpRenderer;
+		Context*		mpGameViewport;
+
+		Bool8 OnWindowClose(const WindowCloseEvent& event);
+
+		Bool8 OnPlayerMove(const InputActionEvent& event);
+		Bool8 OnPlayerLook(const InputActionEvent& event);
+
+		Bool8 OnPeripheralConnection(const PeripheralEvent& event);
 
 	public:
 		Game();

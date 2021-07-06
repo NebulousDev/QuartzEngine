@@ -106,7 +106,7 @@ namespace Quartz
 		}
 	}
 
-	void CaptureMouseCallback(HVPInputMouse mouse, UInt32 button, InputActions actions, Float32 value)
+	void CaptureMouseCallback(HVPInputMouse mouse, UInt32 button, ButtonActions actions, Float32 value)
 	{
 		Bounds2i bounds = gpWindow->GetBounds();
 		RECT* clip = new RECT{ bounds.start.x, bounds.start.y, bounds.end.x, bounds.end.y };
@@ -119,7 +119,7 @@ namespace Quartz
 		}
 	}
 
-	void MoveCameraCallback(HVPInputKeyboard keyboard, UInt32 key, InputActions actions, Float32 value)
+	void MoveCameraCallback(HVPInputKeyboard keyboard, UInt32 key, ButtonActions actions, Float32 value)
 	{
 		if (key == 1 && (actions & ACTION_PRESSED)) // Escape
 		{

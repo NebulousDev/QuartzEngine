@@ -1,10 +1,16 @@
 #pragma once
 
 #include "Window.h"
+#include "../event/Event.h"
 #include "util/Array.h"
 
 namespace Quartz
 {
+	struct WindowCloseEvent : public Event<WindowCloseEvent>
+	{
+		Window* pWindow;
+	};
+
 	struct ApplicationInfo
 	{
 		StringW name;

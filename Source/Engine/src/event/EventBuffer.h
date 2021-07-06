@@ -8,7 +8,8 @@ namespace Quartz
 	class EventBufferBase
 	{
 	public:
-		virtual void Clear() = 0;
+		virtual void		Clear() = 0;
+		virtual EventBase*	GetEvent(UInt32 index) = 0;
 	};
 
 	template<typename EventType>
@@ -20,27 +21,26 @@ namespace Quartz
 	public:
 		/** 
 			Store an event in the Queue
-			Returns a pointer to the stored event
+			Returns an index to the stored event
 		*/
-		const EventType* Store(const EventType& event);
+		UInt32 Store(const EventType& event)
+		{
+			mEvents.PushBack(event);
+			return mEvents.Size() - 1;
+		}
 
 		/** 
 			Clears the event buffer
 			WARNING: Invalidates all pointers
 		*/
-		void Clear() override;
+		void Clear() override
+		{
+			mEvents.Clear();
+		}
+
+		EventType* GetEvent(UInt32 index) override
+		{
+			return &mEvents[index];
+		}
 	};
-
-	template<typename EventType>
-	const EventType* EventBuffer<EventType>::Store(const EventType& event)
-	{
-		mEvents.PushBack(event);
-		return &(mEvents[mEvents.Size() - 1]);
-	}
-
-	template<typename EventType>
-	void EventBuffer<EventType>::Clear()
-	{
-		mEvents.Clear();
-	}
 }
