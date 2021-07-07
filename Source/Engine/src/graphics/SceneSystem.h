@@ -13,12 +13,16 @@ namespace Quartz
 	private:
 		String		mName;
 		EntityWorld mWorld;
+		Entity		mCamera;
 
 	public:
 		Scene(const String& name);
 
+		void SetCamera(Entity entity);
+
 		FORCE_INLINE const String&	GetName() const { return mName; }
 		FORCE_INLINE EntityWorld&	GetWorld() { return mWorld; }
+		FORCE_INLINE Entity			GetCamera() { return mCamera; }
 	};
 
 	class QUARTZ_API SceneManager : public Module

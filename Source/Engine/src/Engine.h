@@ -46,6 +46,7 @@ namespace Quartz
 		Time*				mpTime;
 		Float32				mCurrentTPS;
 		Float32				mCurrentUPS;
+		Float32				mDelta;
 
 		Graphics*			mpGraphics;
 		Platform*			mpPlatform;
@@ -80,6 +81,8 @@ namespace Quartz
 
 		FORCE_INLINE const GameInfo&	GetGameInfo() { return mGameInfo; };
 		FORCE_INLINE Bool8				IsRunning() { return mRunning; };
+
+		FORCE_INLINE Float32			GetDelta() { return mDelta; }
 
 		FORCE_INLINE ApplicationManager*	GetApplicationManager() { return mpApplicationManager; }
 		FORCE_INLINE EventSystem*			GetEventSystem() { return mpEventSystem; }

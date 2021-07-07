@@ -6,6 +6,8 @@
 #include "../input/InputEvents.h"
 #include "../platform/PeripheralEvent.h"
 
+#include "../entity/Entity.h"
+
 namespace Quartz
 {
 	class Application;
@@ -24,6 +26,10 @@ namespace Quartz
 		Surface*		mpSurface;
 		Renderer*		mpRenderer;
 		Context*		mpGameViewport;
+
+		Entity mCamera;
+		Entity mEntity1;
+		Entity mEntity2;
 
 		Bool8 OnWindowClose(const WindowCloseEvent& event);
 

@@ -1719,7 +1719,7 @@ namespace Quartz
 			VulkanSwapchain* pVulkanSwapchain = pVulkanContext->GetSwapchain();
 			
 			pVulkanSwapchain->AdvanceFrame();
-			pContext->GetRenderer()->Render(pContext, nullptr);
+			pContext->GetRenderer()->Render(pContext, pContext->GetScene());
 			pVulkanSwapchain->Present();
 		}
 	}

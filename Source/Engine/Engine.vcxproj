@@ -167,7 +167,8 @@
     <ClInclude Include="src\application\ApplicationModule.h" />
     <ClInclude Include="src\application\GameModule.h" />
     <ClInclude Include="src\entity\basic\Transform.h" />
-    <ClInclude Include="src\graphics\component\MeshComponent.h" />
+    <ClInclude Include="src\graphics\component\Camera.h" />
+    <ClInclude Include="src\graphics\component\Mesh.h" />
     <ClInclude Include="src\input\InputAction.h" />
     <ClInclude Include="src\input\InputEvents.h" />
     <ClInclude Include="src\input\InputModule.h" />

@@ -18,8 +18,55 @@ namespace Quartz
 		// Nothing
 	}
 
+	void InputSystem::PreUpdate(Float32 delta)
+	{
+		for (auto& actionState : mActionStates)
+		{
+			if (actionState.value.action == INPUT_ACTION_ACTIVE)
+			{
+				actionState.value.action = INPUT_ACTION_NONE;
+			}
+			else if (actionState.value.action == INPUT_ACTION_RELEASED)
+			{
+				actionState.value.action = actionState.value.action & ~INPUT_ACTION_RELEASED;
+			}
+		}
+	}
+
+	void UpdateActionState(InputActions& actionsState, InputActions actions)
+	{
+		constexpr UInt32 INPUT_PRESSED_OR_RELEASED = INPUT_ACTION_PRESSED | INPUT_ACTION_RELEASED;
+
+		if (actionsState & INPUT_ACTION_ANY_UP || actionsState == INPUT_ACTION_NONE)
+		{
+			if (actions & INPUT_ACTION_ANY_DOWN)
+			{
+				actionsState = INPUT_ACTION_DOWN | INPUT_ACTION_PRESSED;
+			}
+			else
+			{
+				actionsState = INPUT_ACTION_UP;
+			}
+		}
+		else if (actionsState & INPUT_ACTION_ANY_DOWN)
+		{
+			if (actions & INPUT_ACTION_ANY_DOWN)
+			{
+				actionsState = INPUT_ACTION_DOWN | INPUT_ACTION_REPEAT;
+			}
+			else
+			{
+				actionsState = INPUT_ACTION_UP | INPUT_ACTION_RELEASED;
+			}
+		}
+		else
+		{
+			actionsState = actions;
+		}
+	}
+
 	void InputSystem::BindKeyboardInputAction(const String& name, Keyboard* pKeyboard, UInt32 key, 
-		ButtonActions actions, const Vector3& direction, Float32 value)
+		InputActions actions, const Vector3& axis, Float32 value)
 	{
 		InputKey inputKey;
 		inputKey.pPeripheral	= pKeyboard;
@@ -29,14 +76,14 @@ namespace Quartz
 
 		InputBinding inputBinding;
 		inputBinding.name		= name;
-		inputBinding.direction	= direction;
+		inputBinding.axis		= axis;
 		inputBinding.value		= value;
 
 		mBindings[inputKey].PushBack(inputBinding);
 	}
 
 	void InputSystem::BindMouseButtonInputAction(const String& name, Mouse* pMouse, UInt32 button, 
-		ButtonActions actions, const Vector3& direction, Float32 value)
+		InputActions actions, const Vector3& axis, Float32 value)
 	{
 		InputKey inputKey;
 		inputKey.pPeripheral	= pMouse;
@@ -46,7 +93,7 @@ namespace Quartz
 
 		InputBinding inputBinding;
 		inputBinding.name		= name;
-		inputBinding.direction	= direction;
+		inputBinding.axis		= axis;
 		inputBinding.value		= value;
 
 		mBindings[inputKey].PushBack(inputBinding);
@@ -62,7 +109,7 @@ namespace Quartz
 
 		InputBinding inputBinding;
 		inputBinding.name		= name;
-		inputBinding.direction	= { 0.0f, 0.0f, 0.0f };
+		inputBinding.axis		= { 0.0f, 0.0f, 0.0f };
 		inputBinding.value		= 0.0f;
 
 		mBindings[inputKey].PushBack(inputBinding);
@@ -78,19 +125,22 @@ namespace Quartz
 
 		InputBinding inputBinding;
 		inputBinding.name		= name;
-		inputBinding.direction	= { 0.0f, 0.0f, 0.0f };
+		inputBinding.axis		= { 0.0f, 0.0f, 0.0f };
 		inputBinding.value		= value;
 
 		mBindings[inputKey].PushBack(inputBinding);
 	}
 
-	void InputSystem::TriggerKeyboardInputAction(Keyboard* pKeyboard, UInt32 key, ButtonActions actions)
+	void InputSystem::TriggerKeyboardInputAction(Keyboard* pKeyboard, UInt32 key, InputActions actions)
 	{
+		InputActions& peripheralState = mStates[(PeripheralHandle)pKeyboard].buttons[key];
+		UpdateActionState(peripheralState, actions);
+
 		InputKey inputKey;
 		inputKey.pPeripheral	= pKeyboard;
 		inputKey.type			= PERIPHERAL_KEY_TYPE_KEYBOARD;
 		inputKey.id				= key;
-		inputKey.actions		= actions;
+		inputKey.actions		= peripheralState;
 
 		Array<InputBinding>* bindings = mBindings.Get(inputKey);
 
@@ -98,7 +148,13 @@ namespace Quartz
 		{
 			for (InputBinding binding : *bindings)
 			{
-				TriggerInputAction(binding.name, binding.direction, binding.value);
+				ActionState& actionsState = mActionStates[binding.name];
+				actionsState.axis	= binding.axis;
+				actionsState.value	= binding.value;
+
+				UpdateActionState(actionsState.action, actions);
+
+				TriggerInputAction(binding.name, binding.axis, binding.value);
 			}
 		}
 
@@ -111,18 +167,27 @@ namespace Quartz
 		{
 			for (InputBinding binding : *bindings)
 			{
-				TriggerInputAction(binding.name, binding.direction, binding.value);
+				ActionState& actionsState = mActionStates[binding.name];
+				actionsState.axis	= binding.axis;
+				actionsState.value	= binding.value;
+
+				UpdateActionState(actionsState.action, actions);
+
+				TriggerInputAction(binding.name, binding.axis, binding.value);
 			}
 		}
 	}
 
-	void InputSystem::TriggerMouseButtonInputAction(Mouse* pMouse, UInt32 button, ButtonActions actions)
+	void InputSystem::TriggerMouseButtonInputAction(Mouse* pMouse, UInt32 button, InputActions actions)
 	{
+		InputActions& actionsState = mStates[(PeripheralHandle)pMouse].buttons[button];
+		UpdateActionState(actionsState, actions);
+
 		InputKey inputKey;
 		inputKey.pPeripheral	= pMouse;
 		inputKey.type			= PERIPHERAL_KEY_TYPE_MOUSE_BUTTON;
 		inputKey.id				= button;
-		inputKey.actions		= actions;
+		inputKey.actions		= actionsState;
 
 		Array<InputBinding>* bindings = mBindings.Get(inputKey);
 
@@ -130,7 +195,13 @@ namespace Quartz
 		{
 			for (InputBinding binding : *bindings)
 			{
-				TriggerInputAction(binding.name, binding.direction, binding.value);
+				ActionState& actionsState = mActionStates[binding.name];
+				actionsState.axis	= binding.axis;
+				actionsState.value	= binding.value;
+
+				UpdateActionState(actionsState.action, actions);
+
+				TriggerInputAction(binding.name, binding.axis, binding.value);
 			}
 		}
 
@@ -143,13 +214,23 @@ namespace Quartz
 		{
 			for (InputBinding binding : *bindings)
 			{
-				TriggerInputAction(binding.name, binding.direction, binding.value);
+				ActionState& actionsState = mActionStates[binding.name];
+				actionsState.axis	= binding.axis;
+				actionsState.value	= binding.value;
+
+				UpdateActionState(actionsState.action, actions);
+
+				TriggerInputAction(binding.name, binding.axis, binding.value);
 			}
 		}
 	}
 
 	void InputSystem::TriggerMouseMoveInputAction(Mouse* pMouse, const Vector2& relative)
 	{
+		Vector3& axisState = mStates[(PeripheralHandle)pMouse].axis[0];
+		Float32 value = relative.Magnitude();
+		axisState = Vector3(relative.Normalized(), 0.0f);
+
 		InputKey inputKey;
 		inputKey.pPeripheral	= pMouse;
 		inputKey.type			= PERIPHERAL_KEY_TYPE_MOUSE_MOVE;
@@ -162,8 +243,12 @@ namespace Quartz
 		{
 			for (InputBinding binding : *bindings)
 			{
-				Vector3 direction(relative.Normalized(), 0.0f);
-				TriggerInputAction(binding.name, direction, relative.Magnitude());
+				ActionState& actionsState = mActionStates[binding.name];
+				actionsState.action = INPUT_ACTION_ACTIVE;
+				actionsState.axis	= axisState;
+				actionsState.value	= value;
+
+				TriggerInputAction(binding.name, axisState, value);
 			}
 		}
 
@@ -176,8 +261,12 @@ namespace Quartz
 		{
 			for (InputBinding binding : *bindings)
 			{
-				Vector3 direction(relative.Normalized(), 0.0f);
-				TriggerInputAction(binding.name, direction, relative.Magnitude());
+				ActionState& actionsState = mActionStates[binding.name];
+				actionsState.action = INPUT_ACTION_ACTIVE;
+				actionsState.axis	= axisState;
+				actionsState.value	= value;
+
+				TriggerInputAction(binding.name, axisState, value);
 			}
 		}
 	}
@@ -187,14 +276,125 @@ namespace Quartz
 
 	}
 
-	void InputSystem::TriggerInputAction(const String& name, const Vector3& direction, Float32 value)
+	void InputSystem::TriggerInputAction(const String& name, const Vector3& axis, Float32 value)
 	{
 		InputActionEvent event;
 		event.name		= name;
-		event.direction = direction;
+		event.axis		= axis;
 		event.value		= value;
 
 		Engine::GetInstance()->GetEventSystem()->Publish<InputActionEvent>(event);
+	}
+
+	Bool8 InputSystem::IsInputActionDown(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			if (pState->action & INPUT_ACTION_ANY_DOWN)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	Bool8 InputSystem::IsInputActionUp(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			if (pState->action & INPUT_ACTION_ANY_UP)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	Bool8 InputSystem::IsInputActionPressed(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			if (pState->action & INPUT_ACTION_PRESSED)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	Bool8 InputSystem::IsInputActionReleased(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			if (pState->action & INPUT_ACTION_RELEASED)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	Bool8 InputSystem::IsInputActionAxisActive(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			if (pState->action == INPUT_ACTION_ACTIVE)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	Vector3 InputSystem::GetInputActionAxis(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			return pState->axis;
+		}
+
+		return { 0.0f, 0.0f, 0.0f };
+	}
+
+	Float32 InputSystem::GetInputActionValue(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			return pState->value;
+		}
+
+		return 0.0f;
+	}
+
+	ActionState InputSystem::GetInputAction(const String& name)
+	{
+		const ActionState* pState = mActionStates.Get(name);
+
+		if (pState)
+		{
+			return *pState;
+		}
+
+		return ActionState();
 	}
 }
 

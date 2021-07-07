@@ -13,6 +13,16 @@ namespace Quartz
 	#define INPUT_ANY_MOUSE			nullptr
 	#define INPUT_ANY_CONTROLLER	nullptr
 
+	#define INPUT_MAX_PERIPHERAL_BUTTONS	128
+	#define INPUT_MAX_PERIPHERAL_AXIS		8
+
+	struct QUARTZ_API ActionState
+	{
+		InputActions	action;
+		Vector3			axis;
+		Float32			value;
+	};
+
 	class QUARTZ_API InputSystem : public Module
 	{
 	private:
@@ -31,7 +41,7 @@ namespace Quartz
 			Peripheral*			pPeripheral;
 			PeripheralKeyType	type;
 			UInt32				id;
-			ButtonActions		actions;
+			InputActions		actions;
 
 			FORCE_INLINE Bool8 operator==(const InputKey& key)
 			{
@@ -47,29 +57,52 @@ namespace Quartz
 		struct InputBinding
 		{
 			String	name;
-			Vector3 direction;
+			Vector3 axis;
 			Float32 value;
 		};
 
+		struct PeripheralState
+		{
+			InputActions	buttons[INPUT_MAX_PERIPHERAL_BUTTONS];
+			Vector3			axis[INPUT_MAX_PERIPHERAL_AXIS];
+		};
+
+		typedef Handle64 PeripheralHandle;
+
 	private:
-		Map<InputKey, Array<InputBinding>> mBindings;
+		Map<InputKey, Array<InputBinding>>		mBindings;
+		Map<PeripheralHandle, PeripheralState>	mStates;
+		Map<String, ActionState>				mActionStates;
 
 	public:
 		InputSystem();
 
+		void PreUpdate(Float32 delta) override;
+
 		void BindKeyboardInputAction(const String& name, Keyboard* pKeyboard, UInt32 key, 
-			ButtonActions actions, const Vector3& direction, Float32 value);
+			InputActions actions, const Vector3& axis, Float32 value);
 		void BindMouseButtonInputAction(const String& name, Mouse* pMouse, UInt32 button, 
-			ButtonActions actions, const Vector3& direction, Float32 value);
+			InputActions actions, const Vector3& axis, Float32 value);
 		void BindMouseMoveInputAction(const String& name, Mouse* pMouse);
 		void BindMouseScrollInputAction(const String& name, Mouse* pMouse, 
 			MouseWheelActions actions, Float32 value);
 
-		void TriggerKeyboardInputAction(Keyboard* pKeyboard, UInt32 key, ButtonActions actions);
-		void TriggerMouseButtonInputAction(Mouse* pMouse, UInt32 button, ButtonActions actions);
+		void TriggerKeyboardInputAction(Keyboard* pKeyboard, UInt32 key, InputActions actions);
+		void TriggerMouseButtonInputAction(Mouse* pMouse, UInt32 button, InputActions actions);
 		void TriggerMouseMoveInputAction(Mouse* pMouse, const Vector2& relative);
 		void TriggerMouseScrollInputAction(Mouse* pMouse, Float32 value, MouseWheelActions actions);
 
-		void TriggerInputAction(const String& name, const Vector3& direction, Float32 value);
+		void TriggerInputAction(const String& name, const Vector3& axis, Float32 value);
+
+		Bool8 IsInputActionDown(const String& name);
+		Bool8 IsInputActionUp(const String& name);
+		Bool8 IsInputActionPressed(const String& name);
+		Bool8 IsInputActionReleased(const String& name);
+
+		Bool8 IsInputActionAxisActive(const String& name);
+		Vector3 GetInputActionAxis(const String& name);
+		Float32 GetInputActionValue(const String& name);
+
+		ActionState GetInputAction(const String& name);
 	};
 }

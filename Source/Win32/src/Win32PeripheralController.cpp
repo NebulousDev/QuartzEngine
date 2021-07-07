@@ -467,7 +467,7 @@ namespace Quartz
 						if (inputData.data.mouse.usButtonFlags & j)
 						{
 							Engine::GetInstance()->GetInputSystem()->TriggerMouseButtonInputAction(
-								(Mouse*)pPeripheral, idx, BUTTON_ACTION_DOWN);
+								(Mouse*)pPeripheral, idx, INPUT_ACTION_DOWN);
 						}
 					}
 
@@ -477,7 +477,7 @@ namespace Quartz
 						if (inputData.data.mouse.usButtonFlags & j)
 						{
 							Engine::GetInstance()->GetInputSystem()->TriggerMouseButtonInputAction(
-								(Mouse*)pPeripheral, idx, BUTTON_ACTION_UP);
+								(Mouse*)pPeripheral, idx, INPUT_ACTION_UP);
 						}
 					}
 				}
@@ -492,7 +492,7 @@ namespace Quartz
 
 			else if (inputData.header.dwType == RIM_TYPEKEYBOARD)
 			{
-				ButtonActions actions = inputData.data.keyboard.Flags & RI_KEY_BREAK ? BUTTON_ACTION_UP : BUTTON_ACTION_DOWN;
+				InputActions actions = inputData.data.keyboard.Flags & RI_KEY_BREAK ? INPUT_ACTION_UP : INPUT_ACTION_DOWN;
 				Engine::GetInstance()->GetInputSystem()->TriggerKeyboardInputAction((Keyboard*)pPeripheral,
 					inputData.data.keyboard.MakeCode, actions);
 			}
@@ -592,7 +592,7 @@ namespace Quartz
 					if (mButtonInputCallbackFunc)
 					{
 						UInt32 buttonIdx = (pUsage[j] - pButtonCaps->Range.UsageMin);
-						mButtonInputCallbackFunc(deviceId, buttonIdx, BUTTON_STATE_DOWN);
+						mButtonInputCallbackFunc(deviceId, buttonIdx, INPUT_STATE_DOWN);
 					}
 
 					printf("Button: %d\n", pUsage[j]);

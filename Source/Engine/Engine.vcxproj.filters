@@ -186,7 +186,10 @@
     <ClInclude Include="src\entity\basic\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\component\MeshComponent.h">
+    <ClInclude Include="src\graphics\component\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\component\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

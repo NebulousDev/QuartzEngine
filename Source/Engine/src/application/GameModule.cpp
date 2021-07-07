@@ -4,14 +4,17 @@
 #include "../graphics/renderers/SimpleRenderer.h"
 #include "../log/Log.h"
 
+#include "../entity/basic/Transform.h"
+#include "../graphics/component/Camera.h"
+
 namespace Quartz
 {
 	/*=====================================
 		WINDOW/GRAPHICS PROPERITES
 	=====================================*/
 
-	#define WINDOW_WIDTH	1280//1920
-	#define WINDOW_HEIGHT	720//1080
+	#define WINDOW_WIDTH	1920
+	#define WINDOW_HEIGHT	1080
 
     Game::Game()
         : Module({ L"Game" }),
@@ -26,34 +29,6 @@ namespace Quartz
 		if (event.pWindow == mpGameWindow)
 		{
 			Engine::GetInstance()->RequestShutdown();
-		}
-
-		return true;
-	}
-
-	Bool8 Game::OnPlayerMove(const InputActionEvent& event)
-	{
-		if (event.name == "PlayerMove")
-		{
-			Log::Critical("PLAYER MOVE: { %.2f, %.2f, %.2f }, %.2f", 
-				event.direction.x, event.direction.y, event.direction.z, event.value);
-		}
-
-		return true;
-	}
-
-	Bool8 Game::OnPlayerLook(const InputActionEvent& event)
-	{
-		if (event.name == "PlayerLook")
-		{
-			//Log::Critical("PLAYER LOOK: { %.2f, %.2f }, %.2f",
-			//	event.direction.x, event.direction.y, event.value);
-		}
-
-		else if (event.name == "MouseWheel")
-		{
-			Log::Critical("MOUSE WHEEL: %.2f",
-				event.direction.x, event.direction.y, event.value);
 		}
 
 		return true;
@@ -108,6 +83,17 @@ namespace Quartz
 		/* Create Game Scene */
 
 		mpGameScene = pSceneManager->CreateScene("TestScene");
+		
+		mCamera = mpGameScene->GetWorld().CreateEntity
+		(
+			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			CameraComponent{ Matrix4().SetPerspective(ToRadians(80.0f), 1920.0f / 1080.0f, 0.001f, 1000.0f) }
+		);
+
+		mpGameScene->SetCamera(mCamera);
+
+		mEntity1 = mpGameScene->GetWorld().CreateEntity(TransformComponent());
+		mEntity2 = mpGameScene->GetWorld().CreateEntity(TransformComponent());
 
 		/* Create Rendered Context */
 
@@ -117,30 +103,71 @@ namespace Quartz
 
 		/* Bind Input Actions */
 
-		pInputSystem->BindKeyboardInputAction("PlayerMove", INPUT_ANY_KEYBOARD, 17 /* W */, BUTTON_ACTION_ANY_DOWN, {  0.0f,  0.0f,  1.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMove", INPUT_ANY_KEYBOARD, 31 /* S */, BUTTON_ACTION_ANY_DOWN, {  0.0f,  0.0f, -1.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMove", INPUT_ANY_KEYBOARD, 30 /* A */, BUTTON_ACTION_ANY_DOWN, { -1.0f,  0.0f,  0.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMove", INPUT_ANY_KEYBOARD, 32 /* D */, BUTTON_ACTION_ANY_DOWN, {  1.0f,  0.0f,  0.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveForward",	INPUT_ANY_KEYBOARD, 17 /* W */, INPUT_ACTION_ANY, {  0.0f,  0.0f,  1.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveBackward", INPUT_ANY_KEYBOARD, 31 /* S */, INPUT_ACTION_ANY, {  0.0f,  0.0f, -1.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveLeft",		INPUT_ANY_KEYBOARD, 30 /* A */, INPUT_ACTION_ANY, { -1.0f,  0.0f,  0.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveRight",	INPUT_ANY_KEYBOARD, 32 /* D */, INPUT_ACTION_ANY, {  1.0f,  0.0f,  0.0f }, 1.0f);
 		
 		pInputSystem->BindMouseMoveInputAction("PlayerLook", INPUT_ANY_MOUSE);
 
 		/* Register Callbacks */
 
 		pEventSystem->Subscribe<WindowCloseEvent>(this, &Game::OnWindowClose);
-		pEventSystem->Subscribe<InputActionEvent>(this, &Game::OnPlayerMove);
-		pEventSystem->Subscribe<InputActionEvent>(this, &Game::OnPlayerLook);
 		pEventSystem->Subscribe<PeripheralEvent>(this, &Game::OnPeripheralConnection);
-
-		pInputSystem->TriggerInputAction("PlayerMove", { }, 1.0f);
-		pInputSystem->TriggerKeyboardInputAction((Keyboard*)5, 1, BUTTON_ACTION_DOWN);
-		pInputSystem->TriggerMouseMoveInputAction((Mouse*)10, { 10.0f, 12.0f });
 
         return true;
     }
 
 	void Game::Update(Float32 delta)
 	{
+		constexpr Float32 moveSpeed = 12.0f;
+		constexpr Float32 lookSpeed = 8.0f;
 
+		InputSystem* pInputSystem = Engine::GetInstance()->GetInputSystem();
+
+		ActionState playerMoveForward	= pInputSystem->GetInputAction("PlayerMoveForward");
+		ActionState playerMoveBackward	= pInputSystem->GetInputAction("PlayerMoveBackward");
+		ActionState playerMoveLeft		= pInputSystem->GetInputAction("PlayerMoveLeft");
+		ActionState playerMoveRight		= pInputSystem->GetInputAction("PlayerMoveRight");
+
+		ActionState playerLook = pInputSystem->GetInputAction("PlayerLook");
+		
+		TransformComponent& transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mCamera);
+		Vector3 direction = { 0.0f, 0.0f, 0.0f };
+
+		if(playerMoveForward.action & INPUT_ACTION_ANY_DOWN)
+		{
+			direction += playerMoveForward.axis * playerMoveForward.value;
+		}
+
+		if (playerMoveBackward.action & INPUT_ACTION_ANY_DOWN)
+		{
+			direction += playerMoveBackward.axis * playerMoveBackward.value;
+		}
+
+		if (playerMoveLeft.action & INPUT_ACTION_ANY_DOWN)
+		{
+			direction += playerMoveLeft.axis * playerMoveLeft.value;
+		}
+
+		if (playerMoveRight.action & INPUT_ACTION_ANY_DOWN)
+		{
+			direction += playerMoveRight.axis * playerMoveRight.value;
+		}
+		
+		direction.Normalize();
+		direction = transform.rotation * direction;
+
+		transform.position += (direction * moveSpeed * delta);
+
+		if (playerLook.action & INPUT_ACTION_ACTIVE)
+		{
+			Vector3 left = transform.rotation * Vector3( 1.0f, 0.0f, 0.0f );
+			Vector3 up = { 0.0f, 1.0f, 0.0f };
+
+			transform.rotation *= Quaternion().SetAxisAngle(up, playerLook.axis.x * -playerLook.value * lookSpeed * delta)
+							    * Quaternion().SetAxisAngle(left, playerLook.axis.y * -playerLook.value * lookSpeed * delta);
+		}
 	}
 
     void Game::Tick(UInt32 ticks)

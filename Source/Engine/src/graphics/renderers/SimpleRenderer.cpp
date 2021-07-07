@@ -8,12 +8,15 @@
 
 #include "../../log/Log.h"
 
+#include "../component/Camera.h"
+#include "../../entity/basic/Transform.h"
+
 /*=====================================
 	SCENE RESOURCES
 =====================================*/
 
 #define MODEL_PATH		"assets/models/testScene.obj"
-#define MODEL_PATH2		"assets/models/dragon.obj"
+#define MODEL_PATH2		"assets/models/bunny.obj"
 #define DIFFUSE_PATH	"assets/textures/stone.png"
 #define NORMAL_PATH		"assets/textures/stone_normal.png"
 #define SPECULAR_PATH	"assets/textures/stone_specular.png"
@@ -233,10 +236,14 @@ namespace Quartz
 	{
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
 
+		TransformComponent& cameraTransform = pScene->GetWorld().GetComponent<TransformComponent>(pScene->GetCamera());
+		CameraComponent&	cameraCamera	= pScene->GetWorld().GetComponent<CameraComponent>(pScene->GetCamera());
+
 		// Fill uniform buffers
 		{
-			perFrameUbo.view	= Matrix4().SetTranslation({ 0.0f, 0.0f, 0.0f });
-			perFrameUbo.proj	= Matrix4().SetPerspective(90.0f, 1920.0f / 1080.0f, 0.001f, 1000.0f);
+			perFrameUbo.view = cameraTransform.GetMatrix();
+			perFrameUbo.proj = cameraCamera.perspective;
+
 			mpPerFrame->SetElement(pViewport, 0, &perFrameUbo);
 
 			for (UInt32 i = 0; i < 2; i++)

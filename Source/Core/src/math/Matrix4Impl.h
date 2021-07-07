@@ -52,9 +52,9 @@ FORCEINLINE Matrix4& Matrix4::SetTranslation(const Vector3& translation)
 	m00 = 1; m01 = 0; m02 = 0; m03 = 0;
 	m10 = 0; m11 = 1; m12 = 0; m13 = 0;
 	m20 = 0; m21 = 0; m22 = 1; m23 = 0;
-	m30 = translation.x; 
-	m31 = translation.y; 
-	m32 = translation.z; 
+	m30 = -translation.x; 
+	m31 = -translation.y; 
+	m32 = -translation.z; 
 	m33 = 1;
 	return *this;
 }

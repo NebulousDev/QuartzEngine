@@ -12,14 +12,14 @@ namespace Quartz
 	{
 		Keyboard*		pKeyboard;
 		UInt32			key;
-		ButtonAction	action;
+		InputAction	action;
 	};
 
 	struct RawMouseButtonEvent : public Event<RawMouseButtonEvent>
 	{
 		Mouse*			pMouse;
 		UInt32			button;
-		ButtonAction	action;
+		InputAction	action;
 	};
 
 	struct RawMouseMoveEvent : public Event<RawMouseMoveEvent>
@@ -32,7 +32,7 @@ namespace Quartz
 	struct InputActionEvent : public Event<InputActionEvent>
 	{
 		String	name;
-		Vector3 direction;
+		Vector3 axis;
 		Float32 value;
 	};
 }

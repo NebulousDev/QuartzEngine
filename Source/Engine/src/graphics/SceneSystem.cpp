@@ -8,6 +8,11 @@ namespace Quartz
 		// Nothing
 	}
 
+	void Scene::SetCamera(Entity entity)
+	{
+		mCamera = entity;
+	}
+
 	Quartz::SceneManager::SceneManager()
 		: Module({ L"Scene System" })
 	{

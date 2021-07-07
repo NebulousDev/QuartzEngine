@@ -6,11 +6,29 @@ namespace Quartz
 {
 	void Engine::Initialize(const EngineInfo& info)
 	{
+		/* Setup Info */
+
 		mGameInfo	= info.gameInfo;
 		mpGraphics	= info.pGraphicsModule;
 		mpPlatform	= info.pPlatformModule;
 		mpTime		= info.pPlatformModule->GetTime();
 		mTargetTPS	= info.targetTPS;
+
+		/* Setup Internal Modules */
+
+		mpApplicationManager	= new ApplicationManager();
+		mpEventSystem			= new EventSystem();
+		mpInputSystem			= new InputSystem();
+		mpSceneManager			= new SceneManager();
+
+		// mpGraphics is set in constructor
+
+		AddModule(mpApplicationManager);
+		AddModule(mpPlatform);
+		AddModule(mpInputSystem);
+		AddModule(mpSceneManager);
+		AddModule(mpGraphics);
+		AddModule(mpEventSystem);
 	}
 
 	Bool8 Engine::AddModule(Module* pModule)
@@ -32,22 +50,6 @@ namespace Quartz
 			Log::Warning("Attempted to call Start() while engine was running.");
 			return false;
 		}
-
-		/* Setup Internal Modules */
-
-		mpApplicationManager	= new ApplicationManager();
-		mpEventSystem			= new EventSystem();
-		mpInputSystem			= new InputSystem();
-		mpSceneManager			= new SceneManager();
-
-		// mpGraphics is set in constructor
-
-		AddModule(mpApplicationManager);
-		AddModule(mpEventSystem);
-		AddModule(mpInputSystem);
-		AddModule(mpSceneManager);
-		AddModule(mpGraphics);
-		AddModule(mpPlatform);
 
 		/* Pre-Init */
 
@@ -138,6 +140,8 @@ namespace Quartz
 			accumulatedTime		+= deltaTime;
 			accumulatedTickTime += deltaTime;
 
+			mDelta = deltaTime;
+
 			if (accumulatedTime >= 1.0)
 			{
 				mCurrentUPS = accumulatedUpdates;
@@ -169,7 +173,17 @@ namespace Quartz
 	{
 		for (Module* pModule : mModules)
 		{
+			pModule->PreUpdate(delta);
+		}
+
+		for (Module* pModule : mModules)
+		{
 			pModule->Update(delta);
+		}
+
+		for (Module* pModule : mModules)
+		{
+			pModule->PostUpdate(delta);
 		}
 	}
 
@@ -177,7 +191,17 @@ namespace Quartz
 	{
 		for (Module* pModule : mModules)
 		{
+			pModule->PreTick(tick);
+		}
+
+		for (Module* pModule : mModules)
+		{
 			pModule->Tick(tick);
+		}
+
+		for (Module* pModule : mModules)
+		{
+			pModule->PostTick(tick);
 		}
 	}
 
