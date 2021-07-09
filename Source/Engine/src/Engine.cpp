@@ -151,7 +151,7 @@ namespace Quartz
 				accumulatedTicks = 0;
 				accumulatedTime = 0;
 
-				//Log::Debug("UPS: %.2f, TPS: %.2f / %.2f", mCurrentUPS, mCurrentTPS, mTargetTPS);
+				Log::Debug("UPS: %.2f, TPS: %.2f / %.2f", mCurrentUPS, mCurrentTPS, mTargetTPS);
 			}
 
 			if (accumulatedTickTime >= (1.0 / mTargetTPS))

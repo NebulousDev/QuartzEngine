@@ -6,6 +6,7 @@
 
 #include "../entity/basic/Transform.h"
 #include "../graphics/component/Camera.h"
+#include "../graphics/component/Mesh.h"
 
 namespace Quartz
 {
@@ -15,6 +16,9 @@ namespace Quartz
 
 	#define WINDOW_WIDTH	1920
 	#define WINDOW_HEIGHT	1080
+
+	#define MODEL_PATH		"assets/models/testScene.obj"
+	#define MODEL_PATH2		"assets/models/bunny.obj"
 
     Game::Game()
         : Module({ L"Game" }),
@@ -92,8 +96,14 @@ namespace Quartz
 
 		mpGameScene->SetCamera(mCamera);
 
-		mEntity1 = mpGameScene->GetWorld().CreateEntity(TransformComponent());
-		mEntity2 = mpGameScene->GetWorld().CreateEntity(TransformComponent());
+		mEntity1 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent(MODEL_PATH));
+		mEntity2 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent(MODEL_PATH2));
+
+		mpGameScene->GetWorld().CreateEntity
+		(
+			TransformComponent({ 0.0f, 0.0f, 12.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			MeshComponent("assets/models/dragon.obj")
+		);
 
 		/* Create Rendered Context */
 
@@ -168,6 +178,12 @@ namespace Quartz
 			transform.rotation *= Quaternion().SetAxisAngle(up, playerLook.axis.x * -playerLook.value * lookSpeed * delta)
 							    * Quaternion().SetAxisAngle(left, playerLook.axis.y * -playerLook.value * lookSpeed * delta);
 		}
+
+		// Rotate Entity
+
+		TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
+		e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
+		
 	}
 
     void Game::Tick(UInt32 ticks)

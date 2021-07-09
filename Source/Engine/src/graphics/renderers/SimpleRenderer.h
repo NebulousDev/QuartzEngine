@@ -21,12 +21,6 @@ namespace Quartz
 		Shader* mpVertexShader;
 		Shader* mpFragmentShader;
 
-		Buffer* mpVertexBuffer;
-		Buffer* mpIndexBuffer;
-
-		Buffer* mpVertexBuffer2;
-		Buffer* mpIndexBuffer2;
-
 		struct PerFrameUBO
 		{
 			Matrix4 view;

@@ -8,15 +8,14 @@
 
 #include "../../log/Log.h"
 
-#include "../component/Camera.h"
 #include "../../entity/basic/Transform.h"
+#include "../component/Mesh.h"
+#include "../component/Camera.h"
 
 /*=====================================
 	SCENE RESOURCES
 =====================================*/
 
-#define MODEL_PATH		"assets/models/testScene.obj"
-#define MODEL_PATH2		"assets/models/bunny.obj"
 #define DIFFUSE_PATH	"assets/textures/stone.png"
 #define NORMAL_PATH		"assets/textures/stone_normal.png"
 #define SPECULAR_PATH	"assets/textures/stone_specular.png"
@@ -142,88 +141,14 @@ namespace Quartz
 			MESH BUFFERS
 		=====================================*/
 
-		Array<Byte> modelFileData	= ReadFile(MODEL_PATH);
-		String modelDataString		= String((char*)modelFileData.Data(), modelFileData.Size());
-		Model mModel				= LoadOBJ(modelDataString);
-
-		Array<Byte> modelFileData2	= ReadFile(MODEL_PATH2);
-		String modelDataString2		= String((char*)modelFileData2.Data(), modelFileData2.Size());
-		Model mModel2				= LoadOBJ(modelDataString2);
-
-		Buffer* pVertexStagingBuffer = pGraphics->CreateBuffer(
-			mModel.vertexData.buffer.Size(), 
-			BUFFER_USAGE_TRANSFER_SRC_BIT,
-			BUFFER_ACCESS_HOST_VISIBLE_BIT | BUFFER_ACCESS_HOST_COHERENT_BIT);
-
-		Buffer* pIndexStagingBuffer = pGraphics->CreateBuffer(
-			mModel.indexData.buffer.Size(),
-			BUFFER_USAGE_TRANSFER_SRC_BIT,
-			BUFFER_ACCESS_HOST_VISIBLE_BIT | BUFFER_ACCESS_HOST_COHERENT_BIT);
-
-		Buffer* pVertexStagingBuffer2 = pGraphics->CreateBuffer(
-			mModel2.vertexData.buffer.Size(),
-			BUFFER_USAGE_TRANSFER_SRC_BIT,
-			BUFFER_ACCESS_HOST_VISIBLE_BIT | BUFFER_ACCESS_HOST_COHERENT_BIT);
-
-		Buffer* pIndexStagingBuffer2 = pGraphics->CreateBuffer(
-			mModel2.indexData.buffer.Size(),
-			BUFFER_USAGE_TRANSFER_SRC_BIT,
-			BUFFER_ACCESS_HOST_VISIBLE_BIT | BUFFER_ACCESS_HOST_COHERENT_BIT);
-
-		mpVertexBuffer = pGraphics->CreateBuffer(
-			mModel.vertexData.buffer.Size(),
-			BUFFER_USAGE_VERTEX_BUFFER_BIT | BUFFER_USAGE_TRANSFER_DEST_BIT,
-			BUFFER_ACCESS_DEVICE_LOCAL_BIT);
-
-		mpIndexBuffer = pGraphics->CreateBuffer(
-			mModel.indexData.buffer.Size(),
-			BUFFER_USAGE_INDEX_BUFFER_BIT | BUFFER_USAGE_TRANSFER_DEST_BIT,
-			BUFFER_ACCESS_DEVICE_LOCAL_BIT);
-
-		mpVertexBuffer2 = pGraphics->CreateBuffer(
-			mModel2.vertexData.buffer.Size(),
-			BUFFER_USAGE_VERTEX_BUFFER_BIT | BUFFER_USAGE_TRANSFER_DEST_BIT,
-			BUFFER_ACCESS_DEVICE_LOCAL_BIT);
-
-		mpIndexBuffer2 = pGraphics->CreateBuffer(
-			mModel2.indexData.buffer.Size(),
-			BUFFER_USAGE_INDEX_BUFFER_BIT | BUFFER_USAGE_TRANSFER_DEST_BIT,
-			BUFFER_ACCESS_DEVICE_LOCAL_BIT);
-
-		void* pVertexData = pVertexStagingBuffer->MapBuffer(pVertexStagingBuffer->GetSize(), 0);
-		memcpy(pVertexData, mModel.vertexData.buffer.Data(), mModel.vertexData.buffer.Size());
-		pVertexStagingBuffer->UnmapBuffer();
-
-		void* pIndexData = pIndexStagingBuffer->MapBuffer(pIndexStagingBuffer->GetSize(), 0);
-		memcpy(pIndexData, mModel.indexData.buffer.Data(), mModel.indexData.buffer.Size());
-		pIndexStagingBuffer->UnmapBuffer();
-
-		void* pVertexData2 = pVertexStagingBuffer2->MapBuffer(pVertexStagingBuffer2->GetSize(), 0);
-		memcpy(pVertexData2, mModel2.vertexData.buffer.Data(), mModel2.vertexData.buffer.Size());
-		pVertexStagingBuffer2->UnmapBuffer();
-
-		void* pIndexData2 = pIndexStagingBuffer2->MapBuffer(pIndexStagingBuffer2->GetSize(), 0);
-		memcpy(pIndexData2, mModel2.indexData.buffer.Data(), mModel2.indexData.buffer.Size());
-		pIndexStagingBuffer2->UnmapBuffer();
-
-		pGraphics->CopyBuffer(pVertexStagingBuffer, mpVertexBuffer);
-		pGraphics->CopyBuffer(pIndexStagingBuffer, mpIndexBuffer);
-
-		pGraphics->CopyBuffer(pVertexStagingBuffer2, mpVertexBuffer2);
-		pGraphics->CopyBuffer(pIndexStagingBuffer2, mpIndexBuffer2);
-
-		pGraphics->DestroyBuffer(pVertexStagingBuffer);
-		pGraphics->DestroyBuffer(pIndexStagingBuffer);
-
-		pGraphics->DestroyBuffer(pVertexStagingBuffer2);
-		pGraphics->DestroyBuffer(pIndexStagingBuffer2);
+		// Moved to MeshComponents
 
 		/*=====================================
 			UNIFORM BUFFERS
 		=====================================*/
 
 		mpPerFrame	= pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerFrameUBO), 1, 0);
-		mpPerObject = pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerObjectUBO), 2, 0);
+		mpPerObject = pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerObjectUBO), 64, 0);
 
 		/*=====================================
 			COMMAND BUFFER
@@ -235,6 +160,9 @@ namespace Quartz
 	void SimpleRenderer::Render(Context* pViewport, Scene* pScene)
 	{
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
+		EntityWorld& world = pScene->GetWorld();
+
+		EntityView renderables = world.CreateView<TransformComponent, MeshComponent>();
 
 		TransformComponent& cameraTransform = pScene->GetWorld().GetComponent<TransformComponent>(pScene->GetCamera());
 		CameraComponent&	cameraCamera	= pScene->GetWorld().GetComponent<CameraComponent>(pScene->GetCamera());
@@ -246,10 +174,12 @@ namespace Quartz
 
 			mpPerFrame->SetElement(pViewport, 0, &perFrameUbo);
 
-			for (UInt32 i = 0; i < 2; i++)
+			UInt32 i = 0;
+			for (Entity entity : renderables)
 			{
-				perObjectUbo.model = Matrix4().SetIdentity();
-				mpPerObject->SetElement(pViewport, i, &perObjectUbo);
+				TransformComponent& transform = pScene->GetWorld().GetComponent<TransformComponent>(entity);
+				perObjectUbo.model = transform.GetMatrix();
+				mpPerObject->SetElement(pViewport, i++, &perObjectUbo);
 			}
 		}
 
@@ -260,15 +190,16 @@ namespace Quartz
 			mpCommandBuffer->SetPipeline(mpGraphicsPipeline);
 			mpCommandBuffer->BindUniform(0, 0, mpPerFrame, 0);
 
-				mpCommandBuffer->SetVertexBuffers({ mpVertexBuffer });
-				mpCommandBuffer->SetIndexBuffer(mpIndexBuffer);
-				mpCommandBuffer->BindUniform(1, 0, mpPerObject, 0);
-				mpCommandBuffer->DrawIndexed(mpIndexBuffer->GetSize() / sizeof(UInt32), 0);
+			UInt32 i = 0;
+			for (Entity entity : renderables)
+			{
+				MeshComponent& mesh = pScene->GetWorld().GetComponent<MeshComponent>(entity);
 
-				mpCommandBuffer->SetVertexBuffers({ mpVertexBuffer2 });
-				mpCommandBuffer->SetIndexBuffer(mpIndexBuffer2);
-				mpCommandBuffer->BindUniform(1, 0, mpPerObject, 1);
-				mpCommandBuffer->DrawIndexed(mpIndexBuffer2->GetSize() / sizeof(UInt32), 0);
+				mpCommandBuffer->SetVertexBuffers({ mesh.pVertexBuffer });
+				mpCommandBuffer->SetIndexBuffer(mesh.pIndexBuffer);
+				mpCommandBuffer->BindUniform(1, 0, mpPerObject, i++);
+				mpCommandBuffer->DrawIndexed(mesh.pIndexBuffer->GetSize() / sizeof(UInt32), 0);
+			}
 
 			mpCommandBuffer->EndRenderpass();
 			mpCommandBuffer->EndRecording();

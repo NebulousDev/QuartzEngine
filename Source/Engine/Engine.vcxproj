@@ -232,6 +232,7 @@
     <ClCompile Include="src\event\EventSystem.cpp" />
     <ClCompile Include="src\graphics\Buffer.cpp" />
     <ClCompile Include="src\graphics\CommandBuffer.cpp" />
+    <ClCompile Include="src\graphics\component\Mesh.cpp" />
     <ClCompile Include="src\graphics\GraphicsModule.cpp" />
     <ClCompile Include="src\graphics\Image.cpp" />
     <ClCompile Include="src\graphics\Pipeline.cpp" />
