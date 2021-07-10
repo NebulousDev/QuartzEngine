@@ -7,6 +7,7 @@
 #include "../entity/basic/Transform.h"
 #include "../graphics/component/Camera.h"
 #include "../graphics/component/Mesh.h"
+#include "../graphics/component/Material.h"
 
 namespace Quartz
 {
@@ -16,9 +17,6 @@ namespace Quartz
 
 	#define WINDOW_WIDTH	1920
 	#define WINDOW_HEIGHT	1080
-
-	#define MODEL_PATH		"assets/models/testScene.obj"
-	#define MODEL_PATH2		"assets/models/bunny.obj"
 
     Game::Game()
         : Module({ L"Game" }),
@@ -96,13 +94,14 @@ namespace Quartz
 
 		mpGameScene->SetCamera(mCamera);
 
-		mEntity1 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent(MODEL_PATH));
-		mEntity2 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent(MODEL_PATH2));
+		mEntity1 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent("assets/models/sponza2.obj"));
+		mEntity2 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent("assets/models/bunny.obj"));
 
 		mpGameScene->GetWorld().CreateEntity
 		(
-			TransformComponent({ 0.0f, 0.0f, 12.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			TransformComponent({ 0.0f, 0.0f, -12.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
 			MeshComponent("assets/models/dragon.obj")
+			//MaterialComponent("assets/textures/default.png")
 		);
 
 		/* Create Rendered Context */
@@ -115,8 +114,8 @@ namespace Quartz
 
 		pInputSystem->BindKeyboardInputAction("PlayerMoveForward",	INPUT_ANY_KEYBOARD, 17 /* W */, INPUT_ACTION_ANY, {  0.0f,  0.0f,  1.0f }, 1.0f);
 		pInputSystem->BindKeyboardInputAction("PlayerMoveBackward", INPUT_ANY_KEYBOARD, 31 /* S */, INPUT_ACTION_ANY, {  0.0f,  0.0f, -1.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMoveLeft",		INPUT_ANY_KEYBOARD, 30 /* A */, INPUT_ACTION_ANY, { -1.0f,  0.0f,  0.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMoveRight",	INPUT_ANY_KEYBOARD, 32 /* D */, INPUT_ACTION_ANY, {  1.0f,  0.0f,  0.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveLeft",		INPUT_ANY_KEYBOARD, 30 /* A */, INPUT_ACTION_ANY, {  1.0f,  0.0f,  0.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveRight",	INPUT_ANY_KEYBOARD, 32 /* D */, INPUT_ACTION_ANY, { -1.0f,  0.0f,  0.0f }, 1.0f);
 		
 		pInputSystem->BindMouseMoveInputAction("PlayerLook", INPUT_ANY_MOUSE);
 
@@ -175,8 +174,8 @@ namespace Quartz
 			Vector3 left = transform.rotation * Vector3( 1.0f, 0.0f, 0.0f );
 			Vector3 up = { 0.0f, 1.0f, 0.0f };
 
-			transform.rotation *= Quaternion().SetAxisAngle(up, playerLook.axis.x * -playerLook.value * lookSpeed * delta)
-							    * Quaternion().SetAxisAngle(left, playerLook.axis.y * -playerLook.value * lookSpeed * delta);
+			transform.rotation *= Quaternion().SetAxisAngle(up, playerLook.axis.x * playerLook.value * lookSpeed * delta)
+							    * Quaternion().SetAxisAngle(left, playerLook.axis.y * playerLook.value * lookSpeed * delta);
 		}
 
 		// Rotate Entity

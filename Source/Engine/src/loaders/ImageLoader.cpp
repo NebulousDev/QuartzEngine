@@ -5,7 +5,7 @@
 
 namespace Quartz
 {
-	RawImage* LoadImageFunc(const String& path)
+	RawImage* LoadImage(const String& path)
 	{
 		Int32 width, height, channels;
 
@@ -21,16 +21,13 @@ namespace Quartz
 		return pImage;
 	}
 
-	Bool8 UnloadImageFunc(RawImage* pImage)
+	void FreeImage(RawImage* pImage)
 	{
 		if (pImage != nullptr)
 		{
 			stbi_image_free(pImage->GetData());
 			delete pImage;
-			return true;
 		}
-
-		return false;
 	}
 }
 

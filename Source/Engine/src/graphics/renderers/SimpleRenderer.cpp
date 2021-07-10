@@ -11,6 +11,7 @@
 #include "../../entity/basic/Transform.h"
 #include "../component/Mesh.h"
 #include "../component/Camera.h"
+#include "../component/Material.h"
 
 /*=====================================
 	SCENE RESOURCES
@@ -105,7 +106,8 @@ namespace Quartz
 
 			BufferAttachent vertexBufferAttachment;
 			vertexBufferAttachment.binding	= 0;
-			vertexBufferAttachment.stride	= 14 * sizeof(Float32);
+			//vertexBufferAttachment.stride	= 14 * sizeof(Float32);
+			vertexBufferAttachment.stride = 8 * sizeof(Float32);
 
 			pipelineInfo.bufferAttachments.PushBack(vertexBufferAttachment);
 
@@ -119,6 +121,18 @@ namespace Quartz
 			normalAttrib.location	= 1;
 			normalAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
 
+			/*
+			VertexAttribute binormalAttrib;
+			normalAttrib.binding	= 0;
+			normalAttrib.location	= 2;
+			normalAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
+
+			VertexAttribute bitangentAttrib;
+			normalAttrib.binding	= 0;
+			normalAttrib.location	= 3;
+			normalAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
+			*/
+
 			VertexAttribute texCoordAttrib;
 			texCoordAttrib.binding	= 0;
 			texCoordAttrib.location = 2;
@@ -126,6 +140,8 @@ namespace Quartz
 
 			pipelineInfo.vertexAttributes.PushBack(positionAttrib);
 			pipelineInfo.vertexAttributes.PushBack(normalAttrib);
+			//pipelineInfo.vertexAttributes.PushBack(binormalAttrib);
+			//pipelineInfo.vertexAttributes.PushBack(bitangentAttrib);
 			pipelineInfo.vertexAttributes.PushBack(texCoordAttrib);
 
 			BlendAttachment colorOutputBlendAttachment;
@@ -150,6 +166,11 @@ namespace Quartz
 		mpPerFrame	= pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerFrameUBO), 1, 0);
 		mpPerObject = pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerObjectUBO), 64, 0);
 
+		MaterialComponent material("assets/textures/stone2.png");
+
+		mpDiffuse = pGraphics->CreateUniformTextureSampler();
+		mpDiffuse->Set(material.pDiffuse);
+
 		/*=====================================
 			COMMAND BUFFER
 		=====================================*/
@@ -171,6 +192,7 @@ namespace Quartz
 		{
 			perFrameUbo.view = cameraTransform.GetMatrix();
 			perFrameUbo.proj = cameraCamera.perspective;
+			perFrameUbo.cameraPos = cameraTransform.position;
 
 			mpPerFrame->SetElement(pViewport, 0, &perFrameUbo);
 
@@ -189,6 +211,7 @@ namespace Quartz
 			mpCommandBuffer->BeginRenderpass(mpRenderpass, mpFramebuffer);
 			mpCommandBuffer->SetPipeline(mpGraphicsPipeline);
 			mpCommandBuffer->BindUniform(0, 0, mpPerFrame, 0);
+			mpCommandBuffer->BindUniformTexture(0, 1, mpDiffuse);
 
 			UInt32 i = 0;
 			for (Entity entity : renderables)

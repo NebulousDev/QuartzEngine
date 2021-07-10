@@ -5,7 +5,6 @@
 
 namespace Quartz
 {
-	QUARTZ_API RawImage* LoadImageFunc(const String& path);
-
-	QUARTZ_API Bool8 UnloadImageFunc(RawImage* pImage);
+	QUARTZ_API RawImage*	LoadImage(const String& path);
+	QUARTZ_API void			FreeImage(RawImage* pImage);
 }

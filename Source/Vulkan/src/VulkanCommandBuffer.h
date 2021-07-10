@@ -8,6 +8,7 @@
 #include "VulkanPipeline.h"
 
 #include "util/Map.h"
+#include "util/Set.h"
 
 #include <vulkan/vulkan.h>
 
@@ -36,6 +37,7 @@ namespace Quartz
 			VULKAN_COMMAND_SET_INTEX_BUFFER,
 
 			VULKAN_COMMAND_BIND_UNIFORM_BUFFER,
+			VULKAN_COMMAND_BIND_UNIFORM_TEXTURE_SAMPLER,
 
 			VULKAN_COMMAND_DRAW_INDEXED
 		};
@@ -91,6 +93,14 @@ namespace Quartz
 			UInt32			element;
 		};
 
+		struct VulkanCommandBindUniformTextureSampler
+			: public VulkanCommandBase<VULKAN_COMMAND_BIND_UNIFORM_TEXTURE_SAMPLER>
+		{
+			UInt32							set;
+			UInt32							binding;
+			VulkanUniformTextureSampler*	pUniformTextureSampler;
+		};
+
 		struct VulkanCommandDrawIndexed
 			: public VulkanCommandBase<VULKAN_COMMAND_DRAW_INDEXED>
 		{
@@ -98,9 +108,17 @@ namespace Quartz
 			UInt32 start;
 		};
 
+		struct DeferredUniformBind
+		{
+			UniformState*	pUniformState;
+			UInt32			dynamicOffset;
+		};
+
 		struct VulkanCommandBufferState
 		{
-			VulkanGraphicsPipeline* pGraphicsPipeline;
+			VulkanGraphicsPipeline*		pGraphicsPipeline;
+			Array<UniformState*>		dirtyUniforms;
+			Array<DeferredUniformBind>	deferredUniformBinds;
 		};
 
 	private:
@@ -112,6 +130,9 @@ namespace Quartz
 		Bool8						mBuilt;
 
 		VulkanCommandBufferState	mState;
+
+	private:
+		void UpdateAndBindDescriptorSets(UInt32 frameIndex);
 
 	public:
 		VulkanCommandBuffer(VulkanDevice* pDevice, CommandBufferType type);
@@ -128,6 +149,7 @@ namespace Quartz
 		void SetIndexBuffer(Buffer* pBuffer) override;
 
 		void BindUniform(UInt32 set, UInt32 binding, Uniform* pUniform, UInt32 element) override;
+		void BindUniformTexture(UInt32 set, UInt32 binding, UniformTextureSampler* pUniformTextureSampler) override;
 
 		void DrawIndexed(UInt32 count, UInt32 start) override;
 
@@ -135,8 +157,6 @@ namespace Quartz
 
 		void RecordStatic();
 		void RecordDynamic(UInt32 frameIndex);
-
-		void Reset();
 
 		FORCE_INLINE Array<VkCommandBuffer>&	GetCommandbuffers() { return mCommandBuffers; }
 		FORCE_INLINE UInt32						GetCommandBufferCount() { return mCommandBuffers.Size(); }

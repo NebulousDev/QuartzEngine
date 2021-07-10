@@ -2,6 +2,7 @@
 
 #include "graphics/Uniform.h"
 #include "VulkanBuffer.h"
+#include "VulkanImage.h"
 
 #include "util/Array.h"
 
@@ -31,5 +32,16 @@ namespace Quartz
 		FORCE_INLINE const Array<VulkanBuffer*>&	GetUniformBuffers() const { return mpUniformBuffers; }
 		FORCE_INLINE UInt32							GetAlignedElementSize() const { return mAlignedSize; }
 		FORCE_INLINE Bool8							IsBuilt() const { return mBuilt; }
+	};
+
+	class QUARTZ_API VulkanUniformTextureSampler : public UniformTextureSampler
+	{
+	private:
+		VulkanImageView* mpImageView;
+
+	public:
+		void Set(ImageView* pImageView) override;
+
+		FORCE_INLINE VulkanImageView* GetVulkanImageView() { return mpImageView; }
 	};
 }

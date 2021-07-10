@@ -48,6 +48,9 @@ namespace Quartz
 		virtual Uniform*		CreateUniform(UniformType type, UInt32 elementSize, UInt32 elementCount, UniformFlags flags) = 0;
 		virtual void			DestroyUniform(Uniform* pUniform) = 0;
 
+		virtual UniformTextureSampler*		CreateUniformTextureSampler() = 0;
+		virtual void						DestroyUniform(UniformTextureSampler* pUniform) = 0;
+
 		virtual Renderpass*		CreateRenderpass(const String& name, 
 									const Array<Attachment>& attachments, const Array<Subpass>& subpasses) = 0;
 		virtual void			DestroyRenderpass(Renderpass* pRenderpass) = 0;
@@ -65,8 +68,7 @@ namespace Quartz
 		virtual void			DestroyCommandBuffer(CommandBuffer* pCommandBuffer) = 0;
 
 		virtual void			CopyBuffer(Buffer* pSource, Buffer* pDest) = 0;
-
-		virtual void			BindUniformBuffer(Pipeline* pPipeline, UInt32 set, UInt32 buffer, Buffer* pBuffer) = 0;
+		virtual void			CopyBufferToImage(Buffer* pSource, Image* pDest) = 0;
 
 		virtual void			Submit(Context* pViewport, CommandBuffer* pCommandBuffer) = 0;
 	};

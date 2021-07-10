@@ -644,7 +644,18 @@ namespace Quartz
 
 	void VulkanGraphics::DestroyUniform(Uniform* pUniform)
 	{
+		// TODO
+	}
 
+	UniformTextureSampler* VulkanGraphics::CreateUniformTextureSampler()
+	{
+		VulkanUniformTextureSampler* pUniform = new VulkanUniformTextureSampler();
+		return pUniform;
+	}
+
+	void VulkanGraphics::DestroyUniform(UniformTextureSampler* pUniform)
+	{
+		// TODO
 	}
 
 	Renderpass* VulkanGraphics::CreateRenderpass(const String& name, const Array<Attachment>& attachments, const Array<Subpass>& subpasses)
@@ -1126,6 +1137,7 @@ namespace Quartz
 		vkScissor.extent.height = info.scissor.height;
 
 		Array<VkPipelineShaderStageCreateInfo>				shaderStageInfos;
+		Array<VulkanDescriptorSetInfo>						descriptorSetInfos;
 		Array<Map<String, VkDescriptorSetLayoutBinding>>	descriptorSetBindings(16); // @Todo: querry max supported sets
 		Array<UInt32>										descriptorSetSizes(16);
 		Array<VkDescriptorSetLayout>						descriptorSetLayouts;
@@ -1213,6 +1225,18 @@ namespace Quartz
 			}
 
 			descriptorSetLayouts[setIndex] = vkDescriptorSetLayout;
+
+			VulkanDescriptorSetInfo descriptorSetInfo;
+			descriptorSetInfo.set					= setIndex;
+			descriptorSetInfo.vkDescriptorSetLayout = vkDescriptorSetLayout;
+			descriptorSetInfo.sizeBytes				= descriptorSetSizes[setIndex];
+
+			for (const MapPair<String, VkDescriptorSetLayoutBinding>& binding : set)
+			{
+				descriptorSetInfo.bindings.PushBack(binding.value);
+			}
+
+			descriptorSetInfos.PushBack(descriptorSetInfo);
 
 			setIndex++;
 		}
@@ -1420,21 +1444,6 @@ namespace Quartz
 			return nullptr;
 		}
 
-		Array<VulkanDescriptorSetInfo> descriptorSetInfos(descriptorSetLayouts.Size());
-
-		for (UInt32 i = 0; i < descriptorSetInfos.Size(); i++)
-		{
-			VulkanDescriptorSetInfo& descriptorSetInfo = descriptorSetInfos[i];
-
-			descriptorSetInfo.vkDescriptorSetLayout = descriptorSetLayouts[i];
-			descriptorSetInfo.setSizeBytes			= descriptorSetSizes[i];
-
-			for (const MapPair<String, VkDescriptorSetLayoutBinding>& binding : descriptorSetBindings[i])
-			{
-				descriptorSetInfo.bindings.PushBack(binding.value);
-			}
-		}
-
 		VulkanGraphicsPipeline* pPipeline = new VulkanGraphicsPipeline(vkPipeline, mpDevice, descriptorSetInfos, vkPipelineInfo, info);
 
 		pPipeline->SetupUniformStates(3); //TEMP
@@ -1504,28 +1513,74 @@ namespace Quartz
 		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetTransferCommandPoolHandle(), 1, &commandBuffer);
 	}
 
-	void VulkanGraphics::BindUniformBuffer(Pipeline* pPipeline, UInt32 set, UInt32 buffer, Buffer* pBuffer)
+	void VulkanGraphics::CopyBufferToImage(Buffer* pSource, Image* pDest)
 	{
-		/*
-		VulkanGraphicsPipeline* pGraphicsPipeline = static_cast<VulkanGraphicsPipeline*>(pipeline);
-		VulkanBuffer* pVulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+		VulkanBuffer*	pVulkanBuffer	= static_cast<VulkanBuffer*>(pSource);
+		VulkanImage*	pVulkanImage	= static_cast<VulkanImage*>(pDest);
 
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer	= pVulkanBuffer->vkBuffer;
-		bufferInfo.offset	= 0;
-		bufferInfo.range	= pVulkanBuffer->sizeBytes;
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType					= VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level					= VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool			= mpDevice->GetTransferCommandPoolHandle();
+		allocInfo.commandBufferCount	= 1;
 
-		VkWriteDescriptorSet descriptorWrite {};
-		descriptorWrite.sType			= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet			= pGraphicsPipeline->descriptorSets[bufferIndex];
-		descriptorWrite.dstBinding		= binding;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType	= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo		= &bufferInfo;
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, &commandBuffer);
 
-		vkUpdateDescriptorSets(mpDevice->GetDeviceHandle(), 1, &descriptorWrite, 0, nullptr);
-		*/
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType							= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout						= VK_IMAGE_LAYOUT_UNDEFINED;
+		barrier.newLayout						= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.srcQueueFamilyIndex				= VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex				= VK_QUEUE_FAMILY_IGNORED;
+		barrier.image							= pVulkanImage->GetVkImage();
+		barrier.subresourceRange.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel	= 0;
+		barrier.subresourceRange.levelCount		= 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount		= 1;
+		barrier.srcAccessMask					= 0;
+		barrier.dstAccessMask					= VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+			0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+		VkBufferImageCopy copyRegion{};
+		copyRegion.bufferOffset			= 0;
+		copyRegion.bufferRowLength		= 0;
+		copyRegion.bufferImageHeight	= 0;
+
+		copyRegion.imageSubresource.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+		copyRegion.imageSubresource.mipLevel		= 0;
+		copyRegion.imageSubresource.baseArrayLayer	= 0;
+		copyRegion.imageSubresource.layerCount		= 1;
+
+		copyRegion.imageOffset = { 0, 0, 0 };
+		copyRegion.imageExtent = { pVulkanImage->GetHeight(), pVulkanImage->GetWidth(), 1 };
+
+		vkCmdCopyBufferToImage(commandBuffer, pVulkanBuffer->GetVkBuffer(), pVulkanImage->GetVkImage(), 
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+
+		vkEndCommandBuffer(commandBuffer);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount	= 1;
+		submitInfo.pCommandBuffers		= &commandBuffer;
+
+		vkQueueSubmit(mpDevice->GetTransferQueue().GetQueueHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(mpDevice->GetTransferQueue().GetQueueHandle());
+
+		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetTransferCommandPoolHandle(), 1, &commandBuffer);
+
+		// TODO: NOT ALWAYS THE CASE!!!
+		TransitionImage(pVulkanImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 	void VulkanGraphics::Submit(Context* pContext, CommandBuffer* pCommandBuffer)

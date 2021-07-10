@@ -54,6 +54,9 @@ namespace Quartz
 		Uniform*		CreateUniform(UniformType type, UInt32 elementSize, UInt32 elementCount, UniformFlags flags) override;
 		void			DestroyUniform(Uniform* pUniform) override;
 
+		UniformTextureSampler*	CreateUniformTextureSampler() override;
+		void					DestroyUniform(UniformTextureSampler* pUniform) override;
+
 		Renderpass*		CreateRenderpass(const String& name,
 							const Array<Attachment>& attachments, const Array<Subpass>& subpasses) override;
 		void			DestroyRenderpass(Renderpass* pRenderpass) override;
@@ -71,8 +74,7 @@ namespace Quartz
 		void			DestroyCommandBuffer(CommandBuffer* pCommandBuffer) override;
 
 		void			CopyBuffer(Buffer* pSource, Buffer* pDest) override;
-
-		void			BindUniformBuffer(Pipeline* pPipeline, UInt32 set, UInt32 buffer, Buffer* pBuffer) override;
+		void			CopyBufferToImage(Buffer* pSource, Image* pDest) override;
 
 		void			Submit(Context* pViewport, CommandBuffer* pCommandBuffer) override;
 

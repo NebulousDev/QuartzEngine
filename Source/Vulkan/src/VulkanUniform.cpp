@@ -101,4 +101,9 @@ namespace Quartz
 		
 		mBuilt = true;
 	}
+
+	void VulkanUniformTextureSampler::Set(ImageView* pImageView)
+	{
+		mpImageView = static_cast<VulkanImageView*>(pImageView);
+	}
 }

@@ -52,9 +52,9 @@ FORCEINLINE Matrix4& Matrix4::SetTranslation(const Vector3& translation)
 	m00 = 1; m01 = 0; m02 = 0; m03 = 0;
 	m10 = 0; m11 = 1; m12 = 0; m13 = 0;
 	m20 = 0; m21 = 0; m22 = 1; m23 = 0;
-	m30 = -translation.x; 
-	m31 = -translation.y; 
-	m32 = -translation.z; 
+	m30 = translation.x; 
+	m31 = translation.y; 
+	m32 = translation.z; 
 	m33 = 1;
 	return *this;
 }
@@ -66,19 +66,19 @@ FORCEINLINE Matrix4& Matrix4::SetRotation(const Quaternion& rotation)
 	float qz = rotation.z;
 	float qw = rotation.w;
 
-	m00 = 1.0f - 2.0f * qy * qy - 2.0f * qz * qz;
-	m01 = 2.0f * qx * qy - 2.0f * qz * qw;
-	m02 = 2.0f * qx * qz + 2.0f * qy * qw;
+	m00 = 1.0f - 2.0f * ((qy * qy) + (qz * qz));
+	m01 = 2.0f * ((qx * qy) + (qz * qw));
+	m02 = 2.0f * ((qx * qz) - (qy * qw));
 	m03 = 0.0f;
 
-	m10 = 2.0f * qx * qy + 2.0f * qz * qw;
-	m11 = 1.0f - 2.0f * qx * qx - 2.0f * qz * qz;
-	m12 = 2.0f * qy * qz - 2.0f * qx * qw;
+	m10 = 2.0f * ((qx * qy) - (qz * qw));
+	m11 = 1.0f - 2.0f * ((qx * qx) + (qz * qz));
+	m12 = 2.0f * ((qy * qz) + (qx * qw));
 	m13 = 0.0f;
 
-	m20 = 2.0f * qx * qz - 2.0f * qy * qw;
-	m21 = 2.0f * qy * qz + 2.0f * qx * qw;
-	m22 = 1.0f - 2.0f * qx * qx - 2.0f * qy * qy;
+	m20 = 2.0f * ((qx * qz) + (qy * qw));
+	m21 = 2.0f * ((qy * qz) - (qx * qw));
+	m22 = 1.0f - 2.0f * ((qx * qx) + (qy * qy));
 	m23 = 0.0f;
 
 	m30 = 0.0f;
@@ -86,7 +86,7 @@ FORCEINLINE Matrix4& Matrix4::SetRotation(const Quaternion& rotation)
 	m32 = 0.0f;
 	m33 = 1.0f;
 
-	return this->Transpose();
+	return *this;
 }
 
 FORCEINLINE Matrix4& Matrix4::SetScale(const Vector3& scale)
@@ -109,11 +109,12 @@ FORCEINLINE Matrix4& Matrix4::SetView(const Vector3& right, const Vector3& up, c
 
 FORCEINLINE Matrix4& Matrix4::SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& globalUp)
 {
-	Vector3 forward = (eye - target).Normalized();
-	Vector3 right = Cross(globalUp, forward).Normalized();
-	Vector3 up = Cross(forward, right);
+	Vector3 forward = (target - eye).Normalized();
+	Vector3 right	= Cross(globalUp, forward).Normalized();
+	Vector3 up		= Cross(forward, right);
+
 	Vector3 position(Dot(right, eye), Dot(up, eye), Dot(forward, eye));
-	//Vector3 position(Dot(eye, right), Dot(eye, up), Dot(eye, forward));
+
 	return SetView(right, up, forward, -position);
 }
 
@@ -125,16 +126,40 @@ FORCEINLINE Matrix4& Matrix4::SetOrthographic(float left, float right, float top
 
 FORCEINLINE Matrix4& Matrix4::SetPerspective(float fov, float aspect, float zNear, float zFar)
 {
+#if 0
 	float fovY = 1.0f / tanf(fov * 0.5f);
 	float range = (zNear - zFar);
 
 	SetZero();
 	m00 = fovY / aspect;
 	m11 = fovY;
+	m22 = (zFar + zNear) / range;
+	m23 = -1.0f;
+	m32 = 2.0f * zFar * zNear / range;
+	return *this;
+#elif 1
+	float fovY = 1.0f / tanf(fov * 0.5f);
+	float range = (zFar - zNear);
+
+	SetZero();
+	m00 = fovY / aspect;
+	m11 = fovY;
+	m22 = -(zNear + zFar) / range;
+	m23 = -1.0f;
+	m32 = (-2.0f * zFar * zNear) / range;
+	return *this;
+#else
+	float fovY = 1.0f / tanf(fov * 0.5f);
+	float range = (zNear - zFar);
+
+	SetZero();
+	m00 = fovY / -aspect;
+	m11 = fovY;
 	m22 = (-zNear - zFar) / range;
 	m23 = 1.0f;
 	m32 = 2.0f * zFar * zNear / range;
 	return *this;
+#endif
 }
 
 FORCEINLINE Matrix4 Matrix4::Transposed() const

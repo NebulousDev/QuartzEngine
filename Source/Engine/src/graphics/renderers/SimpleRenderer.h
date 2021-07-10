@@ -25,6 +25,7 @@ namespace Quartz
 		{
 			Matrix4 view;
 			Matrix4 proj;
+			Vector3 cameraPos;
 		}
 		perFrameUbo{};
 
@@ -36,6 +37,8 @@ namespace Quartz
 
 		Uniform* mpPerFrame;
 		Uniform* mpPerObject;
+
+		UniformTextureSampler* mpDiffuse;
 
 	public:
 		SimpleRenderer();

@@ -37,6 +37,7 @@ namespace Quartz
 		virtual void SetIndexBuffer(Buffer* pBuffer) = 0;
 
 		virtual void BindUniform(UInt32 set, UInt32 binding, Uniform* pUniform, UInt32 element) = 0;
+		virtual void BindUniformTexture(UInt32 set, UInt32 binding, UniformTextureSampler* pUniformTextureSampler) = 0;
 
 		virtual void DrawIndexed(UInt32 count, UInt32 start) = 0;
 

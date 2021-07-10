@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "Viewport.h"
+#include "Image.h"
 
 namespace Quartz
 {
@@ -36,5 +37,11 @@ namespace Quartz
 		FORCE_INLINE UInt32			GetElementSize() const { return mElementSize; }
 		FORCE_INLINE UInt32			GetElementCount() const { return mElementCount; }
 		FORCE_INLINE Bool8			IsUsingStaging() const { return mFlags & UNIFORM_USE_STAGING; }
+	};
+
+	class QUARTZ_API UniformTextureSampler
+	{
+	public:
+		virtual void Set(ImageView* pImageView) = 0;
 	};
 }

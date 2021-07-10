@@ -168,6 +168,7 @@
     <ClInclude Include="src\application\GameModule.h" />
     <ClInclude Include="src\entity\basic\Transform.h" />
     <ClInclude Include="src\graphics\component\Camera.h" />
+    <ClInclude Include="src\graphics\component\Material.h" />
     <ClInclude Include="src\graphics\component\Mesh.h" />
     <ClInclude Include="src\input\InputAction.h" />
     <ClInclude Include="src\input\InputEvents.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="src\event\EventSystem.cpp" />
     <ClCompile Include="src\graphics\Buffer.cpp" />
     <ClCompile Include="src\graphics\CommandBuffer.cpp" />
+    <ClCompile Include="src\graphics\component\Material.cpp" />
     <ClCompile Include="src\graphics\component\Mesh.cpp" />
     <ClCompile Include="src\graphics\GraphicsModule.cpp" />
     <ClCompile Include="src\graphics\Image.cpp" />
