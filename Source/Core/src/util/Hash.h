@@ -9,13 +9,14 @@ namespace Quartz
 	template<>
 	FORCE_INLINE UInt32 Hash<Int32>(const Int32& value)
 	{
-		return value;
+		//https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
+		return value * 2654435761 % (2 ^ 32);
 	}
 
 	template<>
 	FORCE_INLINE UInt32 Hash<UInt32>(const UInt32& value)
 	{
-		return value;
+		return value * 2654435761 % (2 ^ 32);
 	}
 
 	template<>

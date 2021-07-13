@@ -92,7 +92,7 @@ namespace Quartz
 
 		ValueType& Put(const KeyType& key, const ValueType& value)
 		{
-			const UInt32 hash = Hash(key);
+			UInt32 hash = Hash(key);
 			return mTable.Insert(hash, PairType(key, value)).value;
 		}
 
@@ -102,6 +102,9 @@ namespace Quartz
 			return *this;
 		}
 
+		// TODO: WARNING!!! Use Put()
+		// [] will place default ValueType() which can sometimes be
+		// equal to an existing entry.
 		ValueType& operator[](const KeyType& key)
 		{
 			ValueType* pValue = Get(key);
