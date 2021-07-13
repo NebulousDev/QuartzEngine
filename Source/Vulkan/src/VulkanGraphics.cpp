@@ -1211,11 +1211,21 @@ namespace Quartz
 
 			VkDescriptorSetLayout vkDescriptorSetLayout;
 
+			/*
+			Array<VkDescriptorBindingFlags> flags(setBindings.Size(), VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
+
+			VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlags = {};
+			bindingFlags.sType				= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+			bindingFlags.bindingCount		= setBindings.Size();
+			bindingFlags.pBindingFlags		= flags.Data();
+			*/
+
 			VkDescriptorSetLayoutCreateInfo vkDescriptorSetLayoutInfo = {};
 			vkDescriptorSetLayoutInfo.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			vkDescriptorSetLayoutInfo.flags			= 0;
 			vkDescriptorSetLayoutInfo.bindingCount	= setBindings.Size();
 			vkDescriptorSetLayoutInfo.pBindings		= setBindings.Data();
+			vkDescriptorSetLayoutInfo.pNext			= nullptr; //&bindingFlags;
 
 			if (vkCreateDescriptorSetLayout(mpDevice->GetDeviceHandle(), &vkDescriptorSetLayoutInfo, nullptr, &vkDescriptorSetLayout) != VK_SUCCESS)
 			{

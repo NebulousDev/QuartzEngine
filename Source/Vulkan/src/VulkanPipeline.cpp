@@ -24,19 +24,12 @@ namespace Quartz
 		{
 			VulkanDescriptorSetInfo& descriptorSetInfo = mDescriptorSetInfos[setIndex];
 			
-			for (UInt32 i = 0; i < descriptorSetInfo.bindings.Size(); i++)
+			Array<UniformState>& uniformStates = 
+				mUniformMap.Put(descriptorSetInfo.set, Array<UniformState>(count));
+
+			for (UniformState& state : uniformStates)
 			{
-				VkDescriptorSetLayoutBinding& descriptorSetLayoutBinding = descriptorSetInfo.bindings[i];
-
-				UInt32 binding = descriptorSetLayoutBinding.binding;
-
-				Array<UniformState>& uniformStates = 
-					mUniformMap.Put(descriptorSetInfo.set, Array<UniformState>(count));
-
-				for (UniformState& state : uniformStates)
-				{
-					state.SetupState(mpDevice, descriptorSetInfo);
-				}
+				state.SetupState(mpDevice, descriptorSetInfo);
 			}
 		}
 	}
@@ -81,7 +74,7 @@ namespace Quartz
 			descriptorWrite.pImageInfo			= nullptr;
 			descriptorWrite.pTexelBufferView	= nullptr;
 
-			bindIndexMap[descriptorBinding.binding] = binding;
+			bindIndexMap.Put(descriptorBinding.binding, binding);
 		}
 
 		this->set = info.set;
@@ -117,8 +110,8 @@ namespace Quartz
 
 			VkSamplerCreateInfo samplerInfo{};
 			samplerInfo.sType					= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.magFilter				= VK_FILTER_NEAREST;
-			samplerInfo.minFilter				= VK_FILTER_NEAREST;
+			samplerInfo.magFilter				= VK_FILTER_LINEAR;
+			samplerInfo.minFilter				= VK_FILTER_LINEAR;
 			samplerInfo.addressModeU			= VK_SAMPLER_ADDRESS_MODE_REPEAT;
 			samplerInfo.addressModeV			= VK_SAMPLER_ADDRESS_MODE_REPEAT;
 			samplerInfo.addressModeW			= VK_SAMPLER_ADDRESS_MODE_REPEAT;

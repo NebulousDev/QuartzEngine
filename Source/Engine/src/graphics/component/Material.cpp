@@ -30,51 +30,68 @@ namespace Quartz
 		return buffer;
 	}
 
-	// TODO: Temporary until proper material management
-	MaterialComponent::MaterialComponent(const String& diffuse)
+	void CreateMaterialTexture(const String& path, Image** ppImageOut, ImageView** ppViewOut)
 	{
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
 
-		RawImage* pImage = LoadImage(diffuse);
+		RawImage* pRawImage = LoadImage(path);
 
-		if (!pImage)
+		if (!pRawImage)
 		{
-			Log::Error("Failed to load image path '%s;", diffuse.Str());
+			Log::Error("Failed to load image path '%s;", path.Str());
 			return;
 		}
 
-		pDiffuseImage = pGraphics->CreateImage
+		Image* pImage = pGraphics->CreateImage
 		(
-			IMAGE_TYPE_2D, 
-			pImage->GetWidth(), pImage->GetHeight(), 1, 1, 1, 
-			IMAGE_FORMAT_RGBA, 
+			IMAGE_TYPE_2D,
+			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 1,
+			IMAGE_FORMAT_RGBA,
 			IMAGE_USAGE_SAMPLED_TEXTURE_BIT | IMAGE_USAGE_TRANSFER_DST_BIT
 		);
 
-		UInt32 sizeBytes = pImage->GetWidth() * pImage->GetHeight() * 4; // temp RGBA only
+		UInt32 sizeBytes = pRawImage->GetWidth() * pRawImage->GetHeight() * 4; // temp RGBA only
 		Buffer* pStagingBuffer = pGraphics->CreateBuffer
 		(
-			sizeBytes, 
-			BUFFER_USAGE_TRANSFER_SRC_BIT, 
+			sizeBytes,
+			BUFFER_USAGE_TRANSFER_SRC_BIT,
 			BUFFER_ACCESS_HOST_VISIBLE_BIT | BUFFER_ACCESS_HOST_COHERENT_BIT
 		);
 
 		void* pStagingData = pStagingBuffer->MapBuffer(sizeBytes, 0);
-		memcpy(pStagingData, pImage->GetData(), sizeBytes);
+		memcpy(pStagingData, pRawImage->GetData(), sizeBytes);
 		pStagingBuffer->UnmapBuffer();
 
-		pGraphics->CopyBufferToImage(pStagingBuffer, pDiffuseImage);
+		pGraphics->CopyBufferToImage(pStagingBuffer, pImage);
 
 		pGraphics->DestroyBuffer(pStagingBuffer);
 
-		pDiffuse = pGraphics->CreateImageView
+		ImageView* pImageView = pGraphics->CreateImageView
 		(
-			pDiffuseImage, 
-			IMAGE_VIEW_TYPE_2D, 
-			pImage->GetWidth(), pImage->GetHeight(), 1, 1, 0, 1, 0, 
-			IMAGE_FORMAT_RGBA, 
+			pImage,
+			IMAGE_VIEW_TYPE_2D,
+			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 0, 1, 0,
+			IMAGE_FORMAT_RGBA,
 			IMAGE_VIEW_USAGE_SAMPLED_TEXTURE
 		);
+
+		*ppImageOut = pImage;
+		*ppViewOut = pImageView;
+	}
+
+	// TODO: Temporary until proper material management
+	MaterialComponent::MaterialComponent(
+		const String& diffuse, 
+		const String& normal, 
+		const String& roughness,
+		const String& metallic,
+		const String& ambient)
+	{
+		CreateMaterialTexture(diffuse, &pDiffuseImage, &pDiffuse);
+		CreateMaterialTexture(normal, &pNormalImage, &pNormal);
+		CreateMaterialTexture(roughness, &pRoughnessImage, &pRoughness);
+		CreateMaterialTexture(metallic, &pMetallicImage, &pMetallic);
+		CreateMaterialTexture(ambient, &pAmbientImage, &pAmbient);
 	}
 }
 

@@ -99,7 +99,7 @@ namespace Quartz
 		VulkanCommandBindUniformTextureSampler* pCommand = new VulkanCommandBindUniformTextureSampler();
 		pCommand->set						= set;
 		pCommand->binding					= binding;
-		pCommand->pUniformTextureSampler	= static_cast<VulkanUniformTextureSampler*>(pUniformTextureSampler);
+		pCommand->uniformTextureSampler		= *static_cast<VulkanUniformTextureSampler*>(pUniformTextureSampler);
 
 		mCommandList.PushBack(pCommand);
 	}
@@ -327,7 +327,7 @@ namespace Quartz
 					VulkanCommandBindUniformTextureSampler* pBindUniformTextureSampler = static_cast<VulkanCommandBindUniformTextureSampler*>(pCommand);
 
 					UniformState&					uniformState	= mState.pGraphicsPipeline->GetUniformState(pBindUniformTextureSampler->set, frameIndex);
-					VulkanUniformTextureSampler*	pUniform		= pBindUniformTextureSampler->pUniformTextureSampler;
+					VulkanUniformTextureSampler*	pUniform		= &pBindUniformTextureSampler->uniformTextureSampler;
 					UInt32							set				= pBindUniformTextureSampler->set;
 					UInt32							binding			= pBindUniformTextureSampler->binding;
 

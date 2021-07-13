@@ -39,6 +39,10 @@ namespace Quartz
 		Uniform* mpPerObject;
 
 		UniformTextureSampler* mpDiffuse;
+		UniformTextureSampler* mpNormal;
+		UniformTextureSampler* mpRoughness;
+		UniformTextureSampler* mpMetallic;
+		UniformTextureSampler* mpAmbient;
 
 	public:
 		SimpleRenderer();

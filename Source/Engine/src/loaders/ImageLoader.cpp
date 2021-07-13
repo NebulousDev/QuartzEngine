@@ -9,6 +9,7 @@ namespace Quartz
 	{
 		Int32 width, height, channels;
 
+		stbi_set_flip_vertically_on_load(true);
 		stbi_uc* pPixels = stbi_load(path.Str(), &width, &height, &channels, STBI_rgb_alpha);//STBI_default);
 
 		if (pPixels == nullptr)

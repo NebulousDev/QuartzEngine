@@ -106,42 +106,39 @@ namespace Quartz
 
 			BufferAttachent vertexBufferAttachment;
 			vertexBufferAttachment.binding	= 0;
-			//vertexBufferAttachment.stride	= 14 * sizeof(Float32);
-			vertexBufferAttachment.stride = 8 * sizeof(Float32);
+			vertexBufferAttachment.stride	= 14 * sizeof(Float32);
 
 			pipelineInfo.bufferAttachments.PushBack(vertexBufferAttachment);
 
 			VertexAttribute positionAttrib;
-			positionAttrib.binding	= 0;
-			positionAttrib.location	= 0;
-			positionAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
+			positionAttrib.binding		= 0;
+			positionAttrib.location		= 0;
+			positionAttrib.type			= ATTRIBUTE_TYPE_FLOAT3;
 
 			VertexAttribute normalAttrib;
-			normalAttrib.binding	= 0;
-			normalAttrib.location	= 1;
-			normalAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
+			normalAttrib.binding		= 0;
+			normalAttrib.location		= 1;
+			normalAttrib.type			= ATTRIBUTE_TYPE_FLOAT3;
 
-			/*
 			VertexAttribute binormalAttrib;
-			normalAttrib.binding	= 0;
-			normalAttrib.location	= 2;
-			normalAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
+			binormalAttrib.binding		= 0;
+			binormalAttrib.location		= 2;
+			binormalAttrib.type			= ATTRIBUTE_TYPE_FLOAT3;
 
 			VertexAttribute bitangentAttrib;
-			normalAttrib.binding	= 0;
-			normalAttrib.location	= 3;
-			normalAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
-			*/
+			bitangentAttrib.binding		= 0;
+			bitangentAttrib.location	= 3;
+			bitangentAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
 
 			VertexAttribute texCoordAttrib;
-			texCoordAttrib.binding	= 0;
-			texCoordAttrib.location = 2;
-			texCoordAttrib.type		= ATTRIBUTE_TYPE_FLOAT2;
+			texCoordAttrib.binding		= 0;
+			texCoordAttrib.location		= 4;
+			texCoordAttrib.type			= ATTRIBUTE_TYPE_FLOAT2;
 
 			pipelineInfo.vertexAttributes.PushBack(positionAttrib);
 			pipelineInfo.vertexAttributes.PushBack(normalAttrib);
-			//pipelineInfo.vertexAttributes.PushBack(binormalAttrib);
-			//pipelineInfo.vertexAttributes.PushBack(bitangentAttrib);
+			pipelineInfo.vertexAttributes.PushBack(binormalAttrib);
+			pipelineInfo.vertexAttributes.PushBack(bitangentAttrib);
 			pipelineInfo.vertexAttributes.PushBack(texCoordAttrib);
 
 			BlendAttachment colorOutputBlendAttachment;
@@ -166,10 +163,26 @@ namespace Quartz
 		mpPerFrame	= pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerFrameUBO), 1, 0);
 		mpPerObject = pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerObjectUBO), 64, 0);
 
-		MaterialComponent material("assets/textures/stone2.png");
+		mpDiffuse	= pGraphics->CreateUniformTextureSampler();
+		mpNormal	= pGraphics->CreateUniformTextureSampler();
+		mpRoughness	= pGraphics->CreateUniformTextureSampler();
+		mpMetallic	= pGraphics->CreateUniformTextureSampler();
+		mpAmbient	= pGraphics->CreateUniformTextureSampler();
 
-		mpDiffuse = pGraphics->CreateUniformTextureSampler();
+		MaterialComponent material
+		(
+			"assets/textures/gun_diffuse.tga", 
+			"assets/textures/gun_normal.tga",
+			"assets/textures/gun_roughness.tga",
+			"assets/textures/gun_metallicness.tga",
+			"assets/textures/gun_ambient.tga"
+		);
+
 		mpDiffuse->Set(material.pDiffuse);
+		mpNormal->Set(material.pNormal);
+		mpRoughness->Set(material.pRoughness);
+		mpMetallic->Set(material.pMetallic);
+		mpAmbient->Set(material.pAmbient);
 
 		/*=====================================
 			COMMAND BUFFER
@@ -183,7 +196,7 @@ namespace Quartz
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
 		EntityWorld& world = pScene->GetWorld();
 
-		EntityView renderables = world.CreateView<TransformComponent, MeshComponent>();
+		EntityView renderables = world.CreateView<TransformComponent, MeshComponent, MaterialComponent>();
 
 		TransformComponent& cameraTransform = pScene->GetWorld().GetComponent<TransformComponent>(pScene->GetCamera());
 		CameraComponent&	cameraCamera	= pScene->GetWorld().GetComponent<CameraComponent>(pScene->GetCamera());
@@ -211,12 +224,18 @@ namespace Quartz
 			mpCommandBuffer->BeginRenderpass(mpRenderpass, mpFramebuffer);
 			mpCommandBuffer->SetPipeline(mpGraphicsPipeline);
 			mpCommandBuffer->BindUniform(0, 0, mpPerFrame, 0);
+
 			mpCommandBuffer->BindUniformTexture(0, 1, mpDiffuse);
+			mpCommandBuffer->BindUniformTexture(0, 2, mpNormal);
+			mpCommandBuffer->BindUniformTexture(0, 3, mpRoughness);
+			mpCommandBuffer->BindUniformTexture(0, 4, mpMetallic);
+			mpCommandBuffer->BindUniformTexture(0, 5, mpAmbient);
 
 			UInt32 i = 0;
 			for (Entity entity : renderables)
 			{
 				MeshComponent& mesh = pScene->GetWorld().GetComponent<MeshComponent>(entity);
+				MaterialComponent& material = pScene->GetWorld().GetComponent<MaterialComponent>(entity);
 
 				mpCommandBuffer->SetVertexBuffers({ mesh.pVertexBuffer });
 				mpCommandBuffer->SetIndexBuffer(mesh.pIndexBuffer);

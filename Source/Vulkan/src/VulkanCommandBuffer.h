@@ -98,7 +98,7 @@ namespace Quartz
 		{
 			UInt32							set;
 			UInt32							binding;
-			VulkanUniformTextureSampler*	pUniformTextureSampler;
+			VulkanUniformTextureSampler		uniformTextureSampler; // TODO: should maybe not stay a copy?
 		};
 
 		struct VulkanCommandDrawIndexed

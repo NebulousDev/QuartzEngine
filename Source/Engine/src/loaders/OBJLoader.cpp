@@ -107,7 +107,7 @@ namespace Quartz
 				Float32 y = parser.ReadFloat();
 				Float32 z = parser.ReadFloat();
 
-				objModel.normals.PushBack({ x, y, -z });
+				objModel.normals.PushBack({ x, y, z });
 
 				parser.ReadLine();
 			}
@@ -276,8 +276,8 @@ namespace Quartz
 						vertexData.buffer.Push(normal);
 					}
 
-					//vertexData.buffer.Push(binormal);
-					//vertexData.buffer.Push(tangent);
+					vertexData.buffer.Push(binormal);
+					vertexData.buffer.Push(tangent);
 
 					if (objModel.texCoords.Size() > 0 && index.texCoordIdx != 0)
 					{

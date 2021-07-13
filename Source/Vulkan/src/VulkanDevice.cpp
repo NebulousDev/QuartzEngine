@@ -269,6 +269,7 @@ namespace Quartz
 		poolInfo.poolSizeCount = 1;
 		poolInfo.pPoolSizes = poolSizes;
 		poolInfo.maxSets = MAX_DESCRIPTOR_POOL_SETS;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
 
 		if (vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPool) != VK_SUCCESS)
 		{

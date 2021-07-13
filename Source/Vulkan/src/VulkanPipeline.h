@@ -9,8 +9,6 @@
 
 #include <vulkan/vulkan.h>
 
-#define MakeUniformSetBinding(set, binding) (set & binding << 16)
-
 namespace Quartz
 {
 	struct VulkanDescriptorSetInfo

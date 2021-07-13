@@ -89,20 +89,40 @@ namespace Quartz
 		mCamera = mpGameScene->GetWorld().CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			CameraComponent{ Matrix4().SetPerspective(ToRadians(80.0f), 1920.0f / 1080.0f, 0.001f, 1000.0f) }
+			CameraComponent{ Matrix4().SetPerspective(ToRadians(80.0f), 1920.0f / 1080.0f, 0.01f, 1000.0f) }
 		);
 
 		mpGameScene->SetCamera(mCamera);
 
-		mEntity1 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent("assets/models/sponza2.obj"));
-		mEntity2 = mpGameScene->GetWorld().CreateEntity(TransformComponent(), MeshComponent("assets/models/bunny.obj"));
+		MaterialComponent blankMaterial(
+			"assets/textures/default.png",
+			"assets/textures/default.png",
+			"assets/textures/default.png",
+			"assets/textures/default.png",
+			"assets/textures/default.png");
+
+		mEntity1 = mpGameScene->GetWorld().CreateEntity
+		(
+			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 6.0f, 6.0f, 6.0f }),
+			MeshComponent("assets/models/gun.obj"),
+			blankMaterial
+			
+		);
+		/*
+		mEntity2 = mpGameScene->GetWorld().CreateEntity
+		(
+			TransformComponent({ 5.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			MeshComponent("assets/models/bunny.obj"),
+			blankMaterial
+		);
 
 		mpGameScene->GetWorld().CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, -12.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			MeshComponent("assets/models/dragon.obj")
-			//MaterialComponent("assets/textures/default.png")
+			MeshComponent("assets/models/dragon.obj"),
+			blankMaterial
 		);
+		*/
 
 		/* Create Rendered Context */
 
@@ -180,8 +200,8 @@ namespace Quartz
 
 		// Rotate Entity
 
-		TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
-		e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
+		//TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
+		//e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
 		
 	}
 
