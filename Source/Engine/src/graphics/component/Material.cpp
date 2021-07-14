@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 namespace Quartz
 {
@@ -42,12 +43,14 @@ namespace Quartz
 			return;
 		}
 
+		UInt32 mipLevels = static_cast<uint32_t>(std::floor(std::log2f(std::max(pRawImage->GetWidth(), pRawImage->GetHeight())))) + 1;
+
 		Image* pImage = pGraphics->CreateImage
 		(
 			IMAGE_TYPE_2D,
-			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 1,
+			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, mipLevels,
 			IMAGE_FORMAT_RGBA,
-			IMAGE_USAGE_SAMPLED_TEXTURE_BIT | IMAGE_USAGE_TRANSFER_DST_BIT
+			IMAGE_USAGE_SAMPLED_TEXTURE_BIT | IMAGE_USAGE_TRANSFER_SRC_BIT | IMAGE_USAGE_TRANSFER_DST_BIT
 		);
 
 		UInt32 sizeBytes = pRawImage->GetWidth() * pRawImage->GetHeight() * 4; // temp RGBA only
@@ -66,11 +69,13 @@ namespace Quartz
 
 		pGraphics->DestroyBuffer(pStagingBuffer);
 
+		pGraphics->GenerateMips(pImage);
+
 		ImageView* pImageView = pGraphics->CreateImageView
 		(
 			pImage,
 			IMAGE_VIEW_TYPE_2D,
-			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 0, 1, 0,
+			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 0, mipLevels, 0,
 			IMAGE_FORMAT_RGBA,
 			IMAGE_VIEW_USAGE_SAMPLED_TEXTURE
 		);

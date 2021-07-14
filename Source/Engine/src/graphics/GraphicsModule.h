@@ -70,6 +70,8 @@ namespace Quartz
 		virtual void			CopyBuffer(Buffer* pSource, Buffer* pDest) = 0;
 		virtual void			CopyBufferToImage(Buffer* pSource, Image* pDest) = 0;
 
+		virtual void			GenerateMips(Image* pImage) = 0;
+
 		virtual void			Submit(Context* pViewport, CommandBuffer* pCommandBuffer) = 0;
 	};
 }

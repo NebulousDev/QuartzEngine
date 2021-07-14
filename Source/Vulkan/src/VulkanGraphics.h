@@ -29,7 +29,7 @@ namespace Quartz
 
 		VulkanSwapchain* CreateSwapchain(VulkanSurface* pSurface, UInt32 bufferCount);
 
-		void TransitionImage(VulkanImage* pImage, VkImageLayout oldLayout, VkImageLayout newLayout);
+		void TransitionImage(VulkanImage* pImage, VkImageLayout oldLayout, VkImageLayout newLayout, UInt32 mipLevel);
 
 	public:
 		VulkanGraphics();
@@ -75,6 +75,8 @@ namespace Quartz
 
 		void			CopyBuffer(Buffer* pSource, Buffer* pDest) override;
 		void			CopyBufferToImage(Buffer* pSource, Image* pDest) override;
+
+		void			GenerateMips(Image* pImage) override;
 
 		void			Submit(Context* pViewport, CommandBuffer* pCommandBuffer) override;
 

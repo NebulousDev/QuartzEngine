@@ -308,7 +308,7 @@ namespace Quartz
 			vkCreateSemaphore(mpDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &imageCompleteSemaphores[i]);
 			vkCreateFence(mpDevice->GetDeviceHandle(), &fenceInfo, nullptr, &inFlightFences[i]);
 
-			TransitionImage(pImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+			TransitionImage(pImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 1);
 
 			images[i]		= pImage;
 			imageViews[i]	= pImageView;
@@ -323,7 +323,7 @@ namespace Quartz
 		return pVulkanSwapchain;
 	}
 
-	void VulkanGraphics::TransitionImage(VulkanImage* pImage, VkImageLayout oldLayout, VkImageLayout newLayout)
+	void VulkanGraphics::TransitionImage(VulkanImage* pImage, VkImageLayout oldLayout, VkImageLayout newLayout, UInt32 mipLevels)
 	{
 		// @TODO: Probably clean this up to not have to recreate command buffers
 
@@ -351,7 +351,7 @@ namespace Quartz
 		barrier.image							= pImage->GetVkImage();
 		barrier.subresourceRange.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel	= 0;
-		barrier.subresourceRange.levelCount		= 1;
+		barrier.subresourceRange.levelCount		= mipLevels;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount		= 1;
 		barrier.srcAccessMask					= 0;
@@ -1545,7 +1545,7 @@ namespace Quartz
 
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-		VkImageMemoryBarrier barrier{};
+		VkImageMemoryBarrier barrier = {};
 		barrier.sType							= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.oldLayout						= VK_IMAGE_LAYOUT_UNDEFINED;
 		barrier.newLayout						= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -1563,7 +1563,7 @@ namespace Quartz
 		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 			0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-		VkBufferImageCopy copyRegion{};
+		VkBufferImageCopy copyRegion = {};
 		copyRegion.bufferOffset			= 0;
 		copyRegion.bufferRowLength		= 0;
 		copyRegion.bufferImageHeight	= 0;
@@ -1581,7 +1581,7 @@ namespace Quartz
 
 		vkEndCommandBuffer(commandBuffer);
 
-		VkSubmitInfo submitInfo{};
+		VkSubmitInfo submitInfo = {};
 		submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount	= 1;
 		submitInfo.pCommandBuffers		= &commandBuffer;
@@ -1592,7 +1592,119 @@ namespace Quartz
 		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetTransferCommandPoolHandle(), 1, &commandBuffer);
 
 		// TODO: NOT ALWAYS THE CASE!!!
-		TransitionImage(pVulkanImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		TransitionImage(pVulkanImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+	}
+
+	void VulkanGraphics::GenerateMips(Image* pImage)
+	{
+		VulkanImage* pVulkanImage = static_cast<VulkanImage*>(pImage);
+
+		TransitionImage(pVulkanImage, VK_IMAGE_LAYOUT_UNDEFINED, 
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, pVulkanImage->GetMips());
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType					= VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level					= VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool			= mpDevice->GetGraphicsCommandPoolHandle();
+		allocInfo.commandBufferCount	= 1;
+
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(mpDevice->GetDeviceHandle(), &allocInfo, &commandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		VkImageMemoryBarrier barrier = {};
+		barrier.sType							= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.srcQueueFamilyIndex				= VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex				= VK_QUEUE_FAMILY_IGNORED;
+		barrier.image							= pVulkanImage->GetVkImage();
+		barrier.subresourceRange.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount		= 1;
+        barrier.subresourceRange.levelCount		= 1;
+
+		Int32 mipWidth		= (Int32)pVulkanImage->GetWidth();
+		Int32 mipHeight		= (Int32)pVulkanImage->GetHeight();
+		UInt32 mipLevels	= pVulkanImage->GetMips();
+
+		VkImage vkImage		= pVulkanImage->GetVkImage();
+
+        for (UInt32 i = 1; i < mipLevels; i++) {
+            barrier.subresourceRange.baseMipLevel	= i - 1;
+            barrier.oldLayout						= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            barrier.newLayout						= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.srcAccessMask					= VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask					= VK_ACCESS_TRANSFER_READ_BIT;
+
+            vkCmdPipelineBarrier(commandBuffer,
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier);
+
+            VkImageBlit imageBlit = {};
+            imageBlit.srcOffsets[0]					= { 0, 0, 0 };
+            imageBlit.srcOffsets[1]					= { mipWidth, mipHeight, 1 };
+            imageBlit.srcSubresource.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+            imageBlit.srcSubresource.mipLevel		= i - 1;
+            imageBlit.srcSubresource.baseArrayLayer = 0;
+            imageBlit.srcSubresource.layerCount		= 1;
+            imageBlit.dstOffsets[0]					= { 0, 0, 0 };
+            imageBlit.dstOffsets[1]					= { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
+            imageBlit.dstSubresource.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+            imageBlit.dstSubresource.mipLevel		= i;
+            imageBlit.dstSubresource.baseArrayLayer = 0;
+            imageBlit.dstSubresource.layerCount		= 1;
+
+            vkCmdBlitImage(commandBuffer,
+				vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				vkImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1, &imageBlit,
+                VK_FILTER_LINEAR);
+
+            barrier.oldLayout		= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.newLayout		= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.srcAccessMask	= VK_ACCESS_TRANSFER_READ_BIT;
+            barrier.dstAccessMask	= VK_ACCESS_SHADER_READ_BIT;
+
+            vkCmdPipelineBarrier(commandBuffer,
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier);
+
+            if (mipWidth > 1) mipWidth /= 2;
+            if (mipHeight > 1) mipHeight /= 2;
+        }
+
+        barrier.subresourceRange.baseMipLevel	= mipLevels - 1;
+        barrier.oldLayout						= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout						= VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcAccessMask					= VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask					= VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(commandBuffer,
+            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+            0, nullptr,
+            0, nullptr,
+            1, &barrier);
+
+		vkEndCommandBuffer(commandBuffer);
+
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount	= 1;
+		submitInfo.pCommandBuffers		= &commandBuffer;
+
+		vkQueueSubmit(mpDevice->GetGraphicsQueue().GetQueueHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(mpDevice->GetGraphicsQueue().GetQueueHandle());
+
+		vkFreeCommandBuffers(mpDevice->GetDeviceHandle(), mpDevice->GetGraphicsCommandPoolHandle(), 1, &commandBuffer);
 	}
 
 	void VulkanGraphics::Submit(Context* pContext, CommandBuffer* pCommandBuffer)

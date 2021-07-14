@@ -125,8 +125,8 @@ namespace Quartz
 
 		mpGameScene->GetWorld().CreateEntity
 		(
-			TransformComponent({ 0.0f, 0.0f, -12.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			MeshComponent("assets/models/cube.obj"),
+			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 0.5f, 0.5f, 0.5f }),
+			MeshComponent("assets/models/sponza2.obj"),
 			MaterialComponent
 			(
 				"assets/textures/tile.png",

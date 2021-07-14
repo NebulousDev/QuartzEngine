@@ -50,8 +50,8 @@ vec3 FresnelSchlick(float theta, vec3 F0)
 void main()
 {
 	/* Temporary constants */
-	const vec3 lightPos		= vec3(0.0, 5.0, 4.0);
-	const vec3 lightColor	= vec3(400.0, 400.0, 400.0);
+	const vec3 lightPos		= vec3(0.0, 6.0, 0.0);
+	const vec3 lightColor	= vec3(500.0, 500.0, 500.0);
 
 	/* Sample Textures */
 	vec3  albedo	= texture(diffuseSampler,   fragIn.texCoord).xyz;

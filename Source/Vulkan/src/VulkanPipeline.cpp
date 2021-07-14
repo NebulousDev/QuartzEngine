@@ -64,7 +64,7 @@ namespace Quartz
 		samplerInfo.mipmapMode				= VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		samplerInfo.mipLodBias				= 0.0f;
 		samplerInfo.minLod					= 0.0f;
-		samplerInfo.maxLod					= 0.0f;
+		samplerInfo.maxLod					= 8.0f;
 
 		// TODO: Samplers should not be created here
 		if (vkCreateSampler(mpDevice->GetDeviceHandle(), &samplerInfo, nullptr, &vkSampler) != VK_SUCCESS)
