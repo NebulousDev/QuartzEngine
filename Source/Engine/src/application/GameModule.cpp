@@ -94,35 +94,48 @@ namespace Quartz
 
 		mpGameScene->SetCamera(mCamera);
 
-		MaterialComponent blankMaterial(
-			"assets/textures/default.png",
-			"assets/textures/default.png",
-			"assets/textures/default.png",
-			"assets/textures/default.png",
-			"assets/textures/default.png");
-
 		mEntity1 = mpGameScene->GetWorld().CreateEntity
 		(
-			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 6.0f, 6.0f, 6.0f }),
-			MeshComponent("assets/models/gun.obj"),
-			blankMaterial
+			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			MeshComponent("assets/models/testScene.obj"),
+			MaterialComponent
+			(
+				"assets/textures/wood_diffuse.png",
+				"assets/textures/wood_normal.png",
+				"assets/textures/shiney_roughness.png",
+				"assets/textures/wood_metalic.png",
+				"assets/textures/wood_ao.png"
+			)
 			
 		);
-		/*
+
 		mEntity2 = mpGameScene->GetWorld().CreateEntity
 		(
-			TransformComponent({ 5.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			MeshComponent("assets/models/bunny.obj"),
-			blankMaterial
+			TransformComponent({ 0.0f, 2.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			MeshComponent("assets/models/gun.obj"),
+			MaterialComponent
+			(
+				"assets/textures/gun_diffuse.tga",
+				"assets/textures/gun_normal.tga",
+				"assets/textures/gun_roughness.tga",
+				"assets/textures/gun_metallicness.tga",
+				"assets/textures/gun_ambient.tga"
+			)
 		);
 
 		mpGameScene->GetWorld().CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, -12.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			MeshComponent("assets/models/dragon.obj"),
-			blankMaterial
+			MeshComponent("assets/models/cube.obj"),
+			MaterialComponent
+			(
+				"assets/textures/tile.png",
+				"assets/textures/tile_normal.png",
+				"assets/textures/shiney_roughness.png",
+				"assets/textures/wood_metalic.png",
+				"assets/textures/wood_metalic.png"
+			)
 		);
-		*/
 
 		/* Create Rendered Context */
 
@@ -200,8 +213,8 @@ namespace Quartz
 
 		// Rotate Entity
 
-		//TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
-		//e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
+		TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
+		e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
 		
 	}
 

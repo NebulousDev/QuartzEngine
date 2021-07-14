@@ -169,21 +169,6 @@ namespace Quartz
 		mpMetallic	= pGraphics->CreateUniformTextureSampler();
 		mpAmbient	= pGraphics->CreateUniformTextureSampler();
 
-		MaterialComponent material
-		(
-			"assets/textures/gun_diffuse.tga", 
-			"assets/textures/gun_normal.tga",
-			"assets/textures/gun_roughness.tga",
-			"assets/textures/gun_metallicness.tga",
-			"assets/textures/gun_ambient.tga"
-		);
-
-		mpDiffuse->Set(material.pDiffuse);
-		mpNormal->Set(material.pNormal);
-		mpRoughness->Set(material.pRoughness);
-		mpMetallic->Set(material.pMetallic);
-		mpAmbient->Set(material.pAmbient);
-
 		/*=====================================
 			COMMAND BUFFER
 		=====================================*/
@@ -225,17 +210,23 @@ namespace Quartz
 			mpCommandBuffer->SetPipeline(mpGraphicsPipeline);
 			mpCommandBuffer->BindUniform(0, 0, mpPerFrame, 0);
 
-			mpCommandBuffer->BindUniformTexture(0, 1, mpDiffuse);
-			mpCommandBuffer->BindUniformTexture(0, 2, mpNormal);
-			mpCommandBuffer->BindUniformTexture(0, 3, mpRoughness);
-			mpCommandBuffer->BindUniformTexture(0, 4, mpMetallic);
-			mpCommandBuffer->BindUniformTexture(0, 5, mpAmbient);
-
 			UInt32 i = 0;
 			for (Entity entity : renderables)
 			{
 				MeshComponent& mesh = pScene->GetWorld().GetComponent<MeshComponent>(entity);
 				MaterialComponent& material = pScene->GetWorld().GetComponent<MaterialComponent>(entity);
+
+				mpDiffuse->Set(material.pDiffuse);
+				mpNormal->Set(material.pNormal);
+				mpRoughness->Set(material.pRoughness);
+				mpMetallic->Set(material.pMetallic);
+				mpAmbient->Set(material.pAmbient);
+
+				mpCommandBuffer->BindUniformTexture(2, 1, mpDiffuse);
+				mpCommandBuffer->BindUniformTexture(2, 2, mpNormal);
+				mpCommandBuffer->BindUniformTexture(2, 3, mpRoughness);
+				mpCommandBuffer->BindUniformTexture(2, 4, mpMetallic);
+				mpCommandBuffer->BindUniformTexture(2, 5, mpAmbient);
 
 				mpCommandBuffer->SetVertexBuffers({ mesh.pVertexBuffer });
 				mpCommandBuffer->SetIndexBuffer(mesh.pIndexBuffer);

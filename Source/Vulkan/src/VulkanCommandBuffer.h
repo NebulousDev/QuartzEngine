@@ -110,15 +110,21 @@ namespace Quartz
 
 		struct DeferredUniformBind
 		{
-			UniformState*	pUniformState;
-			UInt32			dynamicOffset;
+			VulkanCommandType	type;
+			UInt32				set;
+			UInt32				binding;
+			VulkanBuffer*		buffer;
+			UInt32				offset;
+			UInt32				range;
+			VulkanImageView*	imageView;
+			VulkanSampler*		sampler;
 		};
 
 		struct VulkanCommandBufferState
 		{
-			VulkanGraphicsPipeline*		pGraphicsPipeline;
-			Array<UniformState*>		dirtyUniforms;
-			Array<DeferredUniformBind>	deferredUniformBinds;
+			VulkanGraphicsPipeline*			pGraphicsPipeline;
+			Array<DeferredUniformBind>		deferredUniformBinds;
+			Map<UInt32, VkDescriptorSet>	boundDescriptorSets;
 		};
 
 	private:

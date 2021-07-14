@@ -12,11 +12,11 @@ layout(location = 0) in struct
 }
 fragIn;
 
-layout(set = 0, binding = 1) uniform sampler2D diffuseSampler;
-layout(set = 0, binding = 2) uniform sampler2D normalSampler;
-layout(set = 0, binding = 3) uniform sampler2D roughnessSampler;
-layout(set = 0, binding = 4) uniform sampler2D metallicSampler;
-layout(set = 0, binding = 5) uniform sampler2D ambientSampler;
+layout(set = 2, binding = 1) uniform sampler2D diffuseSampler;
+layout(set = 2, binding = 2) uniform sampler2D normalSampler;
+layout(set = 2, binding = 3) uniform sampler2D roughnessSampler;
+layout(set = 2, binding = 4) uniform sampler2D metallicSampler;
+layout(set = 2, binding = 5) uniform sampler2D ambientSampler;
 
 layout(location = 0) out vec4 fragOut;
 
@@ -50,8 +50,8 @@ vec3 FresnelSchlick(float theta, vec3 F0)
 void main()
 {
 	/* Temporary constants */
-	const vec3 lightPos		= vec3(0.0, 12.0, 5.0);
-	const vec3 lightColor	= vec3(10.0, 10.0, 10.0);
+	const vec3 lightPos		= vec3(0.0, 5.0, 4.0);
+	const vec3 lightColor	= vec3(400.0, 400.0, 400.0);
 
 	/* Sample Textures */
 	vec3  albedo	= texture(diffuseSampler,   fragIn.texCoord).xyz;
@@ -83,7 +83,7 @@ void main()
 		vec3 halfDir		= normalize(viewDir + lightDir);
 
 		/* Calculate radiance */
-		float dist			= length(lightDir);
+		float dist			= length(lightPos - fragIn.position);
 		float attenuation	= 1.0 / (dist * dist);
 		vec3 radiance		= lightColor * attenuation;
 	
@@ -119,5 +119,5 @@ void main()
     color = pow(color, vec3(1.0/2.2));  
 
 	/* Final color */
-    fragOut = vec4(color, 1.0);
+    fragOut = vec4(lightOut, 1.0);
 }

@@ -10,7 +10,7 @@
 
 namespace Quartz
 {
-	static Array<Byte> ReadFile(const String& filename)
+	static void ReadFile(const String& filename, Array<Byte>& buffer)
 	{
 		std::ifstream file(filename.Str(), std::ios::ate | std::ios::binary);
 
@@ -21,14 +21,12 @@ namespace Quartz
 		}
 
 		size_t fileSize = (size_t)file.tellg();
-		Array<Byte> buffer(fileSize);
+		buffer.Resize(fileSize);
 
 		file.seekg(0);
 		file.read((char*)buffer.Data(), fileSize);
 
 		file.close();
-
-		return buffer;
 	}
 
 	// TODO: Note this is all temporary until I have a proper buffer manager
@@ -36,7 +34,9 @@ namespace Quartz
 	{
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
 
-		Array<Byte> modelFileData = ReadFile(filepath);
+		Array<Byte> modelFileData;
+		ReadFile(filepath, modelFileData);
+
 		String modelDataString = String((char*)modelFileData.Data(), modelFileData.Size());
 		Model model = LoadOBJ(modelDataString);
 

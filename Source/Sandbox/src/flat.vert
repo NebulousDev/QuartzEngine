@@ -43,5 +43,5 @@ void main()
 	vertOut.texCoord	= inTexCoord;
 	vertOut.tbn			= mat3(T, B, N);
  
- gl_Position			= (perFrame.projection * perFrame.view * perObject.model) * vec4(inPosition, 1.0);
+	gl_Position			= (perFrame.projection * perFrame.view) * vec4(vertOut.position, 1.0);
 }

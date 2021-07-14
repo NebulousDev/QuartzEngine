@@ -164,6 +164,7 @@
     <ClInclude Include="src\VulkanBuffer.h" />
     <ClInclude Include="src\VulkanFrameState.h" />
     <ClInclude Include="src\VulkanPipeline.h" />
+    <ClInclude Include="src\VulkanSampler.h" />
     <ClInclude Include="src\VulkanShader.h" />
     <ClInclude Include="src\SPIRVUtil.h" />
     <ClInclude Include="src\VulkanFramebuffer.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="src\VulkanPipeline.cpp" />
     <ClCompile Include="src\VulkanQueue.cpp" />
     <ClCompile Include="src\VulkanRenderpass.cpp" />
+    <ClCompile Include="src\VulkanSampler.cpp" />
     <ClCompile Include="src\VulkanShader.cpp" />
     <ClCompile Include="src\VulkanSurface.cpp" />
     <ClCompile Include="src\VulkanSwapchain.cpp" />

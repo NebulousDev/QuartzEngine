@@ -75,6 +75,8 @@ namespace Quartz
 			IMAGE_VIEW_USAGE_SAMPLED_TEXTURE
 		);
 
+		FreeImage(pRawImage);
+
 		*ppImageOut = pImage;
 		*ppViewOut = pImageView;
 	}

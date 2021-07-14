@@ -291,33 +291,22 @@ namespace Quartz
 				{
 					VulkanCommandBindUniformBuffer* pBindUniformBuffer = static_cast<VulkanCommandBindUniformBuffer*>(pCommand);
 
-					UniformState&	uniformState	= mState.pGraphicsPipeline->GetUniformState(pBindUniformBuffer->set, frameIndex);
-					VulkanUniform*	pUniform		= pBindUniformBuffer->pUniform;
-					UInt32			alignedSize		= pUniform->GetAlignedElementSize();
-					UInt32			set				= pBindUniformBuffer->set;
-					UInt32			binding			= pBindUniformBuffer->binding;
+					VulkanUniform*	pUniform	= pBindUniformBuffer->pUniform;
+					UInt32			alignedSize	= pUniform->GetAlignedElementSize();
+					UInt32			set			= pBindUniformBuffer->set;
+					UInt32			binding		= pBindUniformBuffer->binding;
 
-					UInt32* pBindIndex = uniformState.bindIndexMap.Get(binding);
+					UInt32 offset = alignedSize * pBindUniformBuffer->element;
 
-					if (pBindIndex)
-					{
-						if (uniformState.bufferInfos[*pBindIndex].buffer != pUniform->GetUniformBuffers()[frameIndex]->GetVkBuffer())
-						{
-							// This is kinda janky as it only updates one per frame (not the whole backbuffer array)
-							// Could result in jittery uniforms
-							uniformState.SetBuffer(mpDevice, pUniform->GetUniformBuffers()[frameIndex], binding, 0, alignedSize);
+					DeferredUniformBind deferredBind = {};
+					deferredBind.type		= VULKAN_COMMAND_BIND_UNIFORM_BUFFER;
+					deferredBind.set		= set;
+					deferredBind.binding	= binding;
+					deferredBind.buffer		= pUniform->GetUniformBuffers()[frameIndex];
+					deferredBind.offset		= offset;
+					deferredBind.range		= alignedSize;
 
-							if (!mState.dirtyUniforms.Contains(&uniformState)) // TODO: REPLACE WITH SET ASPAP!
-								mState.dirtyUniforms.PushBack(&uniformState);
-						}
-
-						UInt32 offset = alignedSize * pBindUniformBuffer->element;
-						mState.deferredUniformBinds.PushBack({ &uniformState, offset });
-					}
-					else
-					{
-						// TODO: Error
-					}
+					mState.deferredUniformBinds.PushBack(deferredBind);
 
 					break;
 				}
@@ -326,31 +315,18 @@ namespace Quartz
 				{
 					VulkanCommandBindUniformTextureSampler* pBindUniformTextureSampler = static_cast<VulkanCommandBindUniformTextureSampler*>(pCommand);
 
-					UniformState&					uniformState	= mState.pGraphicsPipeline->GetUniformState(pBindUniformTextureSampler->set, frameIndex);
-					VulkanUniformTextureSampler*	pUniform		= &pBindUniformTextureSampler->uniformTextureSampler;
+					VulkanUniformTextureSampler&	textureSampler	= pBindUniformTextureSampler->uniformTextureSampler;
 					UInt32							set				= pBindUniformTextureSampler->set;
 					UInt32							binding			= pBindUniformTextureSampler->binding;
 
-					UInt32* pBindIndex = uniformState.bindIndexMap.Get(binding);
+					DeferredUniformBind deferredBind = {};
+					deferredBind.type		= VULKAN_COMMAND_BIND_UNIFORM_TEXTURE_SAMPLER;
+					deferredBind.set		= set;
+					deferredBind.binding	= binding;
+					deferredBind.imageView	= textureSampler.GetVulkanImageView();
+					deferredBind.sampler	= mState.pGraphicsPipeline->GetDefaultSampler();
 
-					if (pBindIndex)
-					{
-						if (uniformState.imageInfos[*pBindIndex].imageView != pUniform->GetVulkanImageView()->GetVkImageView())
-						{
-							// This is kinda janky as it only updates one per frame (not the whole backbuffer array)
-							// Could result in jittery uniforms
-							uniformState.SetImageSampler(mpDevice, pUniform->GetVulkanImageView(), binding);
-
-							if (!mState.dirtyUniforms.Contains(&uniformState)) // TODO: REPLACE WITH SET ASPAP!
-								mState.dirtyUniforms.PushBack(&uniformState);
-						}
-
-						mState.deferredUniformBinds.PushBack({ &uniformState, 0 });
-					}
-					else
-					{
-						// TODO: Error
-					}
+					mState.deferredUniformBinds.PushBack(deferredBind);
 
 					break;
 				}
@@ -386,19 +362,61 @@ namespace Quartz
 	{
 		VkCommandBuffer vkCommandBuffer = mCommandBuffers[frameIndex];
 
-		for (UniformState* pUniformState : mState.dirtyUniforms)
+		for (DeferredUniformBind& bind : mState.deferredUniformBinds)
 		{
-			pUniformState->UpdateDescriptorSets(mpDevice);
+			VulkanDescriptorWriter* pWriter = mState.pGraphicsPipeline->GetDescriptorWriter(bind.set);
+
+			if (bind.type == VULKAN_COMMAND_BIND_UNIFORM_BUFFER)
+			{
+				pWriter->SetDynamicBuffer(bind.binding, bind.buffer->GetVkBuffer(), 0, bind.range);
+			}
+			else if (bind.type == VULKAN_COMMAND_BIND_UNIFORM_TEXTURE_SAMPLER)
+			{
+				pWriter->SetImageSampler(bind.binding, bind.imageView->GetVkImageView(), bind.sampler->GetVkSampler());
+			}
+			else
+			{
+				// TODO: Error
+			}
 		}
 
 		for (DeferredUniformBind& bind : mState.deferredUniformBinds)
 		{
-			vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-				mState.pGraphicsPipeline->GetVkPipelineInfo().layout,
-				bind.pUniformState->set, 1, &bind.pUniformState->descriptorSet, 1, &bind.dynamicOffset);
+			VulkanDescriptorWriter* pWriter = mState.pGraphicsPipeline->GetDescriptorWriter(bind.set);
+
+			VkDescriptorSet vkDescriptorSet = mState.pGraphicsPipeline->GetCashedDescriptorSet(bind.set, *pWriter, frameIndex);
+			VkDescriptorSet* pvkBoundDescriptorSet = mState.boundDescriptorSets.Get(bind.set);
+
+			if (!pvkBoundDescriptorSet || vkDescriptorSet != *pvkBoundDescriptorSet)
+			{
+				pWriter->UpdateDescriptorSet(mpDevice, vkDescriptorSet);
+				mState.boundDescriptorSets.Put(bind.set, vkDescriptorSet);
+
+				if (bind.type == VULKAN_COMMAND_BIND_UNIFORM_BUFFER)
+				{
+					/*
+					vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+						mState.pGraphicsPipeline->GetVkPipelineInfo().layout,
+						bind.set, 1, &vkDescriptorSet, 1, &bind.offset);
+					*/
+				}
+				else if (bind.type == VULKAN_COMMAND_BIND_UNIFORM_TEXTURE_SAMPLER)
+				{
+					vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+						mState.pGraphicsPipeline->GetVkPipelineInfo().layout,
+						bind.set, 1, &vkDescriptorSet, 0, VK_NULL_HANDLE);
+				}
+			}
+
+			// TODO: hacky
+			if (bind.type == VULKAN_COMMAND_BIND_UNIFORM_BUFFER)
+			{
+				vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+					mState.pGraphicsPipeline->GetVkPipelineInfo().layout,
+					bind.set, 1, &vkDescriptorSet, 1, &bind.offset);
+			}
 		}
 
-		mState.dirtyUniforms.Clear();
 		mState.deferredUniformBinds.Clear();
 	}
 }

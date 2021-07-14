@@ -633,6 +633,8 @@ namespace Quartz
 
 		vkDestroyBuffer(mpDevice->GetDeviceHandle(), pVulkanBuffer->GetVkBuffer(), VK_NULL_HANDLE);
 		vkFreeMemory(mpDevice->GetDeviceHandle(), pVulkanBuffer->GetVkMemory(), VK_NULL_HANDLE);
+
+		delete pVulkanBuffer;
 	}
 
 	Uniform* VulkanGraphics::CreateUniform(UniformType type, UInt32 elementSize, UInt32 elementCount, UniformFlags flags)
