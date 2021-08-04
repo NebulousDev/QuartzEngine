@@ -21,11 +21,23 @@ namespace Quartz
 		Shader* mpVertexShader;
 		Shader* mpFragmentShader;
 
+		struct Light
+		{
+			Vector3 position;
+			UInt32 padding1;
+			Vector3 radiance;
+			UInt32 padding2;
+		};
+
 		struct PerFrameUBO
 		{
 			Matrix4 view;
 			Matrix4 proj;
 			Vector3 cameraPos;
+			UInt32 padding1;
+			Light lights[16];
+			UInt32 lightCount;
+			UInt32 padding[3];
 		}
 		perFrameUbo{};
 

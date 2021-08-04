@@ -18,18 +18,18 @@ struct Matrix4
 	union
 	{
 		// Row major: accessed m[row][column]
-		VEC4_ALIGN float m[4][4];
+		float m[4][4];
 
 		// Row major: accessed e[row + column * 4]
-		VEC4_ALIGN float e[16];
+		float e[16];
 
 		// Row major
-		VEC4_ALIGN struct
+		struct
 		{
-			float m00, m01, m02, m03;
-			float m10, m11, m12, m13;
-			float m20, m21, m22, m23;
-			float m30, m31, m32, m33;
+			float m00, m01, m02, m03; // Left
+			float m10, m11, m12, m13; // Up
+			float m20, m21, m22, m23; // Forward
+			float m30, m31, m32, m33; // Position
 		};
 	};
 
@@ -81,8 +81,14 @@ struct Matrix4
 	/** Get the floating-point determinant */
 	FORCEINLINE float Determinant() const;
 
+	/** Get the inverse of the matrix */
+	FORCEINLINE Matrix4 Inverse() const;
+
+	/** Devide each column by a vector */
+	FORCEINLINE Matrix4 DivideColumns(const Vector4& col1, const Vector4& col2, const Vector4& col3, const Vector4& col4);
+
 	/** Get the origin vector */
-	FORCEINLINE Vector3 GetOrigin() const;
+	FORCEINLINE Vector3 GetTranslation() const;
 
 	/** Get the normalized up vector */
 	FORCEINLINE Vector3 GetUp() const;

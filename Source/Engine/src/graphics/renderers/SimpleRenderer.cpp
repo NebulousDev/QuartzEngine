@@ -8,10 +8,11 @@
 
 #include "../../log/Log.h"
 
-#include "../../entity/basic/Transform.h"
+#include "../../physics/component/Transform.h"
 #include "../component/Mesh.h"
 #include "../component/Camera.h"
 #include "../component/Material.h"
+#include "../component/Light.h"
 
 /*=====================================
 	SCENE RESOURCES
@@ -95,7 +96,7 @@ namespace Quartz
 
 			pipelineInfo.topology			= PRIMITIVE_TOPOLOGY_TRIANGLES;
 			pipelineInfo.polygonMode		= POLYGON_MODE_FILL;
-			pipelineInfo.cullMode			= CULL_MODE_NONE;
+			pipelineInfo.cullMode			= CULL_MODE_BACK;
 			pipelineInfo.faceWind			= FACE_WIND_COUNTER_CLOCKWISE;
 			pipelineInfo.lineWidth			= 1.0f;
 
@@ -106,7 +107,7 @@ namespace Quartz
 
 			BufferAttachent vertexBufferAttachment;
 			vertexBufferAttachment.binding	= 0;
-			vertexBufferAttachment.stride	= 14 * sizeof(Float32);
+			vertexBufferAttachment.stride	= 11 * sizeof(Float32);
 
 			pipelineInfo.bufferAttachments.PushBack(vertexBufferAttachment);
 
@@ -120,25 +121,19 @@ namespace Quartz
 			normalAttrib.location		= 1;
 			normalAttrib.type			= ATTRIBUTE_TYPE_FLOAT3;
 
-			VertexAttribute binormalAttrib;
-			binormalAttrib.binding		= 0;
-			binormalAttrib.location		= 2;
-			binormalAttrib.type			= ATTRIBUTE_TYPE_FLOAT3;
-
-			VertexAttribute bitangentAttrib;
-			bitangentAttrib.binding		= 0;
-			bitangentAttrib.location	= 3;
-			bitangentAttrib.type		= ATTRIBUTE_TYPE_FLOAT3;
+			VertexAttribute tangentAttrib;
+			tangentAttrib.binding		= 0;
+			tangentAttrib.location		= 2;
+			tangentAttrib.type			= ATTRIBUTE_TYPE_FLOAT3;
 
 			VertexAttribute texCoordAttrib;
 			texCoordAttrib.binding		= 0;
-			texCoordAttrib.location		= 4;
+			texCoordAttrib.location		= 3;
 			texCoordAttrib.type			= ATTRIBUTE_TYPE_FLOAT2;
 
 			pipelineInfo.vertexAttributes.PushBack(positionAttrib);
 			pipelineInfo.vertexAttributes.PushBack(normalAttrib);
-			pipelineInfo.vertexAttributes.PushBack(binormalAttrib);
-			pipelineInfo.vertexAttributes.PushBack(bitangentAttrib);
+			pipelineInfo.vertexAttributes.PushBack(tangentAttrib);
 			pipelineInfo.vertexAttributes.PushBack(texCoordAttrib);
 
 			BlendAttachment colorOutputBlendAttachment;
@@ -178,27 +173,47 @@ namespace Quartz
 
 	void SimpleRenderer::Render(Context* pViewport, Scene* pScene)
 	{
-		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
-		EntityWorld& world = pScene->GetWorld();
-
-		EntityView renderables = world.CreateView<TransformComponent, MeshComponent, MaterialComponent>();
-
-		TransformComponent& cameraTransform = pScene->GetWorld().GetComponent<TransformComponent>(pScene->GetCamera());
-		CameraComponent&	cameraCamera	= pScene->GetWorld().GetComponent<CameraComponent>(pScene->GetCamera());
+		Graphics* pGraphics					= Engine::GetInstance()->GetGraphics();
+		EntityWorld& world					= pScene->GetWorld();
+		SceneGraphView graph				= pScene->GetGraph();
+		Entity camera						= pScene->GetCamera();
+		TransformComponent& cameraTransform = world.GetComponent<TransformComponent>(pScene->GetCamera());
+		CameraComponent& cameraCamera		= world.GetComponent<CameraComponent>(pScene->GetCamera());
+		EntityView renderables				= world.CreateView<TransformComponent, MeshComponent, MaterialComponent>();
+		EntityView lights					= world.CreateView<TransformComponent, LightComponent>();
 
 		// Fill uniform buffers
 		{
-			perFrameUbo.view = cameraTransform.GetMatrix();
-			perFrameUbo.proj = cameraCamera.perspective;
-			perFrameUbo.cameraPos = cameraTransform.position;
+			Matrix4 cameraGlobal	= graph.GetNode(camera)->globalTransform;
+			Matrix4 cameraParentInv	= graph.GetNode(camera)->pParent->globalTransform.Inverse();
+			Matrix4 cameraView		= cameraParentInv * Matrix4().SetTranslation(-cameraTransform.position) * Matrix4().SetRotation(cameraTransform.rotation);
+			Vector3 cameraPos		= cameraGlobal.GetTranslation();
+
+			perFrameUbo.view		= cameraView;
+			perFrameUbo.proj		= cameraCamera.perspective;
+			perFrameUbo.cameraPos	= cameraPos;
+			perFrameUbo.lightCount	= 0;
+
+			for (Entity entity : lights)
+			{
+				LightComponent& light = pScene->GetWorld().GetComponent<LightComponent>(entity);
+
+				Vector3 transformedLightPosition = graph.GetNode(entity)->globalTransform.GetTranslation();
+
+				perFrameUbo.lights[perFrameUbo.lightCount].position = transformedLightPosition;
+				perFrameUbo.lights[perFrameUbo.lightCount].radiance = light.radiance;
+				perFrameUbo.lightCount++;
+
+				// Only 16 lights supported for now
+				if (perFrameUbo.lightCount > 16) break;
+			}
 
 			mpPerFrame->SetElement(pViewport, 0, &perFrameUbo);
 
 			UInt32 i = 0;
 			for (Entity entity : renderables)
 			{
-				TransformComponent& transform = pScene->GetWorld().GetComponent<TransformComponent>(entity);
-				perObjectUbo.model = transform.GetMatrix();
+				perObjectUbo.model = graph.GetNode(entity)->globalTransform;
 				mpPerObject->SetElement(pViewport, i++, &perObjectUbo);
 			}
 		}

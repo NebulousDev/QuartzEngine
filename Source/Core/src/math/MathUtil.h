@@ -7,7 +7,10 @@
 #include "Defines.h"
 #include <cmath>
 
-#define PIE 3.14159265f
+#define PIE					3.14159265f
+#define INFINITY			static_cast<float>(0x7F800000)
+#define NEGATIVE_INFINITY	static_cast<float>(0xFF800000)
+#define NAN					static_cast<float>(0x7FBFFFFF)
 
 #define USE_FAST_SQRT_2ND_PASS 0
 
@@ -56,4 +59,40 @@ FORCEINLINE double FastInvsereSquare64(double number)
 FORCEINLINE float ToRadians(float degrees)
 {
 	return degrees * (PIE / 180.0f);
+}
+
+namespace Quartz
+{
+	namespace Math
+	{
+		FORCEINLINE float MagnitudeSquared(float x, float y)
+		{
+			return (x * x) + (y * y);
+		}
+
+		FORCEINLINE float MagnitudeSquared(float x, float y, float z)
+		{
+			return (x * x) + (y * y) + (z * z);
+		}
+
+		FORCEINLINE float MagnitudeSquared(float x, float y, float z, float w)
+		{
+			return (x * x) + (y * y) + (z * z) + (w * w);
+		}
+
+		FORCEINLINE float Magnitude(float x, float y)
+		{
+			return 1.0f / FastInvsereSquare(MagnitudeSquared(x, y));
+		}
+
+		FORCEINLINE float Magnitude(float x, float y, float z)
+		{
+			return 1.0f / FastInvsereSquare(MagnitudeSquared(x, y, z));
+		}
+
+		FORCEINLINE float Magnitude(float x, float y, float z, float w)
+		{
+			return 1.0f / FastInvsereSquare(MagnitudeSquared(x, y, z, w));
+		}
+	}
 }

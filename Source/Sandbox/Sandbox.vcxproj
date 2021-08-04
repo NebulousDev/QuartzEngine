@@ -195,8 +195,10 @@ call compile_and_resources.bat</Command>
     <ClCompile Include="src\Sandbox2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\assets\test.json" />
     <None Include="src\flat.frag" />
     <None Include="src\flat.vert" />
+    <None Include="src\lights.shader" />
     <None Include="src\shader.frag" />
     <None Include="src\shader.vert" />
   </ItemGroup>

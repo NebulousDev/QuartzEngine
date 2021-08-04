@@ -35,7 +35,7 @@ namespace Quartz
 	{
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
 
-		RawImage* pRawImage = LoadImage(path);
+		RawImage* pRawImage = LoadImage(path, true, true);
 
 		if (!pRawImage)
 		{
@@ -43,17 +43,57 @@ namespace Quartz
 			return;
 		}
 
+		ImageFormat format;
+
+		if (pRawImage->GetBitsPerChannel() == 8)
+		{
+			switch (pRawImage->GetChannels())
+			{
+				case 1: format = IMAGE_FORMAT_R;	break;
+				case 2: format = IMAGE_FORMAT_RG;	break;
+				case 3: format = IMAGE_FORMAT_RGB;	break;
+				case 4: format = IMAGE_FORMAT_RGBA; break;
+			}
+		}
+		else if (pRawImage->GetBitsPerChannel() == 16)
+		{
+			switch (pRawImage->GetChannels())
+			{
+				case 1: format = IMAGE_FORMAT_R16;		break;
+				case 2: format = IMAGE_FORMAT_RG16;		break;
+				case 3: format = IMAGE_FORMAT_RGB16;	break;
+				case 4: format = IMAGE_FORMAT_RGBA16;	break;
+			}
+		}
+		else if (pRawImage->GetBitsPerChannel() == 32)
+		{
+			switch (pRawImage->GetChannels())
+			{
+				case 1: format = IMAGE_FORMAT_R_FLOAT;		break;
+				case 2: format = IMAGE_FORMAT_RG_FLOAT;		break;
+				case 3: format = IMAGE_FORMAT_RGB_FLOAT;	break;
+				case 4: format = IMAGE_FORMAT_RGBA_FLOAT;	break;
+			}
+		}
+		else
+		{
+			// TODO: ERROR
+			*ppImageOut = nullptr;
+			*ppViewOut	= nullptr;
+			return;
+		}
+
 		UInt32 mipLevels = static_cast<uint32_t>(std::floor(std::log2f(std::max(pRawImage->GetWidth(), pRawImage->GetHeight())))) + 1;
+		UInt32 sizeBytes = pRawImage->GetSizeBytes();
 
 		Image* pImage = pGraphics->CreateImage
 		(
 			IMAGE_TYPE_2D,
 			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, mipLevels,
-			IMAGE_FORMAT_RGBA,
+			format,
 			IMAGE_USAGE_SAMPLED_TEXTURE_BIT | IMAGE_USAGE_TRANSFER_SRC_BIT | IMAGE_USAGE_TRANSFER_DST_BIT
 		);
 
-		UInt32 sizeBytes = pRawImage->GetWidth() * pRawImage->GetHeight() * 4; // temp RGBA only
 		Buffer* pStagingBuffer = pGraphics->CreateBuffer
 		(
 			sizeBytes,
@@ -76,7 +116,7 @@ namespace Quartz
 			pImage,
 			IMAGE_VIEW_TYPE_2D,
 			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 0, mipLevels, 0,
-			IMAGE_FORMAT_RGBA,
+			format,
 			IMAGE_VIEW_USAGE_SAMPLED_TEXTURE
 		);
 

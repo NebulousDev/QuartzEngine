@@ -30,6 +30,7 @@ namespace Quartz
 		Entity mCamera;
 		Entity mEntity1;
 		Entity mEntity2;
+		Entity mLight;
 
 		Bool8 OnWindowClose(const WindowCloseEvent& event);
 

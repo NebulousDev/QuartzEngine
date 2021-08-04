@@ -5,19 +5,51 @@
 
 namespace Quartz
 {
-	RawImage* LoadImage(const String& path)
+	RawImage* LoadImage(const String& path, Bool8 flipY, Bool8 forceRGBA)
 	{
-		Int32 width, height, channels;
+		RawImage*	pImage = nullptr;
 
-		stbi_set_flip_vertically_on_load(true);
-		stbi_uc* pPixels = stbi_load(path.Str(), &width, &height, &channels, STBI_rgb_alpha);//STBI_default);
+		Int32		width, height, channels;
+		UInt32		bitsPerChannel;
+		Bool8		isHDR;
+		Byte*		pPixels;
+
+		UInt32		requiredChannels = forceRGBA ? STBI_rgb_alpha : STBI_default;
+
+		stbi_set_flip_vertically_on_load(flipY);
+		
+		if (stbi_is_hdr(path.Str()))
+		{
+			pPixels = (Byte*)stbi_loadf(path.Str(), &width, &height, &channels, requiredChannels);
+			bitsPerChannel = 32;
+			isHDR = true;
+		}
+		else if (stbi_is_16_bit(path.Str()))
+		{
+			pPixels = (Byte*)stbi_load_16(path.Str(), &width, &height, &channels, requiredChannels);
+			bitsPerChannel = 16;
+			isHDR = false;
+		}
+		else
+		{
+			pPixels = stbi_load(path.Str(), &width, &height, &channels, requiredChannels);
+			bitsPerChannel = 8;
+			isHDR = false;
+		}
 
 		if (pPixels == nullptr)
 		{
 			return nullptr;
 		}
-
-		RawImage* pImage = new RawImage(width, height, 4/*channels*/, 8, pPixels);
+		
+		if (requiredChannels == STBI_rgb_alpha)
+		{
+			pImage = new RawImage(width, height, 4, bitsPerChannel, isHDR, pPixels);
+		}
+		else
+		{
+			pImage = new RawImage(width, height, channels, bitsPerChannel, isHDR, pPixels);
+		}
 
 		return pImage;
 	}

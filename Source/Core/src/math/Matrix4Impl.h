@@ -67,19 +67,19 @@ FORCEINLINE Matrix4& Matrix4::SetRotation(const Quaternion& rotation)
 	float qw = rotation.w;
 
 	m00 = 1.0f - 2.0f * ((qy * qy) + (qz * qz));
-	m01 = 2.0f * ((qx * qy) + (qz * qw));
-	m02 = 2.0f * ((qx * qz) - (qy * qw));
-	m03 = 0.0f;
+	m01 =		 2.0f * ((qx * qy) + (qz * qw));
+	m02 =		 2.0f * ((qx * qz) - (qy * qw));
+	m03 =		 0.0f;
 
-	m10 = 2.0f * ((qx * qy) - (qz * qw));
+	m10 =		 2.0f * ((qx * qy) - (qz * qw));
 	m11 = 1.0f - 2.0f * ((qx * qx) + (qz * qz));
-	m12 = 2.0f * ((qy * qz) + (qx * qw));
-	m13 = 0.0f;
+	m12 =		 2.0f * ((qy * qz) + (qx * qw));
+	m13 =		 0.0f;
 
-	m20 = 2.0f * ((qx * qz) + (qy * qw));
-	m21 = 2.0f * ((qy * qz) - (qx * qw));
+	m20 =		 2.0f * ((qx * qz) + (qy * qw));
+	m21 =		 2.0f * ((qy * qz) - (qx * qw));
 	m22 = 1.0f - 2.0f * ((qx * qx) + (qy * qy));
-	m23 = 0.0f;
+	m23 =		 0.0f;
 
 	m30 = 0.0f;
 	m31 = 0.0f;
@@ -109,13 +109,13 @@ FORCEINLINE Matrix4& Matrix4::SetView(const Vector3& right, const Vector3& up, c
 
 FORCEINLINE Matrix4& Matrix4::SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& globalUp)
 {
-	Vector3 forward = (target - eye).Normalized();
-	Vector3 right	= Cross(globalUp, forward).Normalized();
-	Vector3 up		= Cross(forward, right);
+	Vector3 forward = (target - eye).Normalize();
+	Vector3 right = Cross(globalUp, forward).Normalize();
+	Vector3 up = Cross(forward, right);
 
 	Vector3 position(Dot(right, eye), Dot(up, eye), Dot(forward, eye));
 
-	return SetView(right, up, forward, -position);
+	return SetView(-right, up, forward, -position);
 }
 
 FORCEINLINE Matrix4& Matrix4::SetOrthographic(float left, float right, float top, float bottom, float near, float far)
@@ -164,12 +164,12 @@ FORCEINLINE Matrix4& Matrix4::SetPerspective(float fov, float aspect, float zNea
 
 FORCEINLINE Matrix4 Matrix4::Transposed() const
 {
-	Matrix4 res;
-	res.m00 = m00; res.m01 = m10; res.m02 = m20; res.m03 = m30;
-	res.m10 = m01; res.m11 = m11; res.m12 = m21; res.m13 = m31;
-	res.m20 = m02; res.m21 = m12; res.m22 = m22; res.m23 = m32;
-	res.m30 = m03; res.m31 = m13; res.m32 = m23; res.m33 = m33;
-	return res;
+	Matrix4 result;
+	result.m00 = m00; result.m01 = m10; result.m02 = m20; result.m03 = m30;
+	result.m10 = m01; result.m11 = m11; result.m12 = m21; result.m13 = m31;
+	result.m20 = m02; result.m21 = m12; result.m22 = m22; result.m23 = m32;
+	result.m30 = m03; result.m31 = m13; result.m32 = m23; result.m33 = m33;
+	return result;
 }
 
 FORCEINLINE Matrix4& Matrix4::Transpose()
@@ -180,13 +180,87 @@ FORCEINLINE Matrix4& Matrix4::Transpose()
 // Modified from UnrealEngine's FMatrix::Determinant()
 FORCEINLINE float Matrix4::Determinant() const
 {
-	return	m00 * ( m11 * (m22 * m33 - m23 * m32) - m21 * (m12 * m33 - m13 * m32) + m31 * (m12 * m23 - m13 * m22))
+	return	
+		  m00 * ( m11 * (m22 * m33 - m23 * m32) - m21 * (m12 * m33 - m13 * m32) + m31 * (m12 * m23 - m13 * m22))
 		- m10 * ( m01 * (m22 * m33 - m23 * m32) - m21 * (m02 * m33 - m03 * m32) + m31 * (m02 * m23 - m03 * m22))
 		+ m20 * ( m01 * (m12 * m33 - m13 * m32) - m11 * (m02 * m33 - m03 * m32) + m31 * (m02 * m13 - m03 * m12))
 		- m30 * ( m01 * (m12 * m23 - m13 * m22) - m11 * (m02 * m23 - m03 * m22) + m21 * (m02 * m13 - m03 * m12));
 }
 
-FORCEINLINE Vector3 Matrix4::GetOrigin() const
+// Modified from https://stackoverflow.com/questions/2624422/efficient-4x4-matrix-inverse-affine-transform
+FORCEINLINE Matrix4 Matrix4::Inverse() const
+{
+	Matrix4 result;
+
+	float s0 = m00 * m11 - m10 * m01;
+	float s1 = m00 * m12 - m10 * m02;
+	float s2 = m00 * m13 - m10 * m03;
+	float s3 = m01 * m12 - m11 * m02;
+	float s4 = m01 * m13 - m11 * m03;
+	float s5 = m02 * m13 - m12 * m03;
+
+	float c5 = m22 * m33 - m32 * m23;
+	float c4 = m21 * m33 - m31 * m23;
+	float c3 = m21 * m32 - m31 * m22;
+	float c2 = m20 * m33 - m30 * m23;
+	float c1 = m20 * m32 - m30 * m22;
+	float c0 = m20 * m31 - m30 * m21;
+
+	// Should check for 0 determinant
+	float invdet = 1.0 / (s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0);
+
+	result.m00 = ( m11 * c5 - m12 * c4 + m13 * c3) * invdet;
+	result.m01 = (-m01 * c5 + m02 * c4 - m03 * c3) * invdet;
+	result.m02 = ( m31 * s5 - m32 * s4 + m33 * s3) * invdet;
+	result.m03 = (-m21 * s5 + m22 * s4 - m23 * s3) * invdet;
+
+	result.m10 = (-m10 * c5 + m12 * c2 - m13 * c1) * invdet;
+	result.m11 = ( m00 * c5 - m02 * c2 + m03 * c1) * invdet;
+	result.m12 = (-m30 * s5 + m32 * s2 - m33 * s1) * invdet;
+	result.m13 = ( m20 * s5 - m22 * s2 + m23 * s1) * invdet;
+
+	result.m20 = ( m10 * c4 - m11 * c2 + m13 * c0) * invdet;
+	result.m21 = (-m00 * c4 + m01 * c2 - m03 * c0) * invdet;
+	result.m22 = ( m30 * s4 - m31 * s2 + m33 * s0) * invdet;
+	result.m23 = (-m20 * s4 + m21 * s2 - m23 * s0) * invdet;
+
+	result.m30 = (-m10 * c3 + m11 * c1 - m12 * c0) * invdet;
+	result.m31 = ( m00 * c3 - m01 * c1 + m02 * c0) * invdet;
+	result.m32 = (-m30 * s3 + m31 * s1 - m32 * s0) * invdet;
+	result.m33 = ( m20 * s3 - m21 * s1 + m22 * s0) * invdet;
+
+	return result;
+}
+
+// TODO: probably flipped
+FORCEINLINE Matrix4 Matrix4::DivideColumns(const Vector4& col1, const Vector4& col2, const Vector4& col3, const Vector4& col4)
+{
+	Matrix4 result;
+
+	result.m00 = m00 / col1.x;
+	result.m10 = m10 / col1.y;
+	result.m20 = m20 / col1.z;
+	result.m30 = m30 / col1.w;
+
+	result.m01 = m01 / col2.x;
+	result.m11 = m11 / col2.y;
+	result.m21 = m21 / col2.z;
+	result.m31 = m31 / col2.w;
+
+	result.m02 = m02 / col3.x;
+	result.m12 = m12 / col3.y;
+	result.m22 = m22 / col3.z;
+	result.m32 = m32 / col3.w;
+
+	result.m03 = m03 / col4.x;
+	result.m13 = m13 / col4.y;
+	result.m23 = m23 / col4.z;
+	result.m33 = m33 / col4.w;
+
+	return result;
+}
+
+FORCEINLINE Vector3 Matrix4::GetTranslation() const
 {
 	return Vector3(m30, m31, m32);
 }
@@ -276,10 +350,10 @@ FORCEINLINE void MultiplyMatrix(const Matrix4& m1, const Matrix4 m2, Matrix4& re
 
 FORCEINLINE void MultiplyVectorByMatrix(const Vector4 v, const Matrix4 m, Vector4& result)
 {
-	result.x = m.m00 * v.x + m.m01 * v.y + m.m02 * v.z + m.m03 * v.w;
-	result.y = m.m10 * v.x + m.m11 * v.y + m.m12 * v.z + m.m13 * v.w;
-	result.z = m.m20 * v.x + m.m21 * v.y + m.m22 * v.z + m.m23 * v.w;
-	result.w = m.m30 * v.x + m.m31 * v.y + m.m32 * v.z + m.m33 * v.w;
+	result.x = m.m00 * v.x + m.m10 * v.y + m.m20 * v.z + m.m30 * v.w;
+	result.y = m.m01 * v.x + m.m11 * v.y + m.m21 * v.z + m.m31 * v.w;
+	result.z = m.m02 * v.x + m.m12 * v.y + m.m22 * v.z + m.m32 * v.w;
+	result.w = m.m03 * v.x + m.m13 * v.y + m.m23 * v.z + m.m33 * v.w;
 }
 
 FORCEINLINE float& Matrix4::operator[](int index)

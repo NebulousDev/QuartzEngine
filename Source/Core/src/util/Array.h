@@ -294,7 +294,7 @@ namespace Quartz
 		}
 
 		// Returns size if index not found
-		SizeType IndexOf(const ValueType& value)
+		SizeType Find(const ValueType& value)
 		{
 			for (SizeType i = 0; i < mSize; i++)
 			{

@@ -166,8 +166,10 @@
   <ItemGroup>
     <ClInclude Include="src\application\ApplicationModule.h" />
     <ClInclude Include="src\application\GameModule.h" />
-    <ClInclude Include="src\entity\basic\Transform.h" />
+    <ClInclude Include="src\physics\component\Transform.h" />
+    <ClInclude Include="src\physics\SceneGraph.h" />
     <ClInclude Include="src\graphics\component\Camera.h" />
+    <ClInclude Include="src\graphics\component\Light.h" />
     <ClInclude Include="src\graphics\component\Material.h" />
     <ClInclude Include="src\graphics\component\Mesh.h" />
     <ClInclude Include="src\input\InputAction.h" />
@@ -186,12 +188,12 @@
     <ClInclude Include="src\graphics\Uniform.h" />
     <ClInclude Include="src\graphics\Viewport.h" />
     <ClInclude Include="src\input\Peripherals.h" />
+    <ClInclude Include="src\json\JSON.h" />
+    <ClInclude Include="src\loaders\GLTFLoader.h" />
     <ClInclude Include="src\Module.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\entity\Entity.h" />
     <ClInclude Include="src\entity\EntityView.h" />
-    <ClInclude Include="src\entity\System.h" />
-    <ClInclude Include="src\entity\SystemBase.h" />
     <ClInclude Include="src\entity\World.h" />
     <ClInclude Include="src\event\Event.h" />
     <ClInclude Include="src\event\EventBuffer.h" />
@@ -229,10 +231,11 @@
     <ClCompile Include="src\application\ApplicationModule.cpp" />
     <ClCompile Include="src\application\GameModule.cpp" />
     <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\entity\basic\Transform.cpp" />
+    <ClCompile Include="src\physics\component\Transform.cpp" />
     <ClCompile Include="src\event\EventSystem.cpp" />
     <ClCompile Include="src\graphics\Buffer.cpp" />
     <ClCompile Include="src\graphics\CommandBuffer.cpp" />
+    <ClCompile Include="src\graphics\component\Light.cpp" />
     <ClCompile Include="src\graphics\component\Material.cpp" />
     <ClCompile Include="src\graphics\component\Mesh.cpp" />
     <ClCompile Include="src\graphics\GraphicsModule.cpp" />
@@ -248,15 +251,21 @@
     <ClCompile Include="src\graphics\Framebuffer.cpp" />
     <ClCompile Include="src\graphics\RenderPass.cpp" />
     <ClCompile Include="src\input\InputModule.cpp" />
+    <ClCompile Include="src\json\JSON.cpp" />
+    <ClCompile Include="src\loaders\GLTFLoader.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\loaders\ImageLoader.cpp" />
     <ClCompile Include="src\loaders\OBJLoader.cpp" />
     <ClCompile Include="src\Module.cpp" />
     <ClCompile Include="src\object\RawImage.cpp" />
     <ClCompile Include="src\object\UniformData.cpp" />
+    <ClCompile Include="src\physics\SceneGraph.cpp" />
     <ClCompile Include="src\platform\Application.cpp" />
     <ClCompile Include="src\platform\Platform.cpp" />
     <ClCompile Include="src\platform\Window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="src\json\_json.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

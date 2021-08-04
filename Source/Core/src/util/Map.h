@@ -170,17 +170,17 @@ namespace Quartz
 
 		UInt32 Size() const
 		{
-			return mTable.mSize;
+			return mTable.Size();
 		}
 
 		UInt32 Capacity() const
 		{
-			return mTable.mCapacity;
+			return mTable.Capacity();
 		}
 
 		UInt32 Threshold() const
 		{
-			return mTable.mThreshold;
+			return mTable.Threshold();
 		}
 	};
 }

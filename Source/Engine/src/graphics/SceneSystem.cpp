@@ -1,9 +1,14 @@
 #include "SceneSystem.h"
 
+#include "../Engine.h"
+
 namespace Quartz
 {
-	Scene::Scene(const String& name)
-		: mName(name)
+	Scene::Scene(const String& name, EntityWorld* pWorld, const SceneGraphView& graph, Entity camera)
+		: mName(name),
+		mpWorld(pWorld),
+		mGraph(graph),
+		mCamera(camera)
 	{
 		// Nothing
 	}
@@ -19,10 +24,13 @@ namespace Quartz
 		// Nothing
 	}
 
-	Scene* SceneManager::CreateScene(const String& name)
+	Scene* SceneManager::CreateScene(const String& name, const SceneGraphView& graph, Entity camera)
 	{
-		Scene* pScene = new Scene(name);
+		EntityWorld* pWorld = Engine::GetInstance()->GetEntityWorld();
+
+		Scene* pScene = new Scene(name, pWorld, graph, camera);
 		mScenes.PushBack(pScene);
+		
 		return pScene;
 	}
 }

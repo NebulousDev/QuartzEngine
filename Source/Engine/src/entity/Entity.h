@@ -20,7 +20,7 @@ namespace Quartz
 	private:
 		constexpr static USize INDEX_BITS = (sizeof(HandleIntType) * 8) - versionBits;
 		constexpr static USize VERSION_BITS = versionBits;
-		constexpr static USize NULL_HANDLE = HandleIntType(-1);
+		constexpr static USize NULL_HANDLE = HandleIntType(0);
 
 	public:
 		union
@@ -66,5 +66,5 @@ namespace Quartz
 	using Entity = Entity32;
 
 	/* Null Entity */
-	constexpr Entity NullEntity;
+	constexpr Entity NullEntity(0);
 }

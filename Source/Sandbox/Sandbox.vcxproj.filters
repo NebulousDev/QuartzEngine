@@ -24,5 +24,7 @@
     <None Include="src\shader.vert" />
     <None Include="src\flat.vert" />
     <None Include="src\flat.frag" />
+    <None Include="src\lights.shader" />
+    <None Include="src\assets\test.json" />
   </ItemGroup>
 </Project>

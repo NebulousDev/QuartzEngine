@@ -6,6 +6,7 @@
 
 #include "Quaternion.h"
 #include "Vector3.h"
+#include "Matrix4.h"
 #include "MathUtil.h"
 
 FORCEINLINE Quaternion::Quaternion()
@@ -21,6 +22,17 @@ FORCEINLINE Quaternion::Quaternion(const Vector3& axis, float angle)
 FORCEINLINE Quaternion::Quaternion(const Vector3& euler)
 {
 	SetEuler(euler);
+}
+
+FORCEINLINE Quaternion::Quaternion(const Matrix4& matrix)
+{
+	this->w = FastInvsereSquare(1.0 + matrix.m00 + matrix.m11 + matrix.m22) / 2.0f;
+
+	float w4 = 4.0f * w;
+
+	this->x = (matrix.m21 - matrix.m12) / w4;
+	this->y = (matrix.m02 - matrix.m20) / w4;
+	this->z = (matrix.m10 - matrix.m01) / w4;
 }
 
 FORCEINLINE Quaternion::Quaternion(float x, float y, float z, float w)

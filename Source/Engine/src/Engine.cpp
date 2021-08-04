@@ -23,6 +23,8 @@ namespace Quartz
 
 		// mpGraphics is set in constructor
 
+		mSceneGraph.SetWorld(&mEntityWorld);
+
 		AddModule(mpApplicationManager);
 		AddModule(mpPlatform);
 		AddModule(mpInputSystem);

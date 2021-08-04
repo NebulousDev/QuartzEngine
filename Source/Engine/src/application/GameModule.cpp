@@ -4,10 +4,11 @@
 #include "../graphics/renderers/SimpleRenderer.h"
 #include "../log/Log.h"
 
-#include "../entity/basic/Transform.h"
+#include "../physics/component/Transform.h"
 #include "../graphics/component/Camera.h"
 #include "../graphics/component/Mesh.h"
 #include "../graphics/component/Material.h"
+#include "../graphics/component/Light.h"
 
 namespace Quartz
 {
@@ -58,6 +59,9 @@ namespace Quartz
 		SceneManager*		pSceneManager	= Engine::GetInstance()->GetSceneManager();
 		Graphics*			pGraphics		= Engine::GetInstance()->GetGraphics();
 
+		EntityWorld*		pEntityWorld	= Engine::GetInstance()->GetEntityWorld();
+		SceneGraph*			pSceneGraph		= Engine::GetInstance()->GetSceneGraph();
+
 		/* Create Game Application */
 
 		ApplicationInfo applicationInfo;
@@ -84,20 +88,21 @@ namespace Quartz
 
 		/* Create Game Scene */
 
-		mpGameScene = pSceneManager->CreateScene("TestScene");
-		
-		mCamera = mpGameScene->GetWorld().CreateEntity
+		Entity sceneRoot = pEntityWorld->CreateEntity();
+		pSceneGraph->ParentEntityToRoot(sceneRoot);
+
+		mCamera = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
 			CameraComponent{ Matrix4().SetPerspective(ToRadians(80.0f), 1920.0f / 1080.0f, 0.01f, 1000.0f) }
 		);
 
-		mpGameScene->SetCamera(mCamera);
+		pSceneGraph->ParentEntity(mCamera, sceneRoot);
 
-		mEntity1 = mpGameScene->GetWorld().CreateEntity
+		mEntity1 = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			MeshComponent("assets/models/testScene.obj"),
+			MeshComponent("assets/models/testscene.obj"),
 			MaterialComponent
 			(
 				"assets/textures/wood_diffuse.png",
@@ -105,11 +110,21 @@ namespace Quartz
 				"assets/textures/shiney_roughness.png",
 				"assets/textures/wood_metalic.png",
 				"assets/textures/wood_ao.png"
+
+				/*
+				"assets/textures/gold_diffuse.jpg",
+				"assets/textures/gold_normal.jpg",
+				"assets/textures/gold_roughness.jpg",
+				"assets/textures/gold_metallic.jpg",
+				"assets/textures/gold_roughness.jpg"
+				*/
 			)
 			
 		);
 
-		mEntity2 = mpGameScene->GetWorld().CreateEntity
+		pSceneGraph->ParentEntity(mEntity1, sceneRoot);
+
+		mEntity2 = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 2.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
 			MeshComponent("assets/models/gun.obj"),
@@ -123,7 +138,10 @@ namespace Quartz
 			)
 		);
 
-		mpGameScene->GetWorld().CreateEntity
+		pSceneGraph->ParentEntity(mEntity2, sceneRoot);
+		pSceneGraph->ParentEntity(mCamera, mEntity2);
+
+		Entity e1 = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 0.5f, 0.5f, 0.5f }),
 			MeshComponent("assets/models/sponza2.obj"),
@@ -131,11 +149,47 @@ namespace Quartz
 			(
 				"assets/textures/tile.png",
 				"assets/textures/tile_normal.png",
-				"assets/textures/shiney_roughness.png",
+				"assets/textures/dull_roughness.png",
 				"assets/textures/wood_metalic.png",
 				"assets/textures/wood_metalic.png"
 			)
 		);
+
+		pSceneGraph->ParentEntity(e1, sceneRoot);
+
+		mLight = pEntityWorld->CreateEntity
+		(
+			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 0.5f, 0.5f, 0.5f }),
+			LightComponent({ 0, 0, 0 })
+		);
+
+		pSceneGraph->ParentEntity(mLight, mCamera);
+
+		Entity light0 = pEntityWorld->CreateEntity
+		(
+			TransformComponent({ -5.0f, 5.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			LightComponent({ 1000.0f, 0.0f, 0.0f })
+		);
+
+		pSceneGraph->ParentEntity(light0, sceneRoot);
+
+		Entity light1 = pEntityWorld->CreateEntity
+		(
+			TransformComponent({ 0.0f, 5.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			LightComponent({ 0.0f, 1000.0f, 0.0f })
+		);
+
+		pSceneGraph->ParentEntity(light1, sceneRoot);
+
+		Entity light2 = pEntityWorld->CreateEntity
+		(
+			TransformComponent({ 5.0f, 5.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
+			LightComponent({ 0.0f, 0.0f, 1000.0f })
+		);
+
+		pSceneGraph->ParentEntity(light2, sceneRoot);
+
+		mpGameScene = pSceneManager->CreateScene("TestScene", Engine::GetInstance()->GetSceneGraph()->CreateRootView(), mCamera);
 
 		/* Create Rendered Context */
 
@@ -145,12 +199,14 @@ namespace Quartz
 
 		/* Bind Input Actions */
 
-		pInputSystem->BindKeyboardInputAction("PlayerMoveForward",	INPUT_ANY_KEYBOARD, 17 /* W */, INPUT_ACTION_ANY, {  0.0f,  0.0f,  1.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMoveBackward", INPUT_ANY_KEYBOARD, 31 /* S */, INPUT_ACTION_ANY, {  0.0f,  0.0f, -1.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMoveLeft",		INPUT_ANY_KEYBOARD, 30 /* A */, INPUT_ACTION_ANY, {  1.0f,  0.0f,  0.0f }, 1.0f);
-		pInputSystem->BindKeyboardInputAction("PlayerMoveRight",	INPUT_ANY_KEYBOARD, 32 /* D */, INPUT_ACTION_ANY, { -1.0f,  0.0f,  0.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveForward",	INPUT_ANY_KEYBOARD, 17 /* W */, INPUT_ACTION_ANY, {  0.0f,  0.0f, -1.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveBackward", INPUT_ANY_KEYBOARD, 31 /* S */, INPUT_ACTION_ANY, {  0.0f,  0.0f,  1.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveLeft",		INPUT_ANY_KEYBOARD, 30 /* A */, INPUT_ACTION_ANY, { -1.0f,  0.0f,  0.0f }, 1.0f);
+		pInputSystem->BindKeyboardInputAction("PlayerMoveRight",	INPUT_ANY_KEYBOARD, 32 /* D */, INPUT_ACTION_ANY, {  1.0f,  0.0f,  0.0f }, 1.0f);
 		
 		pInputSystem->BindMouseMoveInputAction("PlayerLook", INPUT_ANY_MOUSE);
+
+		pInputSystem->BindKeyboardInputAction("ToggleCameraLight", INPUT_ANY_KEYBOARD, 18 /* E */, INPUT_ACTION_ANY, { 0.0f,  0.0f,  0.0f }, 1.0f);
 
 		/* Register Callbacks */
 
@@ -162,8 +218,10 @@ namespace Quartz
 
 	void Game::Update(Float32 delta)
 	{
-		constexpr Float32 moveSpeed = 12.0f;
-		constexpr Float32 lookSpeed = 8.0f;
+		Engine* pEngine = Engine::GetInstance();
+
+		constexpr Float32 moveSpeed = 8.0f;
+		constexpr Float32 lookSpeed = 6.0f;
 
 		InputSystem* pInputSystem = Engine::GetInstance()->GetInputSystem();
 
@@ -204,23 +262,43 @@ namespace Quartz
 
 		if (playerLook.action & INPUT_ACTION_ACTIVE)
 		{
-			Vector3 left = transform.rotation * Vector3( 1.0f, 0.0f, 0.0f );
+			Vector3 left = transform.GetLeft();
 			Vector3 up = { 0.0f, 1.0f, 0.0f };
 
-			transform.rotation *= Quaternion().SetAxisAngle(up, playerLook.axis.x * playerLook.value * lookSpeed * delta)
+			transform.rotation *= Quaternion().SetAxisAngle(up,   playerLook.axis.x * playerLook.value * lookSpeed * delta)
 							    * Quaternion().SetAxisAngle(left, playerLook.axis.y * playerLook.value * lookSpeed * delta);
+
 		}
+
+		Engine::GetInstance()->GetSceneGraph()->Update(mCamera);
 
 		// Rotate Entity
 
 		TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
 		e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
-		
+
+		Engine::GetInstance()->GetSceneGraph()->Update(mEntity2);
+
+		ActionState toggleLight = pInputSystem->GetInputAction("ToggleCameraLight");
+
+		if (toggleLight.action & INPUT_ACTION_PRESSED)
+		{
+			LightComponent& light = mpGameScene->GetWorld().GetComponent<LightComponent>(mLight);
+
+			if (light.radiance.x == 0)
+			{
+				light.radiance = { 500.0f, 500.0f, 500.0f };
+			}
+			else
+			{
+				light.radiance = { 0, 0, 0 };
+			}
+		}
 	}
 
     void Game::Tick(UInt32 ticks)
     {
-		
+		Engine* pEngine = Engine::GetInstance();
     }
 
 	void Game::Shutdown()

@@ -8,10 +8,14 @@
 
 #include "Entity.h"
 #include "EntityView.h"
-#include "SystemBase.h"
 
 namespace Quartz
 {
+	struct EntityEvent
+	{
+
+	};
+
 	class EntityWorld
 	{
 	public:
@@ -60,7 +64,6 @@ namespace Quartz
 		};
 
 	private:
-		Array<SystemBase*>	mSystems;
 		Array<EntitySet*>	mStorageSets;
 		Array<Entity>		mEntites;
 
@@ -70,8 +73,15 @@ namespace Quartz
 		{
 			using ComponentType = std::decay_t<Component>;
 			USize typeIndex = ComponentTypeIndex<ComponentType>::Value();
+
+			if (typeIndex >= mStorageSets.Size())
+			{
+				return false;
+			}
+
 			ComponentStorage<Component>& storage = 
 				*static_cast<ComponentStorage<Component>*>(mStorageSets[typeIndex]);
+
 			return storage.Contains(entity.index);
 		}
 
@@ -100,67 +110,10 @@ namespace Quartz
 		}
 
 	public:
-		FORCE_INLINE void Update(Float32 deltaTime)
-		{
-			for (SystemBase* system : mSystems)
-			{
-				system->UpdateAll(*this, deltaTime);
-			}
-		}
-
-		FORCE_INLINE void Tick(Float32 deltaTime)
-		{
-			for (SystemBase* system : mSystems)
-			{
-				system->TickAll(*this, deltaTime);
-			}
-		}
-
-		template<typename SystemType>
-		void RegisterSystem()
-		{
-			USize typeIndex = SystemTypeIndex<SystemType>::Value();
-
-			if (typeIndex >= mSystems.Size() || mSystems[typeIndex] == nullptr)
-			{
-				mSystems.Resize(typeIndex + 1);
-				mSystems[typeIndex] = static_cast<SystemBase*>(new SystemType());
-				mSystems[typeIndex]->OnInit(*this);
-			}
-		}
-
-		template<typename SystemType>
-		void DeregisterSystem()
-		{
-			USize typeIndex = SystemTypeIndex<SystemType>::Value();
-			
-			if (typeIndex < mSystems.Size())
-			{
-				mSystems[typeIndex]->OnDestroy(*this);
-				delete mSystems[typeIndex];
-				mSystems[typeIndex] = nullptr;
-			}
-		}
-
-		template<typename SystemType>
-		Bool8 HasSystem()
-		{
-			USize typeIndex = SystemTypeIndex<SystemType>::Value();
-			return typeIndex < mSystems.Size() && mSystems[typeIndex] != nullptr;
-		}
-
-		// Warning! no checks!!
-		template<typename SystemType>
-		SystemType& GetSystem()
-		{
-			USize typeIndex = SystemTypeIndex<SystemType>::Value();
-			return *static_cast<SystemType*>(mSystems[typeIndex]);
-		}
-
 		template<typename... Component>
 		Entity CreateEntity(Component&&... component)
 		{
-			Entity entity = *mEntites.PushBack(Entity(mEntites.Size(), 0));
+			Entity entity = *mEntites.PushBack(Entity(mEntites.Size() + 1, 0));
 			AddComponent(entity, std::forward<Component>(component)...);
 			return entity;
 		}

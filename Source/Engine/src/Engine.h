@@ -9,6 +9,8 @@
 #include "graphics/SceneSystem.h"
 #include "event/EventSystem.h"
 #include "input/InputModule.h"
+#include "entity/World.h"
+#include "physics/SceneGraph.h"
 
 #include "util/Singleton.h"
 #include "util/Array.h"
@@ -42,6 +44,9 @@ namespace Quartz
 	private:
 		GameInfo			mGameInfo;
 		Float32				mTargetTPS;
+
+		EntityWorld			mEntityWorld;
+		SceneGraph			mSceneGraph;
 
 		Time*				mpTime;
 		Float32				mCurrentTPS;
@@ -83,6 +88,9 @@ namespace Quartz
 		FORCE_INLINE Bool8				IsRunning() { return mRunning; };
 
 		FORCE_INLINE Float32			GetDelta() { return mDelta; }
+
+		FORCE_INLINE EntityWorld*			GetEntityWorld() { return &mEntityWorld; }
+		FORCE_INLINE SceneGraph*			GetSceneGraph() { return &mSceneGraph; }
 
 		FORCE_INLINE ApplicationManager*	GetApplicationManager() { return mpApplicationManager; }
 		FORCE_INLINE EventSystem*			GetEventSystem() { return mpEventSystem; }

@@ -2,6 +2,18 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_KHR_vulkan_glsl : enable
 
+#include "lights.shader"
+
+layout(set = 0, binding = 0) uniform PerFrameUBO
+{
+	mat4 view;
+	mat4 projection;
+	vec3 cameraPos;
+	Light lights[MAX_LIGHTS];
+	uint lightCount;
+}
+perFrame;
+
 layout(location = 0) in struct
 {
 	vec3 cameraPos;
@@ -49,10 +61,6 @@ vec3 FresnelSchlick(float theta, vec3 F0)
 
 void main()
 {
-	/* Temporary constants */
-	const vec3 lightPos		= vec3(0.0, 6.0, 0.0);
-	const vec3 lightColor	= vec3(500.0, 500.0, 500.0);
-
 	/* Sample Textures */
 	vec3  albedo	= texture(diffuseSampler,   fragIn.texCoord).xyz;
 	vec3  normal	= texture(normalSampler,    fragIn.texCoord).xyz;
@@ -76,16 +84,18 @@ void main()
 	/* Calculate all light influence */
 	vec3 lightOut = vec3(0.0);
 
-	for(int i = 0; i < 1; i++)
+	for(uint i = 0; i < perFrame.lightCount; i++)
 	{
+		Light light = perFrame.lights[i];
+
 		/* Calculate vectors */
-		vec3 lightDir		= normalize(lightPos - fragIn.position);
+		vec3 lightDir		= normalize(light.position - fragIn.position);
 		vec3 halfDir		= normalize(viewDir + lightDir);
 
 		/* Calculate radiance */
-		float dist			= length(lightPos - fragIn.position);
+		float dist			= length(light.position - fragIn.position);
 		float attenuation	= 1.0 / (dist * dist);
-		vec3 radiance		= lightColor * attenuation;
+		vec3 radiance		= light.radiance * attenuation;
 	
 		/* Calculate incidences */
 		float hdotv = max(dot(halfDir, viewDir), 0.0);

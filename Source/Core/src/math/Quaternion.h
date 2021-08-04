@@ -9,6 +9,7 @@
 #define QUAT_ALIGN ALIGN(16)
 
 struct Vector3;
+struct Matrix4;
 
 /**
 	4 floating-point quaternion
@@ -36,6 +37,9 @@ struct Quaternion
 
 	/** Construct a Quaternion from euler angles */
 	FORCEINLINE Quaternion(const Vector3& euler);
+
+	/** Construct a Quaternion from rotation matrix */
+	FORCEINLINE Quaternion(const Matrix4& matrix);
 
 	/** Construct a Quaternion from values */
 	FORCEINLINE Quaternion(float x, float y, float z, float w);

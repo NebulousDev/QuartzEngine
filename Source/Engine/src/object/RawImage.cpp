@@ -3,11 +3,12 @@
 namespace Quartz
 {
 	RawImage::RawImage(UInt32 width, UInt32 height,
-		UInt32 channels, UInt32 bitsPerChannel, Byte* data) :
+		UInt32 channels, UInt32 bitsPerChannel, Bool8 hdr, Byte* data) :
 		mWidth(width),
 		mHeight(height),
 		mChannels(channels),
 		mBitsPerChannel(bitsPerChannel),
+		mHDR(hdr),
 		mpData(data)
 	{
 		mSizeBytes = (width * height * channels * bitsPerChannel) / 8;
@@ -36,6 +37,11 @@ namespace Quartz
 	Byte* RawImage::GetData() const
 	{
 		return mpData;
+	}
+
+	Bool8 RawImage::IsHDR() const
+	{
+		return mHDR;
 	}
 
 	UInt32 RawImage::GetSizeBytes() const
