@@ -64,8 +64,8 @@ namespace Quartz
 		Framebuffer*	CreateFramebuffer(Renderpass* pRenderpass, Context* pViewport, UInt32 width, UInt32 height) override;
 		void			DestroyFramebuffer(Framebuffer* pFramebuffer) override;
 
-		Shader*			CreateShader(const String& name, const Array<Byte>& binary) override;
-		void			DestroyShader(Shader* pShader) override;
+		GFXShader*		CreateShader(const String& name, const Array<Byte>& binary) override;
+		void			DestroyShader(GFXShader* pShader) override;
 
 		GraphicsPipeline*	CreateGraphicsPipeline(const GraphicsPipelineInfo& info, UInt32 subpass) override;
 		void				DestroyGraphicsPipeline(GraphicsPipeline* pPipeline) override;

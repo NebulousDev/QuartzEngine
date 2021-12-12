@@ -5,7 +5,7 @@
 
 namespace Quartz
 {
-	typedef TypeId EventTypeId;
+	typedef UInt64 EventTypeId;
 
 	class EventBase
 	{
@@ -32,6 +32,6 @@ namespace Quartz
 	template<typename EventType>
 	EventTypeId Event<EventType>::GetStaticEventTypeId()
 	{
-		return TypeInfo<EventType>::Id();
+		return TypeId<EventType>::Value();
 	}
 }

@@ -2,7 +2,7 @@
 
 #include "util/Array.h"
 #include "util/String.h"
-#include "../object/RawImage.h"
+#include "Image.h"
 
 namespace Quartz
 {

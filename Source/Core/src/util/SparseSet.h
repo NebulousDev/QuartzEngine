@@ -6,6 +6,9 @@
 
 namespace Quartz
 {
+	template<typename ValueType, typename IntType>
+	IntType SparseIndex(ValueType& value) = delete;
+
 	template<typename _ValueType = UInt32, typename _IntType = UInt32, USize blockSize = 64>
 	class SparseSet
 	{
@@ -28,12 +31,12 @@ namespace Quartz
 	private:
 		IntType GetBlockIndex(ValueType handle) const
 		{
-			return IntType(handle) / ENTITIES_PER_BLOCK;
+			return SparseIndex<ValueType, IntType>(handle) / ENTITIES_PER_BLOCK;
 		}
 
 		IntType GetBlockOffset(ValueType handle) const
 		{
-			return IntType(handle) & (ENTITIES_PER_BLOCK - 1);
+			return SparseIndex<ValueType, IntType>(handle) & (ENTITIES_PER_BLOCK - 1);
 		}
 
 	public:

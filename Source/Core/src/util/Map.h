@@ -153,6 +153,11 @@ namespace Quartz
 			return mTable.Reserve(size);
 		}
 
+		void Remove(const KeyType& key)
+		{
+			mTable.Remove(Hash(key), key);
+		}
+
 		void Shrink()
 		{
 			mTable.Shrink();

@@ -1,27 +1,29 @@
-#include "SceneGraph.h"
+#include "EntityGraph.h"
+
+#include "EntityDatabase.h"
 
 namespace Quartz
 {
-    SceneGraphView::SceneGraphView(SceneGraph* pParentGraph, SceneNode* pRoot)
+    EntityGraphView::EntityGraphView(EntityGraph* pParentGraph, SceneNode* pRoot)
         : mpParentGraph(pParentGraph),
         mpViewRoot(pRoot)
     {
         // Nothing
     }
 
-    SceneNode* SceneGraphView::GetNode(Entity entity)
+    SceneNode* EntityGraphView::GetNode(Entity entity)
     {
         // TODO: Add check here to ensure the entity is within the view?
         return mpParentGraph->GetNode(entity);
     }
 
-    void SceneGraph::SetWorld(EntityWorld* pWorld)
+    void EntityGraph::SetDatabase(EntityDatabase* pWorld)
     {
-        this->pWorld = pWorld;
+        this->mpDatabase = pWorld;
     }
 
     // Should never be called on root
-    void SceneGraph::UpdateBranch(SceneNode* node)
+    void EntityGraph::UpdateBranch(SceneNode* node)
     {
         node->globalTransform = node->pLocalTransform->GetMatrix() * node->pParent->globalTransform;
 
@@ -31,35 +33,41 @@ namespace Quartz
         }
     }
 
-    SceneGraph::SceneGraph()
-        : pWorld(nullptr)
+    EntityGraph::EntityGraph()
+        : EntityGraph(nullptr)
+    {
+       // Nothing
+    }
+
+    EntityGraph::EntityGraph(EntityDatabase* mpDatabase)
+        : mpDatabase(mpDatabase)
     {
         SceneNode rootNode;
         rootNode.pParent = nullptr;
         rootNode.entity = NullEntity;
-     
-        zeroTransform = TransformComponent(
+
+        mZeroTransform = TransformComponent(
             { 0.0f, 0.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 0.0f },
             { 1.0f, 1.0f, 1.0f });
-        
-        rootNode.pLocalTransform = &zeroTransform;
+
+        rootNode.pLocalTransform = &mZeroTransform;
         rootNode.globalTransform = Matrix4().SetIdentity();
 
-        pRoot = &nodes.Insert(NullEntity, rootNode);  
+        mpRoot = &mNodes.Insert(NullEntity, rootNode);
     }
 
-    SceneNode* SceneGraph::GetNode(Entity entity)
+    SceneNode* EntityGraph::GetNode(Entity entity)
     {
-        if (nodes.Contains(entity))
+        if (mNodes.Contains(entity))
         {
-            return &nodes.Get(entity);
+            return &mNodes.Get(entity);
         }
 
         return nullptr;
     }
 
-    Bool8 SceneGraph::ParentEntity(Entity entity, Entity parent)
+    Bool8 EntityGraph::ParentEntity(Entity entity, Entity parent)
     {
         // TODO: check for cycles
 
@@ -69,39 +77,39 @@ namespace Quartz
             return false;
         }
 
-        if (!nodes.Contains(parent))
+        if (!mNodes.Contains(parent))
         {
             // Parent must be present
             return false;
         }
 
-        SceneNode& parentNode = nodes.Get(parent);
+        SceneNode& parentNode = mNodes.Get(parent);
         SceneNode* pChildNode = nullptr;
 
-        if (!nodes.Contains(entity))
+        if (!mNodes.Contains(entity))
         {
             SceneNode entityNode;
             entityNode.pParent = &parentNode;
             entityNode.entity = entity;
 
-            if (pWorld->HasComponent<TransformComponent>(entity))
+            if (mpDatabase->HasComponent<TransformComponent>(entity))
             {
-                TransformComponent& transform = pWorld->GetComponent<TransformComponent>(entity);
+                TransformComponent& transform = mpDatabase->GetComponent<TransformComponent>(entity);
                 entityNode.pLocalTransform = &transform;
                 entityNode.globalTransform = parentNode.globalTransform * transform.GetMatrix();
             }
             else
             {
-                entityNode.pLocalTransform = &zeroTransform;
+                entityNode.pLocalTransform = &mZeroTransform;
                 entityNode.globalTransform = parentNode.globalTransform;
             }
 
-            pChildNode = &nodes.Insert(entity, entityNode);
+            pChildNode = &mNodes.Insert(entity, entityNode);
             parentNode.children.PushBack(pChildNode);
         }
         else
         {
-            pChildNode = &nodes.Get(entity);
+            pChildNode = &mNodes.Get(entity);
             SceneNode* pChildParentNode = pChildNode->pParent;
 
             // TODO: Find a way to speed this up?
@@ -117,34 +125,34 @@ namespace Quartz
         return true;
     }
 
-    Bool8 SceneGraph::ParentEntityToRoot(Entity entity)
+    Bool8 EntityGraph::ParentEntityToRoot(Entity entity)
     {
         return ParentEntity(entity, NullEntity);
     }
 
-    void SceneGraph::Update(Entity entity)
+    void EntityGraph::Update(Entity entity)
     {
-        if (nodes.Contains(entity))
+        if (mNodes.Contains(entity))
         {
-            UpdateBranch(&nodes.Get(entity));
+            UpdateBranch(&mNodes.Get(entity));
         }
     }
 
-    SceneGraphView SceneGraph::CreateView(Entity entity)
+    EntityGraphView EntityGraph::CreateView(Entity entity)
     {
-        if (nodes.Contains(entity))
+        if (mNodes.Contains(entity))
         {
-            SceneNode* pNode = &nodes.Get(entity);
-            return SceneGraphView(this, pNode);
+            SceneNode* pNode = &mNodes.Get(entity);
+            return EntityGraphView(this, pNode);
         }
 
         // TODO: find a better fail state?
         return CreateRootView();
     }
 
-    SceneGraphView SceneGraph::CreateRootView()
+    EntityGraphView EntityGraph::CreateRootView()
     {
-        return SceneGraphView(this, pRoot);
+        return EntityGraphView(this, mpRoot);
     }
 }
 

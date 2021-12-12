@@ -964,7 +964,7 @@ namespace Quartz
 		delete pVulkanFramebuffer;
 	}
 
-	Shader* VulkanGraphics::CreateShader(const String& name, const Array<Byte>& binary)
+	GFXShader* VulkanGraphics::CreateShader(const String& name, const Array<Byte>& binary)
 	{
 		VkShaderModule			vkShader;
 		SpirvReflection			reflection;
@@ -1107,7 +1107,7 @@ namespace Quartz
 			vkShader, vkStageFlags, reflection.entryName, uniforms, attributes);
 	}
 
-	void VulkanGraphics::DestroyShader(Shader* pShader)
+	void VulkanGraphics::DestroyShader(GFXShader* pShader)
 	{
 		VulkanShader* pVulkanShader = static_cast<VulkanShader*>(pShader);
 		vkDestroyShaderModule(mpDevice->GetDeviceHandle(), pVulkanShader->GetVkShader(), VK_NULL_HANDLE);
@@ -1146,7 +1146,7 @@ namespace Quartz
 		
 		USize maxSetIndex = 0;
 
-		for (Shader* pShader : info.shaders)
+		for (GFXShader* pShader : info.shaders)
 		{
 			VulkanShader* pVulkanShader = static_cast<VulkanShader*>(pShader);
 

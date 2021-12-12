@@ -1,0 +1,12 @@
+{
+	"name" : "default",
+	"shader" : "/shaders/default_pbr.shader",
+	"params" :
+	{
+		"color" : "/textures/wood_diffuse.png",
+	    "normal" : "/textures/wood_normal.png",
+        "rough" : "/textures/shiney_roughness.png",
+        "metal"	: "/textures/wood_metalic.png",
+        "ao" : "/textures/wood_ao.png"
+	}
+}

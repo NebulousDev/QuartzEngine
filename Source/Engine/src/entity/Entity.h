@@ -40,7 +40,7 @@ namespace Quartz
 
 		operator HandleIntType() const
 		{
-			return index;
+			return handle;
 		}
 
 		constexpr EntityHandle()

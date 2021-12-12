@@ -25,6 +25,7 @@ namespace Quartz
 
 		void Set(void* pData) override;
 		void SetElement(Context* pContext, UInt32 element, void* pData) override;
+		void SetElementArray(Context* pContext, UInt32 startIndex, UInt32 endIndex, void* pData) override;
 
 		void BuildBuffers(UInt32 bufferCount);
 

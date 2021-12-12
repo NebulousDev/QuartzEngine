@@ -4,10 +4,9 @@
 
 namespace Quartz
 {
-	Scene::Scene(const String& name, EntityWorld* pWorld, const SceneGraphView& graph, Entity camera)
+	Scene::Scene(const String& name, EntityWorld* pWorld, Entity camera)
 		: mName(name),
 		mpWorld(pWorld),
-		mGraph(graph),
 		mCamera(camera)
 	{
 		// Nothing
@@ -24,11 +23,9 @@ namespace Quartz
 		// Nothing
 	}
 
-	Scene* SceneManager::CreateScene(const String& name, const SceneGraphView& graph, Entity camera)
+	Scene* SceneManager::CreateScene(const String& name, EntityWorld* pWorld, Entity camera)
 	{
-		EntityWorld* pWorld = Engine::GetInstance()->GetEntityWorld();
-
-		Scene* pScene = new Scene(name, pWorld, graph, camera);
+		Scene* pScene = new Scene(name, pWorld, camera);
 		mScenes.PushBack(pScene);
 		
 		return pScene;

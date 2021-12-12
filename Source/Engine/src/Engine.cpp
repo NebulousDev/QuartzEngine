@@ -1,6 +1,8 @@
 #include "Engine.h"
 
 #include "log/Log.h"
+#include "resource/loaders/Loaders.h"
+#include "graphics/loaders/GraphicsLoaders.h"
 
 namespace Quartz
 {
@@ -18,12 +20,17 @@ namespace Quartz
 
 		mpApplicationManager	= new ApplicationManager();
 		mpEventSystem			= new EventSystem();
+		mpFileSystem			= new FileSystem();
 		mpInputSystem			= new InputSystem();
 		mpSceneManager			= new SceneManager();
+		mpResourceManager		= new ResourceManager();
 
-		// mpGraphics is set in constructor
+		/* Setup Entity World */
 
-		mSceneGraph.SetWorld(&mEntityWorld);
+		mEntityGraph.SetDatabase(&mEntityDatabase);
+		mEntityWorld.Initialize(&mEntityDatabase, &mEntityGraph);
+
+		/* Append Modules */
 
 		AddModule(mpApplicationManager);
 		AddModule(mpPlatform);
@@ -31,6 +38,21 @@ namespace Quartz
 		AddModule(mpSceneManager);
 		AddModule(mpGraphics);
 		AddModule(mpEventSystem);
+
+		/* Loaders */
+
+		Loaders::RegisterCoreLoaders(mpResourceManager);
+		Loaders::RegisterGraphicsLoaders(mpResourceManager);
+
+		/* Setup FileSystem */
+
+		mpFileSystem->SetPhysicalFileSystem(mpPlatform->GetPhysicalFileSystem());
+		mpResourceManager->SetFileSystem(mpFileSystem);
+
+		mpFileSystem->Mount("/textures", "assets/textures");
+		mpFileSystem->Mount("/models", "assets/models");
+		mpFileSystem->Mount("/shaders", "assets/shaders");
+		mpFileSystem->Mount("/materials", "assets/materials");
 	}
 
 	Bool8 Engine::AddModule(Module* pModule)

@@ -1,0 +1,32 @@
+{
+	"name" : "default",
+	"shader" : "/shaders/default_pbr.shader",
+	"params" :
+	{
+		"color" : 
+		{
+			"type" : "texture",
+			"value" : "/textures/tile.png"
+	    },
+		"normal" : 
+		{
+			"type" : "texture",
+			"value" : "/textures/tile_normal.png"
+	    },
+		"rough" : 
+		{
+			"type" : "texture",
+			"value" : "/textures/dull_roughness.png"
+	    },
+		"metal" : 
+		{
+			"type" : "texture",
+			"value" : "/textures/wood_metalic.png"
+	    },
+		"ao" : 
+		{
+			"type" : "texture",
+			"value" : "/textures/wood_metalic.png"
+	    }
+	}
+}

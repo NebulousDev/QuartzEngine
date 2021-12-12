@@ -2,7 +2,7 @@
 
 #include "../../Engine.h"
 #include "../../log/Log.h"
-#include "../../loaders/ImageLoader.h"
+#include "../../resource/loaders/ImageLoader.h"
 
 #include <iostream>
 #include <fstream>
@@ -33,97 +33,28 @@ namespace Quartz
 
 	void CreateMaterialTexture(const String& path, Image** ppImageOut, ImageView** ppViewOut)
 	{
-		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();
+		Graphics*			pGraphics			= Engine::GetInstance()->GetGraphics();
+		ResourceManager*	pResourceManager	= Engine::GetInstance()->GetResourceManager();
 
-		RawImage* pRawImage = LoadImage(path, true, true);
+		Image* pImage = pResourceManager->CheckoutResource<Image>(path);
 
-		if (!pRawImage)
+		if (!pImage)
 		{
-			Log::Error("Failed to load image path '%s;", path.Str());
+			Log::Error("Failed to create material texture: GetResource() failed on path '%s'!", path.Str());
 			return;
 		}
-
-		ImageFormat format;
-
-		if (pRawImage->GetBitsPerChannel() == 8)
-		{
-			switch (pRawImage->GetChannels())
-			{
-				case 1: format = IMAGE_FORMAT_R;	break;
-				case 2: format = IMAGE_FORMAT_RG;	break;
-				case 3: format = IMAGE_FORMAT_RGB;	break;
-				case 4: format = IMAGE_FORMAT_RGBA; break;
-			}
-		}
-		else if (pRawImage->GetBitsPerChannel() == 16)
-		{
-			switch (pRawImage->GetChannels())
-			{
-				case 1: format = IMAGE_FORMAT_R16;		break;
-				case 2: format = IMAGE_FORMAT_RG16;		break;
-				case 3: format = IMAGE_FORMAT_RGB16;	break;
-				case 4: format = IMAGE_FORMAT_RGBA16;	break;
-			}
-		}
-		else if (pRawImage->GetBitsPerChannel() == 32)
-		{
-			switch (pRawImage->GetChannels())
-			{
-				case 1: format = IMAGE_FORMAT_R_FLOAT;		break;
-				case 2: format = IMAGE_FORMAT_RG_FLOAT;		break;
-				case 3: format = IMAGE_FORMAT_RGB_FLOAT;	break;
-				case 4: format = IMAGE_FORMAT_RGBA_FLOAT;	break;
-			}
-		}
-		else
-		{
-			// TODO: ERROR
-			*ppImageOut = nullptr;
-			*ppViewOut	= nullptr;
-			return;
-		}
-
-		UInt32 mipLevels = static_cast<uint32_t>(std::floor(std::log2f(std::max(pRawImage->GetWidth(), pRawImage->GetHeight())))) + 1;
-		UInt32 sizeBytes = pRawImage->GetSizeBytes();
-
-		Image* pImage = pGraphics->CreateImage
-		(
-			IMAGE_TYPE_2D,
-			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, mipLevels,
-			format,
-			IMAGE_USAGE_SAMPLED_TEXTURE_BIT | IMAGE_USAGE_TRANSFER_SRC_BIT | IMAGE_USAGE_TRANSFER_DST_BIT
-		);
-
-		Buffer* pStagingBuffer = pGraphics->CreateBuffer
-		(
-			sizeBytes,
-			BUFFER_USAGE_TRANSFER_SRC_BIT,
-			BUFFER_ACCESS_HOST_VISIBLE_BIT | BUFFER_ACCESS_HOST_COHERENT_BIT
-		);
-
-		void* pStagingData = pStagingBuffer->MapBuffer(sizeBytes, 0);
-		memcpy(pStagingData, pRawImage->GetData(), sizeBytes);
-		pStagingBuffer->UnmapBuffer();
-
-		pGraphics->CopyBufferToImage(pStagingBuffer, pImage);
-
-		pGraphics->DestroyBuffer(pStagingBuffer);
-
-		pGraphics->GenerateMips(pImage);
 
 		ImageView* pImageView = pGraphics->CreateImageView
 		(
 			pImage,
 			IMAGE_VIEW_TYPE_2D,
-			pRawImage->GetWidth(), pRawImage->GetHeight(), 1, 1, 0, mipLevels, 0,
-			format,
+			pImage->GetWidth(), pImage->GetHeight(), 1, 1, 0, pImage->GetMips(), 0,
+			pImage->GetFormat(),
 			IMAGE_VIEW_USAGE_SAMPLED_TEXTURE
 		);
 
-		FreeImage(pRawImage);
-
 		*ppImageOut = pImage;
-		*ppViewOut = pImageView;
+		*ppViewOut	= pImageView;
 	}
 
 	// TODO: Temporary until proper material management
@@ -132,13 +63,15 @@ namespace Quartz
 		const String& normal, 
 		const String& roughness,
 		const String& metallic,
-		const String& ambient)
+		const String& ambient,
+		Material* pMaterial)
 	{
 		CreateMaterialTexture(diffuse, &pDiffuseImage, &pDiffuse);
 		CreateMaterialTexture(normal, &pNormalImage, &pNormal);
 		CreateMaterialTexture(roughness, &pRoughnessImage, &pRoughness);
 		CreateMaterialTexture(metallic, &pMetallicImage, &pMetallic);
 		CreateMaterialTexture(ambient, &pAmbientImage, &pAmbient);
+		this->pMaterial = pMaterial;
 	}
 }
 

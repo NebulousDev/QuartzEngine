@@ -8,9 +8,7 @@
 
 #include "log/Log.h"
 
-#include "math/Math.h"
-
-#include "loaders/GLTFLoader.h"
+#include "util/TypeId.h"
 
 int main(int argc, char* argv[])
 {
@@ -30,19 +28,6 @@ int main(int argc, char* argv[])
 
 	DebugConsole* pConsole = pPlatform->CreateDebugConsole();
 	Log::SetDebugConsole(pConsole);
-
-	/* Pre-Testing */
-
-	Matrix4 translation = Matrix4().SetTranslation({0.0f, 0.0f, 1.0f});
-	Matrix4 rot = Matrix4().SetRotation(Quaternion().SetAxisAngle({0.0f, 1.0f, 0.0f}, ToRadians(90.0f)));
-	Matrix4 scale = Matrix4().SetScale({ 2.0f, 2.0f, 2.0f });
-
-	Matrix4 mat = scale * rot * translation;
-
-	Vector4 test = mat * Vector4(0, 0, 1, 1);
-
-	Array<Model> models;
-	LoadGLTF("assets\\gltf\\Helmet\\SciFiHelmet.gltf", models);
 
 	/* Print Console Splash */
 

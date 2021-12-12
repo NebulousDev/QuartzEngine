@@ -4,6 +4,7 @@
 #if _MSC_VER
 
 #include <intrin.h>
+#include <random>
 
 #if defined(WIN64)
 #pragma intrinsic(_BitScanReverse64)
@@ -91,5 +92,23 @@ namespace Quartz
 	{
 		UInt32 mask = value & ~(value - 1);
 		return CountZeroBitsRight(mask);
+	}
+
+	static FORCE_INLINE UInt32 Mersenne19937_32()
+	{
+		std::random_device device;
+		std::mt19937 mersenne(device());
+		std::uniform_int_distribution<UInt32> dist;
+
+		return dist(mersenne);
+	}
+
+	static FORCE_INLINE UInt64 Mersenne19937_64()
+	{
+		std::random_device device;
+		std::mt19937_64 mersenne(device());
+		std::uniform_int_distribution<UInt64> dist;
+
+		return dist(mersenne);
 	}
 }

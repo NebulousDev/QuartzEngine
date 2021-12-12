@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <Type Name = "Quartz::JSONValue">
+    
+    <DisplayString Condition="mType == JSON_TYPE_NULL">NULL</DisplayString>
+    <DisplayString Condition="mType == JSON_TYPE_STRING">[String] {mString}</DisplayString>
+    <DisplayString Condition="mType == JSON_TYPE_NUMBER">[Number] {mNumber}</DisplayString>
+    <DisplayString Condition="mType == JSON_TYPE_OBJECT">[Object] {mObject}</DisplayString>
+    <DisplayString Condition="mType == JSON_TYPE_ARRAY">[Array] {mArray}</DisplayString>
+    <DisplayString Condition="mType == JSON_TYPE_BOOL">[Bool] {mBool}</DisplayString>
+
+    <Expand>
+      
+      <ArrayItems Condition="mType == JSON_TYPE_OBJECT">
+        <Size>mObject.mTable.mCapacity</Size>
+        <ValuePointer>mObject.mTable.mTable.mpData</ValuePointer>
+      </ArrayItems>
+
+      <ArrayItems Condition="mType == JSON_TYPE_ARRAY">
+        <Size>mArray.mSize</Size>
+        <ValuePointer>mArray.mpData</ValuePointer>
+      </ArrayItems>
+      
+    </Expand>
+    
+  </Type>
+  
+</AutoVisualizer>

@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../../entity/Component.h"
 #include "Common.h"
 #include "math/Math.h"
 
 namespace Quartz
 {
-	struct QUARTZ_API TransformComponent
+	struct QUARTZ_API TransformComponent : public Component<TransformComponent>
 	{
 		Vector3		position;
 		Quaternion	rotation;

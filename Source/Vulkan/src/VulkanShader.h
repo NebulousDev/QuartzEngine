@@ -5,7 +5,7 @@
 
 namespace Quartz
 {
-	class QUARTZ_API VulkanShader : public Shader
+	class QUARTZ_API VulkanShader : public GFXShader
 	{
 	private:
 		VkShaderModule			mvkShader;

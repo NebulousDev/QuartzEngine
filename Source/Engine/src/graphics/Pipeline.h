@@ -122,7 +122,7 @@ namespace Quartz
 
 	struct GraphicsPipelineInfo
 	{
-		Array<Shader*>			shaders;
+		Array<GFXShader*>		shaders;
 		Array<BufferAttachent>	bufferAttachments;
 		Array<VertexAttribute>	vertexAttributes;
 		//Array<GFXDescriptorAttachment> descriptorAttachents;

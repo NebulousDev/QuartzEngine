@@ -5,7 +5,7 @@
 
 namespace Quartz
 {
-	RawImage* LoadImage(const String& path, Bool8 flipY, Bool8 forceRGBA)
+	RawImage* LoadImageSTB(const String& path, Bool8 flipY, Bool8 forceRGBA)
 	{
 		RawImage*	pImage = nullptr;
 
@@ -54,7 +54,7 @@ namespace Quartz
 		return pImage;
 	}
 
-	void FreeImage(RawImage* pImage)
+	void FreeImageSTB(RawImage* pImage)
 	{
 		if (pImage != nullptr)
 		{

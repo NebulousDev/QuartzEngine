@@ -4,44 +4,7 @@
 
 namespace Quartz
 {
-	AssetBase::AssetBase(AssetReference* pAssetReference) :
-		mpAssetReference(pAssetReference)
-	{
-		if (mpAssetReference != nullptr)
-		{
-			mpAssetReference->count++;
-		}
-	}
-
-	AssetBase::~AssetBase()
-	{
-		if (mpAssetReference != nullptr)
-		{
-			mpAssetReference->count--;
-
-			if (mpAssetReference->count == 0)
-			{
-				AssetManager::GetInstance()->MarkForUnload(mpAssetReference);
-			}
-		}
-	}
-
-	Bool8 AssetBase::IsValid() const
-	{
-		return mpAssetReference != nullptr;
-	}
-
-	UInt32 AssetBase::Count() const
-	{
-		if (mpAssetReference != nullptr)
-		{
-			return mpAssetReference->count;
-		}
-		
-		return 0;
-	}
-
-	String AssetManager::GetExtension(const String& path)
+	String ResourceManager::GetExtension(const String& path)
 	{
 		StringParser parser(path);
 		parser.ReadToChar('.');
@@ -50,14 +13,27 @@ namespace Quartz
 		return String(extension);
 	}
 
-	void AssetManager::MarkForUnload(AssetReference* pAssetReference)
+	void ResourceManager::SetFileSystem(FileSystem* pFileSystem)
 	{
-		mMarkedForUnload.Push(pAssetReference);
+		mpFileSystem = pFileSystem;
 	}
 
-	void AssetManager::SetAssetRoot(const String& root)
+	void ResourceManager::MarkForUnload(ResourceBase* pResource, Bool8 notify)
 	{
-		mRoot = root;
+		/*
+		mResources.Remove(pResource->mUUID);
+
+		if (!pResource->IsVirtual())
+		{
+			mPhysicalResources.Remove(pResource->mpPathName);
+			return;
+		}
+
+		delete pResource->mpResourceReference;
+
+		pResource->mpResourceReference->loader->Unload(this, pResource, notify);
+		*/
 	}
+
 }
 

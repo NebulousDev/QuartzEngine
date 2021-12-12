@@ -58,8 +58,8 @@ namespace Quartz
 		virtual Framebuffer*	CreateFramebuffer(Renderpass* pRenderpass, Context* pViewport, UInt32 width, UInt32 height) = 0;
 		virtual void			DestroyFramebuffer(Framebuffer* pFramebuffer) = 0;
 
-		virtual Shader*			CreateShader(const String& name, const Array<Byte>& binary) = 0;
-		virtual void			DestroyShader(Shader* pShader) = 0;
+		virtual GFXShader*		CreateShader(const String& name, const Array<Byte>& binary) = 0;
+		virtual void			DestroyShader(GFXShader* pShader) = 0;
 
 		virtual GraphicsPipeline*	CreateGraphicsPipeline(const GraphicsPipelineInfo& info, UInt32 subpass) = 0;
 		virtual void				DestroyGraphicsPipeline(GraphicsPipeline* pPipeline) = 0;

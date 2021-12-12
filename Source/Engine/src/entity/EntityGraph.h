@@ -1,14 +1,15 @@
 #pragma once
 
-#include "../Module.h"
-
-#include "../entity/World.h"
+#include "Entity.h"
 #include "component/Transform.h"
 #include "util/Storage.h"
 #include "util/Array.h"
 
 namespace Quartz
 {
+	class EntityGraph;
+	class EntityDatabase;
+
 	struct SceneNode
 	{
 		SceneNode*			pParent;
@@ -18,16 +19,14 @@ namespace Quartz
 		Array<SceneNode*>	children;
 	};
 
-	class SceneGraph;
-
-	class QUARTZ_API SceneGraphView
+	class QUARTZ_API EntityGraphView
 	{
 	private:
-		SceneGraph* mpParentGraph;
+		EntityGraph* mpParentGraph;
 		SceneNode*	mpViewRoot;
 
 	public:
-		SceneGraphView(SceneGraph* pParentGraph, SceneNode* pRoot);
+		EntityGraphView(EntityGraph* pParentGraph, SceneNode* pRoot);
 
 		SceneNode* GetNode(Entity entity);
 
@@ -37,25 +36,27 @@ namespace Quartz
 	// TODO: transition away from linked lists to a more compact
 	//		 data structure (indexed array?)
 
-	class QUARTZ_API SceneGraph
+	class QUARTZ_API EntityGraph
 	{
 	private:
-		friend class Engine;
+		friend class EntityWorld;
 
 		using NodeStorage = Storage<SceneNode, Entity, Entity::HandleIntType, 1024>;
 
 	private:
-		EntityWorld*		pWorld;
-		NodeStorage			nodes;
-		SceneNode*			pRoot;
-		TransformComponent	zeroTransform;
+		EntityDatabase*		mpDatabase;
+		NodeStorage			mNodes;
+		SceneNode*			mpRoot;
+		TransformComponent	mZeroTransform;
 
 	private:
-		void SetWorld(EntityWorld* pWorld);
 		void UpdateBranch(SceneNode* node);
 	
 	public:
-		SceneGraph();
+		EntityGraph();
+		EntityGraph(EntityDatabase* pDatabase);
+
+		void SetDatabase(EntityDatabase* pDatabase);
 
 		SceneNode* GetNode(Entity entity);
 
@@ -64,7 +65,7 @@ namespace Quartz
 
 		void Update(Entity entity);
 
-		SceneGraphView CreateView(Entity entity);
-		SceneGraphView CreateRootView();
+		EntityGraphView CreateView(Entity entity);
+		EntityGraphView CreateRootView();
 	};
 }

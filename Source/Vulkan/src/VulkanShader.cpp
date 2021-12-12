@@ -10,7 +10,7 @@ namespace Quartz
 		mEntryPoint(entryPoint),
 		mUniforms(uniforms),
 		mAttributes(attributes),
-		Shader(name, type)
+		GFXShader(name, type)
 	{
 		// Nothing
 	}

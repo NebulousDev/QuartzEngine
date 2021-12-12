@@ -34,9 +34,6 @@ namespace Quartz
 
 		Bool8 OnWindowClose(const WindowCloseEvent& event);
 
-		Bool8 OnPlayerMove(const InputActionEvent& event);
-		Bool8 OnPlayerLook(const InputActionEvent& event);
-
 		Bool8 OnPeripheralConnection(const PeripheralEvent& event);
 
 	public:

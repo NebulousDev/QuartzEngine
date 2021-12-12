@@ -16,12 +16,12 @@ namespace Quartz
 	Win32Platform::Win32Platform()
 		: Platform({ L"Windows Platform" })
 	{
-		// Nothing
+		mpFileSystem = new Win32FileSystem();
+		mpPeripheralController = new Win32PeripheralController();
 	}
 
 	Bool8 Win32Platform::Init()
 	{
-		mpPeripheralController = new Win32PeripheralController();
 		return true;
 	}
 
@@ -106,6 +106,11 @@ namespace Quartz
 	Time* Win32Platform::GetTime()
 	{
 		return &mTime;
+	}
+
+	PhysicalFileSystem* Win32Platform::GetPhysicalFileSystem()
+	{
+		return mpFileSystem;
 	}
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Module.h"
-#include "../physics/SceneGraph.h"
+#include "../entity/World.h"
 
 #include "util/Array.h"
 
@@ -13,18 +13,16 @@ namespace Quartz
 	private:
 		String			mName;
 		EntityWorld*	mpWorld;
-		SceneGraphView	mGraph;
 		Entity			mCamera;
 
 	public:
-		Scene(const String& name, EntityWorld* pWorld, const SceneGraphView& graph, Entity camera);
+		Scene(const String& name, EntityWorld* pWorld, Entity camera);
 
 		void SetCamera(Entity entity);
 
-		FORCE_INLINE const String&		GetName() const { return mName; }
-		FORCE_INLINE EntityWorld&		GetWorld() { return *mpWorld; }
-		FORCE_INLINE SceneGraphView		GetGraph() const { return mGraph; }
-		FORCE_INLINE Entity				GetCamera() const { return mCamera; }
+		FORCE_INLINE const String&	GetName() const { return mName; }
+		FORCE_INLINE EntityWorld&	GetWorld() { return *mpWorld; }
+		FORCE_INLINE Entity			GetCamera() const { return mCamera; }
 	};
 
 	class QUARTZ_API SceneManager : public Module
@@ -35,6 +33,6 @@ namespace Quartz
 	public:
 		SceneManager();
 
-		Scene* CreateScene(const String& name, const SceneGraphView& graph, Entity camera);
+		Scene* CreateScene(const String& name, EntityWorld* pWorld, Entity camera);
 	};
 }

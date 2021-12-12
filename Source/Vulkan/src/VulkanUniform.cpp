@@ -30,6 +30,17 @@ namespace Quartz
 		memcpy_s(mpMappedBuffers[frameIndex] + (mAlignedSize * element), mAlignedSize, pData, mAlignedSize);
 	}
 
+	// Warning, data must be properly padded!!!
+	void VulkanUniform::SetElementArray(Context* pContext, UInt32 startIndex, UInt32 endIndex, void* pData)
+	{
+		// TODO: This is awful.
+		VulkanContext*		pVulkanContext		= static_cast<VulkanContext*>(pContext);
+		VulkanSwapchain*	pVulkanSwapchain	= pVulkanContext->GetSwapchain();
+		UInt32				frameIndex			= pVulkanSwapchain->GetFrameIndex();
+
+		memcpy_s(mpMappedBuffers[frameIndex] + (mAlignedSize * startIndex), mAlignedSize * mElementCount, pData, mAlignedSize * (endIndex - startIndex));
+	}
+
 	void VulkanUniform::BuildBuffers(UInt32 bufferCount)
 	{
 		Graphics* pGraphics = Engine::GetInstance()->GetGraphics();

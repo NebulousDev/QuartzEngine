@@ -10,6 +10,30 @@
 
 namespace Quartz
 {
+	struct Light
+	{
+		Vector3 position;
+		UInt32	padding1;
+		Vector3 radiance;
+		UInt32	padding2;
+	};
+
+	struct PerFrameObjectData
+	{
+		Matrix4 model;
+	};
+
+	struct PerFrameUBOData
+	{
+		Matrix4 view;
+		Matrix4 proj;
+		Vector3 cameraPos;
+		UInt32	padding1;
+		Light	lights[16];
+		UInt32	lightCount;
+		UInt32	padding[3];
+	};
+
 	class QUARTZ_API SimpleRenderer : public Renderer
 	{
 	private:
@@ -18,34 +42,11 @@ namespace Quartz
 		GraphicsPipeline*	mpGraphicsPipeline;
 		CommandBuffer*		mpCommandBuffer;
 
-		Shader* mpVertexShader;
-		Shader* mpFragmentShader;
+		GFXShader* mpVertexShader;
+		GFXShader* mpFragmentShader;
 
-		struct Light
-		{
-			Vector3 position;
-			UInt32 padding1;
-			Vector3 radiance;
-			UInt32 padding2;
-		};
-
-		struct PerFrameUBO
-		{
-			Matrix4 view;
-			Matrix4 proj;
-			Vector3 cameraPos;
-			UInt32 padding1;
-			Light lights[16];
-			UInt32 lightCount;
-			UInt32 padding[3];
-		}
-		perFrameUbo{};
-
-		struct PerObjectUBO
-		{
-			Matrix4 model;
-		}
-		perObjectUbo{};
+		PerFrameUBOData mPerFrameData;
+		Array<PerFrameObjectData> mPerSetObjects;
 
 		Uniform* mpPerFrame;
 		Uniform* mpPerObject;

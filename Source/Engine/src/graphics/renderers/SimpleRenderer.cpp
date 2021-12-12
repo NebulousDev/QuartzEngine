@@ -1,14 +1,13 @@
 #include "SimpleRenderer.h"
 
 #include "../../Engine.h"
-#include "../../loaders/OBJLoader.h"
+#include "../../resource/loaders/OBJLoader.h"
 
 #include <iostream>
 #include <fstream>
 
 #include "../../log/Log.h"
 
-#include "../../physics/component/Transform.h"
 #include "../component/Mesh.h"
 #include "../component/Camera.h"
 #include "../component/Material.h"
@@ -18,9 +17,7 @@
 	SCENE RESOURCES
 =====================================*/
 
-#define DIFFUSE_PATH	"assets/textures/stone.png"
-#define NORMAL_PATH		"assets/textures/stone_normal.png"
-#define SPECULAR_PATH	"assets/textures/stone_specular.png"
+#define UNIFORM_OBJECT_SET_SIZE 64
 
 namespace Quartz
 {
@@ -155,8 +152,10 @@ namespace Quartz
 			UNIFORM BUFFERS
 		=====================================*/
 
-		mpPerFrame	= pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerFrameUBO), 1, 0);
-		mpPerObject = pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerObjectUBO), 64, 0);
+		mpPerFrame	= pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerFrameUBOData), 1, 0);
+		mpPerObject = pGraphics->CreateUniform(UNIFORM_DYNAMIC, sizeof(PerFrameObjectData), UNIFORM_OBJECT_SET_SIZE, 0);
+
+		mPerSetObjects.Resize(UNIFORM_OBJECT_SET_SIZE);
 
 		mpDiffuse	= pGraphics->CreateUniformTextureSampler();
 		mpNormal	= pGraphics->CreateUniformTextureSampler();
@@ -171,52 +170,90 @@ namespace Quartz
 		mpCommandBuffer = pGraphics->CreateCommandBuffer(COMMAND_BUFFER_DYNAMIC);
 	}
 
+	void RebuildEntityList(EntityWorld& world, Array<Entity>& outEntities)
+	{
+		EntityView renderables = world.CreateView<TransformComponent, MeshComponent, MaterialComponent>();
+
+		outEntities.Clear();
+
+		for (Entity entity : renderables)
+		{
+			outEntities.PushBack(entity);
+		}
+	}
+
+	void FillPerFrameUniforms(EntityWorld& world, EntityGraph& graph, Entity camera, PerFrameUBOData& outData)
+	{
+		TransformComponent& cameraTransform = world.GetComponent<TransformComponent>(camera);
+		CameraComponent&	cameraCamera	= world.GetComponent<CameraComponent>(camera);
+		EntityView			lights			= world.CreateView<TransformComponent, LightComponent>();
+		EntityView			renderables		= world.CreateView<TransformComponent, MeshComponent, MaterialComponent>();
+
+		// Calculate Camera View
+		Matrix4 cameraGlobal	= graph.GetNode(camera)->globalTransform;
+		Matrix4 cameraParentInv	= graph.GetNode(camera)->pParent->globalTransform.Inverse();
+		Matrix4 cameraView		= cameraParentInv * Matrix4().SetTranslation(-cameraTransform.position) * Matrix4().SetRotation(cameraTransform.rotation);
+		Vector3 cameraPos		= cameraGlobal.GetTranslation();
+
+		// Fill Per-frame UBO values
+		outData.view		= cameraView;
+		outData.proj		= cameraCamera.perspective;
+		outData.cameraPos	= cameraPos;
+		outData.lightCount	= 0;
+
+		// Fill pre-computed light uniforms
+		for (Entity entity : lights)
+		{
+			LightComponent& light = world.GetComponent<LightComponent>(entity);
+
+			Vector3 transformedLightPosition = graph.GetNode(entity)->globalTransform.GetTranslation();
+
+			outData.lights[outData.lightCount].position = transformedLightPosition;
+			outData.lights[outData.lightCount].radiance = light.radiance;
+			outData.lightCount++;
+
+			// Only 16 lights supported for now
+			if (outData.lightCount > 15) break;
+		}
+	}
+
+	void FillPerObjectSetUniforms(EntityGraph& graph, Array<Entity> objectEntities, Array<PerFrameObjectData>& outData, UInt32 setID)
+	{
+		// Calc bounds for current object set
+		UInt32 startIndex	= (setID + 0) * UNIFORM_OBJECT_SET_SIZE;
+		UInt32 endIndex		= (setID + 1) * UNIFORM_OBJECT_SET_SIZE;
+
+		if (endIndex > objectEntities.Size())
+		{
+			endIndex = objectEntities.Size();
+		}
+
+		// Fill pre-computed entity uniforms
+		for (UInt32 i = startIndex; i < endIndex; i++)
+		{
+			Entity entity = objectEntities[i];
+			outData[i].model = graph.GetNode(entity)->globalTransform;
+		}
+	}
+
 	void SimpleRenderer::Render(Context* pViewport, Scene* pScene)
 	{
-		Graphics* pGraphics					= Engine::GetInstance()->GetGraphics();
-		EntityWorld& world					= pScene->GetWorld();
-		SceneGraphView graph				= pScene->GetGraph();
-		Entity camera						= pScene->GetCamera();
-		TransformComponent& cameraTransform = world.GetComponent<TransformComponent>(pScene->GetCamera());
-		CameraComponent& cameraCamera		= world.GetComponent<CameraComponent>(pScene->GetCamera());
-		EntityView renderables				= world.CreateView<TransformComponent, MeshComponent, MaterialComponent>();
-		EntityView lights					= world.CreateView<TransformComponent, LightComponent>();
+		Graphics* pGraphics	= Engine::GetInstance()->GetGraphics();
+		EntityWorld& world	= pScene->GetWorld();
+		EntityGraph& graph	= world.GetGraph();
+		Entity camera		= pScene->GetCamera();
 
-		// Fill uniform buffers
-		{
-			Matrix4 cameraGlobal	= graph.GetNode(camera)->globalTransform;
-			Matrix4 cameraParentInv	= graph.GetNode(camera)->pParent->globalTransform.Inverse();
-			Matrix4 cameraView		= cameraParentInv * Matrix4().SetTranslation(-cameraTransform.position) * Matrix4().SetRotation(cameraTransform.rotation);
-			Vector3 cameraPos		= cameraGlobal.GetTranslation();
+		static Array<Entity> renderableObjects(UNIFORM_OBJECT_SET_SIZE);
 
-			perFrameUbo.view		= cameraView;
-			perFrameUbo.proj		= cameraCamera.perspective;
-			perFrameUbo.cameraPos	= cameraPos;
-			perFrameUbo.lightCount	= 0;
+		RebuildEntityList(world, renderableObjects);
 
-			for (Entity entity : lights)
-			{
-				LightComponent& light = pScene->GetWorld().GetComponent<LightComponent>(entity);
+		FillPerFrameUniforms(world, graph, camera, mPerFrameData);
+		FillPerObjectSetUniforms(graph, renderableObjects, mPerSetObjects, 0);
 
-				Vector3 transformedLightPosition = graph.GetNode(entity)->globalTransform.GetTranslation();
+		UInt32 objectCount = renderableObjects.Size(); // TEMPPPP!!! Only works sub max set
 
-				perFrameUbo.lights[perFrameUbo.lightCount].position = transformedLightPosition;
-				perFrameUbo.lights[perFrameUbo.lightCount].radiance = light.radiance;
-				perFrameUbo.lightCount++;
-
-				// Only 16 lights supported for now
-				if (perFrameUbo.lightCount > 16) break;
-			}
-
-			mpPerFrame->SetElement(pViewport, 0, &perFrameUbo);
-
-			UInt32 i = 0;
-			for (Entity entity : renderables)
-			{
-				perObjectUbo.model = graph.GetNode(entity)->globalTransform;
-				mpPerObject->SetElement(pViewport, i++, &perObjectUbo);
-			}
-		}
+		mpPerFrame->SetElement(pViewport, 0, &mPerFrameData);
+		mpPerObject->SetElementArray(pViewport, 0, objectCount, mPerSetObjects.Data());
 
 		// Fill command buffer
 		{
@@ -226,8 +263,11 @@ namespace Quartz
 			mpCommandBuffer->BindUniform(0, 0, mpPerFrame, 0);
 
 			UInt32 i = 0;
-			for (Entity entity : renderables)
+			for (Entity entity : renderableObjects)
 			{
+				//temp
+				if (i > UNIFORM_OBJECT_SET_SIZE) break;
+
 				MeshComponent& mesh = pScene->GetWorld().GetComponent<MeshComponent>(entity);
 				MaterialComponent& material = pScene->GetWorld().GetComponent<MaterialComponent>(entity);
 
@@ -243,10 +283,10 @@ namespace Quartz
 				mpCommandBuffer->BindUniformTexture(2, 4, mpMetallic);
 				mpCommandBuffer->BindUniformTexture(2, 5, mpAmbient);
 
-				mpCommandBuffer->SetVertexBuffers({ mesh.pVertexBuffer });
-				mpCommandBuffer->SetIndexBuffer(mesh.pIndexBuffer);
+				mpCommandBuffer->SetVertexBuffers({ mesh.pModel->pVertexBuffer });
+				mpCommandBuffer->SetIndexBuffer(mesh.pModel->pIndexBuffer);
 				mpCommandBuffer->BindUniform(1, 0, mpPerObject, i++);
-				mpCommandBuffer->DrawIndexed(mesh.pIndexBuffer->GetSize() / sizeof(UInt32), 0);
+				mpCommandBuffer->DrawIndexed(mesh.pModel->pIndexBuffer->GetSize() / sizeof(UInt32), 0);
 			}
 
 			mpCommandBuffer->EndRenderpass();

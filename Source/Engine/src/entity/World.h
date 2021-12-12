@@ -1,167 +1,93 @@
 #pragma once
 
-#include "util\Array.h"
-#include "util\Map.h"
-#include "util\TypeId.h"
-#include "util\Buffer.h"
-#include "util\Storage.h"
+#include "EntityDatabase.h"
+#include "EntityGraph.h"
 
-#include "Entity.h"
-#include "EntityView.h"
+#include "../log/Log.h"
 
 namespace Quartz
 {
-	struct EntityEvent
+	class QUARTZ_API EntityWorld
 	{
-
-	};
-
-	class EntityWorld
-	{
-	public:
-
-		template<typename ComponentType>
-		using ComponentStorage = Storage<ComponentType, Entity, Entity::HandleIntType>;
-		using EntitySet = SparseSet<Entity, Entity::HandleIntType>;
+		friend class Engine;
 
 	private:
-		struct ComponentTypeCounter
-		{
-			static USize Next()
-			{
-				static USize index = 0;
-				return index++;
-			}
-		};
-
-		template<typename ComponentType>
-		struct ComponentTypeIndex
-		{
-			static USize Value()
-			{
-				static USize index = ComponentTypeCounter::Next();
-				return index;
-			}
-		};
-
-		struct SystemTypeCounter
-		{
-			static USize Next()
-			{
-				static USize index = 0;
-				return index++;
-			}
-		};
-
-		template<typename ComponentType>
-		struct SystemTypeIndex
-		{
-			static USize Value()
-			{
-				static USize index = SystemTypeCounter::Next();
-				return index;
-			}
-		};
+		EntityDatabase*	mpDatabase;
+		EntityGraph*	mpGraph;
 
 	private:
-		Array<EntitySet*>	mStorageSets;
-		Array<Entity>		mEntites;
-
-	private:
-		template<typename Component>
-		Bool8 HasComponentImpl(Entity entity)
-		{
-			using ComponentType = std::decay_t<Component>;
-			USize typeIndex = ComponentTypeIndex<ComponentType>::Value();
-
-			if (typeIndex >= mStorageSets.Size())
-			{
-				return false;
-			}
-
-			ComponentStorage<Component>& storage = 
-				*static_cast<ComponentStorage<Component>*>(mStorageSets[typeIndex]);
-
-			return storage.Contains(entity.index);
-		}
-
-		template<typename Component>
-		void AddComponentImpl(Entity entity, Component&& component)
-		{
-			using ComponentType = std::decay_t<Component>;
-			USize typeIndex = ComponentTypeIndex<ComponentType>::Value();
-
-			if (typeIndex >= mStorageSets.Size())
-			{
-				mStorageSets.Resize(typeIndex + 1, nullptr);
-				mStorageSets[typeIndex] = new ComponentStorage<ComponentType>();
-			}
-
-			static_cast<ComponentStorage<ComponentType>*>
-				(mStorageSets[typeIndex])->Insert(entity.index, std::forward<Component>(component));
-		}
-
-		template<typename Component>
-		void RemoveComponentImpl(Entity entity)
-		{
-			using ComponentType = std::decay_t<Component>;
-			USize typeIndex = ComponentTypeIndex<ComponentType>::Value();
-			static_cast<ComponentStorage<ComponentType>*>(mStorageSets[typeIndex])->Remove(entity.index);
-		}
+		EntityWorld();
+		void Initialize(EntityDatabase* pDatabase, EntityGraph* pGraph);
 
 	public:
+		EntityWorld(EntityDatabase* pDatabase, EntityGraph* pGraph);
+
+		Bool8 IsValid(Entity entity);
+		Bool8 SetParent(Entity entity, Entity parent);
+		Bool8 RemoveParent(Entity entity);
+
+		void Refresh(Entity entity);
+
 		template<typename... Component>
 		Entity CreateEntity(Component&&... component)
 		{
-			Entity entity = *mEntites.PushBack(Entity(mEntites.Size() + 1, 0));
-			AddComponent(entity, std::forward<Component>(component)...);
+			Entity entity = mpDatabase->CreateEntity(std::forward<Component>(component)...);
+			mpGraph->ParentEntityToRoot(entity);
+			return entity;
+		}
+
+		template<typename... Component>
+		Entity CreateEntityParented(Entity parent, Component&&... component)
+		{
+			Entity entity = mpDatabase->CreateEntity(std::forward<Component>(component)...);
+
+			if (!mpGraph->ParentEntity(entity, parent))
+			{
+				mpGraph->ParentEntityToRoot(entity);
+				Log::Warning("Attempted to parent entity [%X] to invalid parent [%X]!", entity, parent);
+			}
+
 			return entity;
 		}
 
 		template<typename... Component>
 		void AddComponent(Entity entity, Component&&... component)
 		{
-			(AddComponentImpl<Component>(entity, std::forward<Component>(component)), ...);
+			if (!IsValid(entity))
+			{
+				Log::Warning("Attempted to add component to invalid entity [%X]", entity);
+				return;
+			}
+			
+			mpDatabase->AddComponent(entity, std::forward<Component>(component)...);
 		}
 
 		template<typename... Component>
 		void RemoveComponent(Entity entity)
 		{
-			(RemoveComponentImpl<Component>(entity), ...);
+			mpDatabase->RemoveComponent<Component...>(entity);
 		}
 
 		template<typename... Component>
 		Bool8 HasComponent(Entity entity)
 		{
-			return (HasComponentImpl<Component>(entity) && ...);
+			return mpDatabase->HasComponent<Component...>(entity);
 		}
 
 		/* Assumes entity has component. Undefiened otherwise.*/
 		template<typename Component>
 		Component& GetComponent(Entity entity)
 		{
-			using ComponentType = std::decay_t<Component>;
-			USize typeIndex = ComponentTypeIndex<ComponentType>::Value();
-			return static_cast<ComponentStorage<ComponentType>*>(mStorageSets[typeIndex])->Get(entity.index);
-		}
-
-		template<typename Component>
-		Bool8 ComponentExists()
-		{
-			return ComponentTypeIndex<Component>::Value() < mStorageSets.Size();
+			return mpDatabase->GetComponent<Component>(entity);
 		}
 
 		template<typename... Component>
 		EntityView<Component...> CreateView()
 		{
-			if ((!ComponentExists<Component>() || ...))
-			{
-				// One or more components does not exist in this world
-				return EntityView<Component...>();
-			}
-
-			return EntityView<Component...>(
-				static_cast<ComponentStorage<Component>*>(mStorageSets[ComponentTypeIndex<Component>::Value()])...);
+			return mpDatabase->CreateView<Component...>();
 		}
+
+		FORCE_INLINE EntityDatabase&	GetDatabase() { return *mpDatabase; }
+		FORCE_INLINE EntityGraph&		GetGraph() { return *mpGraph;}
 	};
 }

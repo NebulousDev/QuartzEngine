@@ -4,13 +4,14 @@
 
 #include "Module.h"
 #include "platform/Platform.h"
+#include "platform/FileSystem.h"
 #include "application/ApplicationModule.h"
 #include "graphics/GraphicsModule.h"
 #include "graphics/SceneSystem.h"
 #include "event/EventSystem.h"
 #include "input/InputModule.h"
 #include "entity/World.h"
-#include "physics/SceneGraph.h"
+#include "resource/ResourceManager.h"
 
 #include "util/Singleton.h"
 #include "util/Array.h"
@@ -45,8 +46,9 @@ namespace Quartz
 		GameInfo			mGameInfo;
 		Float32				mTargetTPS;
 
+		EntityDatabase		mEntityDatabase;
+		EntityGraph			mEntityGraph;
 		EntityWorld			mEntityWorld;
-		SceneGraph			mSceneGraph;
 
 		Time*				mpTime;
 		Float32				mCurrentTPS;
@@ -55,10 +57,12 @@ namespace Quartz
 
 		Graphics*			mpGraphics;
 		Platform*			mpPlatform;
+		FileSystem*			mpFileSystem;
 		ApplicationManager*	mpApplicationManager;
 		EventSystem*		mpEventSystem;
 		InputSystem*		mpInputSystem;
 		SceneManager*		mpSceneManager;
+		ResourceManager*	mpResourceManager;
 
 		Array<Module*>		mModules;
 
@@ -89,15 +93,16 @@ namespace Quartz
 
 		FORCE_INLINE Float32			GetDelta() { return mDelta; }
 
-		FORCE_INLINE EntityWorld*			GetEntityWorld() { return &mEntityWorld; }
-		FORCE_INLINE SceneGraph*			GetSceneGraph() { return &mSceneGraph; }
+		FORCE_INLINE EntityWorld*		GetEntityWorld() { return &mEntityWorld; }
 
+		FORCE_INLINE Graphics*				GetGraphics() { return mpGraphics; }
+		FORCE_INLINE Platform*				GetPlatform() { return mpPlatform; }
+		FORCE_INLINE FileSystem*			GetFileSystem() { return mpFileSystem; }
 		FORCE_INLINE ApplicationManager*	GetApplicationManager() { return mpApplicationManager; }
 		FORCE_INLINE EventSystem*			GetEventSystem() { return mpEventSystem; }
 		FORCE_INLINE InputSystem*			GetInputSystem() { return mpInputSystem; }
 		FORCE_INLINE SceneManager*			GetSceneManager() { return mpSceneManager; }
-		FORCE_INLINE Graphics*				GetGraphics() { return mpGraphics; }
-		FORCE_INLINE Platform*				GetPlatform() { return mpPlatform; }
+		FORCE_INLINE ResourceManager*		GetResourceManager() { return mpResourceManager; }
 
 		static Engine* GetInstance();
 	};

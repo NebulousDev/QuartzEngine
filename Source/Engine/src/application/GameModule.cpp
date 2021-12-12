@@ -4,11 +4,12 @@
 #include "../graphics/renderers/SimpleRenderer.h"
 #include "../log/Log.h"
 
-#include "../physics/component/Transform.h"
 #include "../graphics/component/Camera.h"
 #include "../graphics/component/Mesh.h"
 #include "../graphics/component/Material.h"
 #include "../graphics/component/Light.h"
+
+#include "../resource/loaders/Loaders.h"
 
 namespace Quartz
 {
@@ -53,14 +54,25 @@ namespace Quartz
 
     Bool8 Game::PostInit()
     {
-		ApplicationManager* pAppManager		= Engine::GetInstance()->GetApplicationManager();
-		EventSystem*		pEventSystem	= Engine::GetInstance()->GetEventSystem();
-		InputSystem*		pInputSystem	= Engine::GetInstance()->GetInputSystem();
-		SceneManager*		pSceneManager	= Engine::GetInstance()->GetSceneManager();
-		Graphics*			pGraphics		= Engine::GetInstance()->GetGraphics();
+		ApplicationManager* pAppManager			= Engine::GetInstance()->GetApplicationManager();
+		EventSystem*		pEventSystem		= Engine::GetInstance()->GetEventSystem();
+		InputSystem*		pInputSystem		= Engine::GetInstance()->GetInputSystem();
+		SceneManager*		pSceneManager		= Engine::GetInstance()->GetSceneManager();
+		Graphics*			pGraphics			= Engine::GetInstance()->GetGraphics();
+		EntityWorld*		pEntityWorld		= Engine::GetInstance()->GetEntityWorld();
+		ResourceManager*	pResourceManager	= Engine::GetInstance()->GetResourceManager();
+		FileSystem*			pFileSystem			= Engine::GetInstance()->GetFileSystem();
 
-		EntityWorld*		pEntityWorld	= Engine::GetInstance()->GetEntityWorld();
-		SceneGraph*			pSceneGraph		= Engine::GetInstance()->GetSceneGraph();
+		/* Pre-Testing */
+
+		// Make Prefab
+		//GLTFModel* pModel = pResourceManager->CheckoutResource<GLTFModel>("assets/gltf/Helmet/SciFiHelmet.gltf");
+
+		//File* pFile = pFileSystem->Open("/textures/default.png");
+
+		Material* pDefaultMaterial	= pResourceManager->CheckoutResource<Material>("/materials/default.material");
+		Material* pGunMaterial		= pResourceManager->CheckoutResource<Material>("/materials/gun.material");
+		Material* pWoodMaterial		= pResourceManager->CheckoutResource<Material>("/materials/wood.material");
 
 		/* Create Game Application */
 
@@ -88,16 +100,11 @@ namespace Quartz
 
 		/* Create Game Scene */
 
-		Entity sceneRoot = pEntityWorld->CreateEntity();
-		pSceneGraph->ParentEntityToRoot(sceneRoot);
-
 		mCamera = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
-			CameraComponent{ Matrix4().SetPerspective(ToRadians(80.0f), 1920.0f / 1080.0f, 0.01f, 1000.0f) }
+			CameraComponent( Matrix4().SetPerspective(ToRadians(80.0f), 1920.0f / 1080.0f, 0.01f, 1000.0f) )
 		);
-
-		pSceneGraph->ParentEntity(mCamera, sceneRoot);
 
 		mEntity1 = pEntityWorld->CreateEntity
 		(
@@ -109,7 +116,8 @@ namespace Quartz
 				"assets/textures/wood_normal.png",
 				"assets/textures/shiney_roughness.png",
 				"assets/textures/wood_metalic.png",
-				"assets/textures/wood_ao.png"
+				"assets/textures/wood_ao.png",
+				pWoodMaterial
 
 				/*
 				"assets/textures/gold_diffuse.jpg",
@@ -122,8 +130,6 @@ namespace Quartz
 			
 		);
 
-		pSceneGraph->ParentEntity(mEntity1, sceneRoot);
-
 		mEntity2 = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 2.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
@@ -134,12 +140,10 @@ namespace Quartz
 				"assets/textures/gun_normal.tga",
 				"assets/textures/gun_roughness.tga",
 				"assets/textures/gun_metallicness.tga",
-				"assets/textures/gun_ambient.tga"
+				"assets/textures/gun_ambient.tga",
+				pGunMaterial
 			)
 		);
-
-		pSceneGraph->ParentEntity(mEntity2, sceneRoot);
-		pSceneGraph->ParentEntity(mCamera, mEntity2);
 
 		Entity e1 = pEntityWorld->CreateEntity
 		(
@@ -151,19 +155,17 @@ namespace Quartz
 				"assets/textures/tile_normal.png",
 				"assets/textures/dull_roughness.png",
 				"assets/textures/wood_metalic.png",
-				"assets/textures/wood_metalic.png"
+				"assets/textures/wood_metalic.png",
+				pDefaultMaterial
 			)
 		);
 
-		pSceneGraph->ParentEntity(e1, sceneRoot);
-
-		mLight = pEntityWorld->CreateEntity
+		mLight = pEntityWorld->CreateEntityParented
 		(
+			mCamera,
 			TransformComponent({ 0.0f, 0.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 0.5f, 0.5f, 0.5f }),
 			LightComponent({ 0, 0, 0 })
 		);
-
-		pSceneGraph->ParentEntity(mLight, mCamera);
 
 		Entity light0 = pEntityWorld->CreateEntity
 		(
@@ -171,15 +173,11 @@ namespace Quartz
 			LightComponent({ 1000.0f, 0.0f, 0.0f })
 		);
 
-		pSceneGraph->ParentEntity(light0, sceneRoot);
-
 		Entity light1 = pEntityWorld->CreateEntity
 		(
 			TransformComponent({ 0.0f, 5.0f, 0.0f }, Quaternion().SetAxisAngle({}, 0.0f), { 1.0f, 1.0f, 1.0f }),
 			LightComponent({ 0.0f, 1000.0f, 0.0f })
 		);
-
-		pSceneGraph->ParentEntity(light1, sceneRoot);
 
 		Entity light2 = pEntityWorld->CreateEntity
 		(
@@ -187,9 +185,7 @@ namespace Quartz
 			LightComponent({ 0.0f, 0.0f, 1000.0f })
 		);
 
-		pSceneGraph->ParentEntity(light2, sceneRoot);
-
-		mpGameScene = pSceneManager->CreateScene("TestScene", Engine::GetInstance()->GetSceneGraph()->CreateRootView(), mCamera);
+		mpGameScene = pSceneManager->CreateScene("TestScene", pEntityWorld, mCamera);
 
 		/* Create Rendered Context */
 
@@ -218,7 +214,8 @@ namespace Quartz
 
 	void Game::Update(Float32 delta)
 	{
-		Engine* pEngine = Engine::GetInstance();
+		Engine*			pEngine			= Engine::GetInstance();
+		EntityWorld*	pEntityWorld	= pEngine->GetEntityWorld();
 
 		constexpr Float32 moveSpeed = 8.0f;
 		constexpr Float32 lookSpeed = 6.0f;
@@ -270,14 +267,14 @@ namespace Quartz
 
 		}
 
-		Engine::GetInstance()->GetSceneGraph()->Update(mCamera);
+		pEntityWorld->Refresh(mCamera);
 
 		// Rotate Entity
 
 		TransformComponent& e2Transform = mpGameScene->GetWorld().GetComponent<TransformComponent>(mEntity2);
 		e2Transform.rotation *= Quaternion().SetAxisAngle({ 0.0f, 1.0f, 0.0f }, -1.0f * delta);
 
-		Engine::GetInstance()->GetSceneGraph()->Update(mEntity2);
+		pEntityWorld->Refresh(mEntity2);
 
 		ActionState toggleLight = pInputSystem->GetInputAction("ToggleCameraLight");
 

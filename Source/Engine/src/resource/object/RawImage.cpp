@@ -9,7 +9,8 @@ namespace Quartz
 		mChannels(channels),
 		mBitsPerChannel(bitsPerChannel),
 		mHDR(hdr),
-		mpData(data)
+		mpData(data),
+		Resource()
 	{
 		mSizeBytes = (width * height * channels * bitsPerChannel) / 8;
 	}

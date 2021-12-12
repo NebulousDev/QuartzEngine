@@ -83,7 +83,7 @@ namespace Quartz
 		String specularTexture;
 	};
 
-	struct Model
+	struct Model2
 	{
 		VertexData vertexData;
 		IndexData indexData;

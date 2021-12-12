@@ -1,6 +1,5 @@
 #pragma once
 
-#include "util/Array.h"
 #include "util/String.h"
 
 namespace Quartz
@@ -13,7 +12,7 @@ namespace Quartz
 		SHADER_GEOMETRY,
 		SHADER_FRAGMENT,
 		SHADER_COMPUTE,
-		SHADER_KERNEL,
+		SHADER_KERNEL,	// Unused
 		SHADER_TASK,
 		SHADER_MESH,
 		SHADER_RAY_GENERATION,
@@ -24,17 +23,19 @@ namespace Quartz
 		SHADER_CALLABLE
 	};
 
-	class QUARTZ_API Shader
+	class QUARTZ_API GFXShader
 	{
 	private:
 		String		mName;
 		ShaderType	mType;
 
 	protected:
-		Shader(const String& name, ShaderType type);
+		GFXShader(const String& name, ShaderType type);
 
 	public:
 		FORCE_INLINE const String&	GetName() const { return mName; }
 		FORCE_INLINE ShaderType		GetType() const { return mType; }
+
+		UInt64 Hash();
 	};
 }

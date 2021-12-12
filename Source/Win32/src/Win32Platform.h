@@ -4,6 +4,7 @@
 #include "graphics/Surface.h"
 #include "Win32PlatformConsole.h"
 #include "Win32Window.h"
+#include "Win32FileSystem.h"
 #include "Win32Time.h"
 
 namespace Quartz
@@ -11,8 +12,9 @@ namespace Quartz
 	class QUARTZ_API Win32Platform : public Platform
 	{
 	private:
-		HINSTANCE	mInstance;
-		Win32Time	mTime;
+		HINSTANCE			mInstance;
+		Win32Time			mTime;
+		Win32FileSystem*	mpFileSystem;
 
 	public:
 		Win32Platform();
@@ -30,5 +32,6 @@ namespace Quartz
 		Bool8 DestroyApplication(Application* application) override;
 
 		Time* GetTime() override;
+		PhysicalFileSystem* GetPhysicalFileSystem() override;
 	};
 }

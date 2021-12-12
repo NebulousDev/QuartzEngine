@@ -1,10 +1,10 @@
 #pragma once
-
-#include "../graphics/Image.h"
+ 
+#include "../Resource.h"
 
 namespace Quartz
 {
-	class QUARTZ_API RawImage
+	class QUARTZ_API RawImage : public Resource<RawImage>
 	{
 	private:
 		UInt32		mWidth;

@@ -1,71 +1,8 @@
-#include "JSON.h"
+
+#include "JSONLoader.h"
 
 namespace Quartz
 {
-	JSONValue::JSONValue()
-		: mType(JSON_TYPE_NULL)
-	{
-		// Nothing
-	}
-
-	JSONValue::JSONValue(Double64 value)
-		: mType(JSON_TYPE_NUMBER), mNumber(value)
-	{ }
-
-	JSONValue::JSONValue(Bool8 value)
-		: mType(JSON_TYPE_BOOL), mBool(value)
-	{ }
-
-	JSONValue::JSONValue(const Char* value)
-		: mType(JSON_TYPE_STRING), mpString(new String(value))
-	{ }
-
-	JSONValue::JSONValue(const String& value)
-		: mType(JSON_TYPE_STRING), mpString(new String(value))
-	{ }
-
-	JSONValue::JSONValue(const JSONArray& value)
-		: mType(JSON_TYPE_ARRAY), mpArray(new JSONArray(value))
-	{ }
-
-	JSONValue::JSONValue(const JSONObject& value)
-		: mType(JSON_TYPE_OBJECT), mpObject(new JSONObject(value))
-	{ }
-
-	JSONValue::JSONValue(const JSONValue& value)
-		: mType(value.mType)
-	{
-		switch (mType)
-		{
-			case Quartz::JSON_TYPE_NUMBER: mNumber = value.mNumber; break;
-			case Quartz::JSON_TYPE_BOOL: mBool = value.mBool; break;
-			case Quartz::JSON_TYPE_STRING: mpString = new String(*value.mpString); break;
-			case Quartz::JSON_TYPE_OBJECT: mpObject = new JSONObject(*value.mpObject); break;
-			case Quartz::JSON_TYPE_ARRAY: mpArray = new JSONArray(*value.mpArray); break;
-			default: break;
-		}
-	}
-
-	JSONValue::~JSONValue()
-	{
-		if (mType == JSON_TYPE_STRING)
-			delete mpString;
-
-		else if (mType == JSON_TYPE_OBJECT)
-		{
-			// TODO: Itterate and delete
-
-			delete mpObject;
-		}
-
-		else if (mType == JSON_TYPE_ARRAY)
-		{
-			// TODO: Itterate and delete
-
-			delete mpArray;
-		}
-	}
-
 	Bool8 ReadString(const Char** pStr, String* pRetStr)
 	{
 		Array<Char> strArr;
@@ -81,18 +18,18 @@ namespace Quartz
 
 				switch (**pStr)
 				{
-					case L'"':  nextChar = '"';  break;
-					case L'\\': nextChar = '\\'; break;
-					case L'/':  nextChar = '/';  break;
-					case L'b':  nextChar = '\b'; break;
-					case L'f':  nextChar = '\f'; break;
-					case L'n':  nextChar = '\n'; break;
-					case L'r':  nextChar = '\r'; break;
-					case L't':  nextChar = '\t'; break;
+				case L'"':  nextChar = '"';  break;
+				case L'\\': nextChar = '\\'; break;
+				case L'/':  nextChar = '/';  break;
+				case L'b':  nextChar = '\b'; break;
+				case L'f':  nextChar = '\f'; break;
+				case L'n':  nextChar = '\n'; break;
+				case L'r':  nextChar = '\r'; break;
+				case L't':  nextChar = '\t'; break;
 
 					// For now, ignore \u
 
-					default: return false;
+				default: return false;
 				}
 			}
 
@@ -100,7 +37,6 @@ namespace Quartz
 			else if (**pStr == '"')
 			{
 				(*pStr)++;
-				strArr.PushBack('\0');
 				*pRetStr = String(strArr.Data(), strArr.Size());
 				return true;
 			}
@@ -190,7 +126,7 @@ namespace Quartz
 		// Number
 		if (**pStr == '-' || (**pStr >= '0' && **pStr <= '9'))
 		{
-			Double64 number;
+			Double64 number = 0;
 
 			// Negative
 			Bool8 negative = **pStr == '-';
@@ -198,12 +134,12 @@ namespace Quartz
 
 			// Zero
 			if (**pStr == '0')
-				pStr++;
+				(*pStr)++;
 
 			else if (**pStr >= '0' && **pStr <= '9')
 				number = ParseInt(pStr);
 
-			else 
+			else
 				return NULL;
 
 			// Decimal
@@ -255,7 +191,7 @@ namespace Quartz
 		{
 			JSONObject object;
 
-			(*pStr)++;
+			(*pStr)++; // move
 
 			while (**pStr != 0)
 			{
@@ -268,14 +204,14 @@ namespace Quartz
 				}
 
 				// Empty object {}
-				if (object.GetSize() == 0 && **pStr == '}')
+				if (object.Size() == 0 && **pStr == '}')
 				{
 					(*pStr)++;
 					return new JSONValue(object);
 				}
 
 				(*pStr)++;
-				
+
 				// Read key
 				if (!ReadString(pStr, &name))
 				{
@@ -310,7 +246,7 @@ namespace Quartz
 				}
 
 				// Place key : value in map
-				object[name] = *pValue;
+				object.Put(name, *pValue);
 
 				// Skip whitespace
 				if (!SkipWhitespace(pStr))
@@ -325,12 +261,6 @@ namespace Quartz
 					return new JSONValue(object);
 				}
 
-				// Skip whitespace
-				if (!SkipWhitespace(pStr))
-				{
-					return NULL;
-				}
-
 				// Check new entry
 				if (**pStr != ',')
 				{
@@ -343,6 +273,51 @@ namespace Quartz
 			return NULL;
 		}
 
+		// Array
+		if (**pStr == '[')
+		{
+			JSONArray array;
+
+			while (**pStr != 0)
+			{
+				(*pStr)++;
+
+				// Skip whitespace
+				if (!SkipWhitespace(pStr))
+				{
+					return NULL;
+				}
+
+				JSONValue* pValue = ParseJSON(pStr);
+
+				if (pValue == NULL)
+				{
+					return NULL;
+				}
+
+				array.PushBack(*pValue);
+
+				// Skip whitespace
+				if (!SkipWhitespace(pStr))
+				{
+					return NULL;
+				}
+
+				// Check end of array
+				if (**pStr == ']')
+				{
+					(*pStr)++;
+					return new JSONValue(array);
+				}
+
+				// Check new entry
+				if (**pStr != ',')
+				{
+					return NULL;
+				}
+			}
+		}
+
 		return NULL;
 	}
 
@@ -350,7 +325,7 @@ namespace Quartz
 	{
 		if (!SkipWhitespace(&str))
 			return NULL;
-		
+
 		JSONValue* pValue = ParseJSON(&str);
 
 		if (SkipWhitespace(&str))
@@ -360,5 +335,19 @@ namespace Quartz
 		}
 
 		return pValue;
+	}
+
+	Bool8 LoadJSON(const Char* jsonString, JSON& json)
+	{
+		JSONValue* pValue = ParseJSON(jsonString);
+
+		if (!pValue)
+		{
+			return false;
+		}
+
+		json = JSON(pValue);
+
+		return true;
 	}
 }

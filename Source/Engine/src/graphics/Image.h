@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "../resource/Resource.h"
 
 namespace Quartz
 {
@@ -71,7 +72,7 @@ namespace Quartz
 		IMAGE_VIEW_USAGE_DEPTH_STENCIL_ATTACHMENT
 	};
 
-	class QUARTZ_API Image
+	class QUARTZ_API Image : public Resource<Image>
 	{
 	protected:
 		UInt32		mWidth;

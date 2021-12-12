@@ -189,6 +189,7 @@
     <ClInclude Include="src\Common.h" />
     <ClInclude Include="src\util\Utility.h" />
     <ClInclude Include="src\util\Utils.h" />
+    <ClInclude Include="src\util\UUID.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

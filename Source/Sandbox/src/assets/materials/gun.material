@@ -1,0 +1,12 @@
+{
+	"name" : "default",
+	"shader" : "/shaders/default_pbr.shader",
+		"params" :
+	{
+		"color" : "/textures/gun_diffuse.tga",
+	    "normal" : "/textures/gun_normal.tga",
+        "rough" : "/textures/gun_roughness.tga",
+        "metal"	: "/textures/gun_metallicness.tga",
+        "ao" : "/textures/gun_ambient.tga"
+	}
+}

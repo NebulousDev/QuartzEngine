@@ -32,6 +32,7 @@ namespace Quartz
 
 		virtual void Set(void* pData) = 0;
 		virtual void SetElement(Context* pContext, UInt32 element, void* pData) = 0;
+		virtual void SetElementArray(Context* pContext, UInt32 startIndex, UInt32 endIndex, void* pData) = 0;
 
 		FORCE_INLINE UniformType	GetType() const { return mType; }
 		FORCE_INLINE UInt32			GetElementSize() const { return mElementSize; }

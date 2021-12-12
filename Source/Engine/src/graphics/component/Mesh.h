@@ -1,15 +1,14 @@
 #pragma once
 
-#include "../Buffer.h"
-#include "../../object/Model.h"
+#include "../../entity/Component.h"
+#include "../object/Model.h"
 
 namespace Quartz
 {
-	struct MeshComponent
+	struct MeshComponent : public Component<MeshComponent>
 	{
 		String	filepath;
-		Buffer* pVertexBuffer;
-		Buffer* pIndexBuffer;
+		Model*	pModel;
 
 		MeshComponent(const String& filepath);
 	};
